@@ -1,0 +1,23 @@
+[project]
+name = "xarray-alos2"
+requires-python = ">= 3.10"
+license = {text = "MIT"}
+dependencies = []
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=64.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["alos2"]
+
+[tool.setuptools_scm]
+fallback_version = "999"
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+float_to_top = true
+default_section = "THIRDPARTY"
+known_first_party = "alos2"

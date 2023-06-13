@@ -1,0 +1,9 @@
+name: xarray-alos2-tests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - ipython
+  - pre-commit
+  - pytest
+  - pytest-reportlog
