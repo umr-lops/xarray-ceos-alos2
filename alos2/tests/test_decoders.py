@@ -103,3 +103,26 @@ def test_decode_product_id(product_id, expected):
     actual = decoders.decode_product_id(product_id)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["scan_info", "expected"],
+    (
+        pytest.param(
+            "B4",
+            {"processing_method": "SPECAN method", "scan_number": "4"},
+            id="valid_code",
+        ),
+        pytest.param("Ac", ValueError("invalid scan info"), id="invalid_code"),
+    ),
+)
+def test_decode_scan_info(scan_info, expected):
+    if issubclass(type(expected), Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            decoders.decode_scan_info(scan_info)
+
+        return
+
+    actual = decoders.decode_scan_info(scan_info)
+
+    assert actual == expected

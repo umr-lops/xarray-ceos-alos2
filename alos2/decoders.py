@@ -25,6 +25,12 @@ product_id_re = re.compile(
     (?P<orbit_direction>[AD])
     """
 )
+scan_info_re = re.compile(
+    r"""(?x)
+    (?P<processing_method>[BF])
+    (?P<scan_number>[0-9])
+    """
+)
 fname_re = re.compile(
     r"""(?x)
     (?P<filetype>[A-Z]{3})
@@ -113,10 +119,12 @@ def decode_product_id(product_id):
         raise ValueError(f"invalid product id: {product_id}") from e
 
 
-def decode_scan_info(scene_id):
-    names = ["processing_method", "scan_number"]
-    groups = dict(zip(names, scene_id))
+def decode_scan_info(scan_info):
+    match = scan_info_re.fullmatch(scan_info)
+    if match is None:
+        raise ValueError(f"invalid scan info: {scan_info}")
 
+    groups = match.groupdict()
     return {name: translations[name](value) for name, value in groups.items()}
 
 
