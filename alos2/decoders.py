@@ -64,18 +64,27 @@ map_projections = {"U": "UTM", "P": "PS", "M": "MER", "L": "LCC", "_": "not spec
 orbit_directions = {"A": "ascending", "D": "descending"}
 processing_methods = {"F": "full aperture_method", "B": "SPECAN method"}
 
+
+def lookup(mapping, code):
+    value = mapping.get(code)
+    if value is None:
+        raise ValueError(f"invalid code {code!r}")
+
+    return value
+
+
 translations = {
-    "observation_mode": curry(dict.get, observation_modes),
-    "observation_direction": curry(dict.get, observation_directions),
-    "processing_level": curry(dict.get, processing_levels),
-    "processing_option": curry(dict.get, processing_options),
-    "map_projection": curry(dict.get, map_projections),
-    "orbit_direction": curry(dict.get, orbit_directions),
+    "observation_mode": curry(lookup, observation_modes),
+    "observation_direction": curry(lookup, observation_directions),
+    "processing_level": curry(lookup, processing_levels),
+    "processing_option": curry(lookup, processing_options),
+    "map_projection": curry(lookup, map_projections),
+    "orbit_direction": curry(lookup, orbit_directions),
     "date": curry(dateutil.parser.parse, yearfirst=True, dayfirst=False),
     "mission_name": passthrough,
     "orbit_accumulation": passthrough,
     "scene_frame": passthrough,
-    "processing_method": curry(dict.get, processing_methods),
+    "processing_method": curry(lookup, processing_methods),
     "scan_number": passthrough,
 }
 
@@ -86,7 +95,10 @@ def decode_scene_id(scene_id):
         raise ValueError(f"invalid scene id: {scene_id}")
 
     groups = match.groupdict()
-    return {name: translations[name](value) for name, value in groups.items()}
+    try:
+        return {name: translations[name](value) for name, value in groups.items()}
+    except ValueError as e:
+        raise ValueError(f"invalid scene id: {scene_id}") from e
 
 
 def decode_product_id(product_id):
@@ -95,7 +107,10 @@ def decode_product_id(product_id):
         raise ValueError(f"invalid product id: {product_id}")
 
     groups = match.groupdict()
-    return {name: translations[name](value) for name, value in groups.items()}
+    try:
+        return {name: translations[name](value) for name, value in groups.items()}
+    except ValueError as e:
+        raise ValueError(f"invalid product id: {product_id}") from e
 
 
 def decode_scan_info(scene_id):
