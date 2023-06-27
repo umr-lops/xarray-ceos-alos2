@@ -1,5 +1,5 @@
 [project]
-name = "xarray-alos2"
+name = "xarray-ceos-alos2"
 requires-python = ">= 3.10"
 license = {text = "MIT"}
 dependencies = []
@@ -10,7 +10,7 @@ requires = ["setuptools>=64.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["alos2"]
+packages = ["ceos_alos2"]
 
 [tool.setuptools_scm]
 fallback_version = "999"
@@ -20,4 +20,4 @@ profile = "black"
 skip_gitignore = true
 float_to_top = true
 default_section = "THIRDPARTY"
-known_first_party = "alos2"
+known_first_party = "ceos_alos2"
