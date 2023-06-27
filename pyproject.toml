@@ -5,6 +5,7 @@ license = {text = "MIT"}
 dependencies = [
   "toolz",
   "python-dateutil",
+  "exceptiongroup; python_version < '3.11'",
 ]
 dynamic = ["version"]
 
