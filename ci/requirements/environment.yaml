@@ -6,6 +6,7 @@ dependencies:
   - pre-commit
   - pytest
   - pytest-reportlog
+  - pytest-cov
   - toolz
   - cytoolz
   - python-dateutil
