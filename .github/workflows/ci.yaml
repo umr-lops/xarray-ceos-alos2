@@ -37,6 +37,10 @@ jobs:
 
     if: needs.detect-skip-ci-trigger.outputs.triggered == 'false'
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     strategy:
       fail-fast: false
       matrix:
