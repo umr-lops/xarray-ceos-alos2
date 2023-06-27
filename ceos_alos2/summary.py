@@ -12,20 +12,22 @@ except NameError:
 entry_re = re.compile(r'(?P<section>[A-Za-z]{3})_(?P<keyword>.*?)="(?P<value>.*?)"')
 
 
+def parse_lines(lines):
+    for lineno, line in enumerate(lines):
+        match = entry_re.fullmatch(line)
+        if match is not None:
+            yield match.groupdict()
+        else:
+            yield ValueError(f"line {lineno:02d}: invalid line")
+
+
+def extract_errors(entries):
+    grouped = groupby(lambda x: isinstance(x, Exception), entries)
+
+    return grouped.get(False, []), grouped.get(True, [])
+
+
 def parse_summary(content):
-    def parse_lines(lines):
-        for lineno, line in enumerate(lines):
-            match = entry_re.fullmatch(line)
-            if match is not None:
-                yield match.groupdict()
-            else:
-                yield ValueError(f"line {lineno:02d}: invalid line")
-
-    def extract_errors(entries):
-        grouped = groupby(lambda x: isinstance(x, Exception), entries)
-
-        return grouped.get(False, []), grouped.get(True, [])
-
     parse_all = compose_left(
         str.splitlines,
         parse_lines,
