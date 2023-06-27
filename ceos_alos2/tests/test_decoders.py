@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from alos2 import decoders
+from ceos_alos2 import decoders
 
 
 @pytest.mark.parametrize(
