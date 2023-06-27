@@ -2,55 +2,81 @@ import pytest
 
 from ceos_alos2 import summary
 
+try:
+    ExceptionGroup
+except NameError:
+    from exceptiongroup import ExceptionGroup
+
+
+def compare_exceptions(e1, e2):
+    return type(e1) == type(e2) and e1.args == e2.args
+
 
 @pytest.mark.parametrize(
-    ["lines", "expected"],
+    ["line", "expected"],
     (
         pytest.param(
-            ['Scs_SceneShift="0"', 'Pds_ProductID="WWDR1.1__D"'],
-            [
-                {"section": "Scs", "keyword": "SceneShift", "value": "0"},
-                {"section": "Pds", "keyword": "ProductID", "value": "WWDR1.1__D"},
-            ],
-            id="valid_lines",
+            'Scs_SceneShift="0"',
+            {"section": "Scs", "keyword": "SceneShift", "value": "0"},
+            id="valid_line1",
         ),
         pytest.param(
-            ['Scs_SceneShift"0"', 'PdsProductID="WWDR1.1__D"'],
-            [ValueError("line 00: invalid line"), ValueError("line 01: invalid line")],
-            id="invalid_lines",
+            'Pds_ProductID="WWDR1.1__D"',
+            {"section": "Pds", "keyword": "ProductID", "value": "WWDR1.1__D"},
+            id="valid_line2",
+        ),
+        pytest.param(
+            'Scs_SceneShift"0"', ValueError("invalid line"), id="invalid_line1"
+        ),
+        pytest.param(
+            'PdsProductID="WWDR1.1__D"',
+            ValueError("invalid line"),
+            id="invalid_line2",
         ),
     ),
 )
-def test_parse_lines(lines, expected):
-    actual = list(summary.parse_lines(lines))
+def test_parse_line(line, expected):
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            summary.parse_line(line)
+        return
+
+    actual = summary.parse_line(line)
 
     assert actual == expected
 
 
 @pytest.mark.parametrize(
-    ["entries", "expected"],
+    ["content", "expected"],
     (
-        pytest.param([{"a": 1}, {"b": 2}], ([{"a": 1}, {"b": 2}], []), id="no_errors"),
         pytest.param(
-            [ValueError("invalid line"), ValueError("invalid line")],
-            ([], [ValueError("invalid line"), ValueError("invalid line")]),
-            id="all_errors",
+            'Scs_SceneShift="0"\nPds_ProductID="WWDR1.1__D"',
+            {"Scs": {"SceneShift": "0"}, "Pds": {"ProductID": "WWDR1.1__D"}},
+            id="valid_lines",
         ),
         pytest.param(
-            [{"a": 1}, ValueError("invalid line")],
-            ([{"a": 1}], [ValueError("invalid line")]),
-            id="mixed",
+            'Scs_SceneShift"0"\nPdsProductID="WWDR1.1__D"',
+            ExceptionGroup(
+                "failed to parse the summary",
+                [
+                    ValueError("line 00: invalid line"),
+                    ValueError("line 01: invalid line"),
+                ],
+            ),
+            id="invalid_lines",
         ),
     ),
 )
-def test_extract_errors(entries, expected):
-    actual_entries, actual_errors = summary.extract_errors(entries)
+def test_parse_summary(content, expected):
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected)) as e:
+            summary.parse_summary(content)
 
-    assert len(entries) == len(actual_entries) + len(actual_errors)
-    assert all(
-        entry in entries and not isinstance(entry, Exception)
-        for entry in actual_entries
-    )
-    assert all(
-        entry in entries and isinstance(entry, Exception) for entry in actual_errors
-    )
+        assert e.value.message == expected.message
+        assert all(
+            compare_exceptions(e1, e2)
+            for e1, e2 in zip(e.value.exceptions, expected.exceptions)
+        )
+        return
+    actual = summary.parse_summary(content)
+    assert actual == expected
