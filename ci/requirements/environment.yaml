@@ -10,3 +10,4 @@ dependencies:
   - toolz
   - cytoolz
   - python-dateutil
+  - construct
