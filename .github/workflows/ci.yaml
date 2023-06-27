@@ -37,6 +37,10 @@ jobs:
 
     if: needs.detect-skip-ci-trigger.outputs.triggered == 'false'
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     strategy:
       fail-fast: false
       matrix:
@@ -44,11 +48,17 @@ jobs:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
 
     steps:
-      - name: checkout the repository
+      - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           # need to fetch all tags to get a correct version
           fetch-depth: 0 # fetch all branches and tags
+
+      - name: Setup environment variables
+        run: |
+          echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+          echo "CONDA_ENV_FILE=ci/requirements/environment.yaml" >> $GITHUB_ENV
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@v1
