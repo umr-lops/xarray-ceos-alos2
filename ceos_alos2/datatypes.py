@@ -40,3 +40,28 @@ def AsciiFloat(n_bytes):
 
 def PaddedString(n_bytes):
     return PaddedStringAdapter(PaddedString_(n_bytes, "ascii"))
+
+
+class Factor(Adapter):
+    def __init__(self, obj, factor):
+        super().__init__(obj)
+        self.factor = factor
+
+    def _decode(self, obj, context, path):
+        return obj * self.factor
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class Metadata(Adapter):
+    def __init__(self, obj, **kwargs):
+        super().__init__(obj)
+
+        self.attrs = kwargs
+
+    def _decode(self, obj, context, path):
+        return (obj, self.attrs)
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
