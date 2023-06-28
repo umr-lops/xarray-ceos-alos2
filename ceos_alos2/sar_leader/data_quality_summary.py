@@ -57,6 +57,7 @@ data_quality_summary = Struct(
     / Struct(
         # TODO: does that actually make sense?
         "relative_misregistration_error" / misregistration_error[8],
-        "blanks" / PaddedString(518),
+        # TODO: this is 16 more than stated in the reference... is this on us or on JAXA?
+        "blanks" / PaddedString(534),
     ),
 )
