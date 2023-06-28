@@ -40,6 +40,22 @@ def test_ascii_float(data, n_bytes, expected):
 @pytest.mark.parametrize(
     ["data", "n_bytes", "expected"],
     (
+        pytest.param(b"1.558.42", 8, 1.55 + 8.42j, id="8bytes-no_padding"),
+        pytest.param(b"        ", 8, float("nan") + 1j * float("nan"), id="8bytes-all_padding"),
+        pytest.param(b"162.3659487.8321", 16, 162.3659 + 487.8321j, id="16bytes-no_padding"),
+        pytest.param(b" 62.3659 87.8321", 16, 62.3659 + 87.8321j, id="16bytes-padding"),
+    ),
+)
+def test_ascii_complex(data, n_bytes, expected):
+    parser = datatypes.AsciiComplex(n_bytes)
+
+    actual = parser.parse(data)
+    np.testing.assert_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["data", "n_bytes", "expected"],
+    (
         pytest.param(b"ALOS", 4, "ALOS", id="4bytes-no_padding"),
         pytest.param(b"abc ", 4, "abc", id="4bytes-padding"),
     ),
