@@ -1,5 +1,6 @@
 from construct import Adapter
 from construct import PaddedString as PaddedString_
+from construct import Struct
 
 
 class AsciiIntegerAdapter(Adapter):
@@ -17,6 +18,14 @@ class AsciiFloatAdapter(Adapter):
             stripped = "nan"
 
         return float(stripped)
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class AsciiComplexAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return obj.real + 1j * obj.imaginary
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
@@ -40,6 +49,15 @@ def AsciiFloat(n_bytes):
 
 def PaddedString(n_bytes):
     return PaddedStringAdapter(PaddedString_(n_bytes, "ascii"))
+
+
+def AsciiComplex(n_bytes):
+    obj = Struct(
+        "real" / AsciiFloat(n_bytes // 2),
+        "imaginary" / AsciiFloat(n_bytes // 2),
+    )
+
+    return AsciiComplexAdapter(obj)
 
 
 class Factor(Adapter):
