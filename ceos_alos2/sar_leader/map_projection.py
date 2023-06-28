@@ -11,7 +11,7 @@ geographic_map_point = Struct(
     "latitude" / Metadata(AsciiFloat(16), units="deg"),
     "longitude" / Metadata(AsciiFloat(16), units="deg"),
 )
-map_projection = Struct(
+map_projection_record = Struct(
     "preamble" / record_preamble,
     "blanks" / PaddedString(16),
     "map_projection_general_information"

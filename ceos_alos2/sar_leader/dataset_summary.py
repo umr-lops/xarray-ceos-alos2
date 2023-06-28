@@ -9,7 +9,7 @@ from ceos_alos2.datatypes import (
     PaddedString,
 )
 
-dataset_summary = Struct(
+dataset_summary_record = Struct(
     "preamble" / record_preamble,
     "dataset_summary_records_sequence_number" / AsciiInteger(4),
     "sar_channel_id" / PaddedString(4),

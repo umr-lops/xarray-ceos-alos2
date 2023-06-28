@@ -3,7 +3,7 @@ from construct import Struct
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiComplex, AsciiFloat, AsciiInteger, PaddedString
 
-radiometric_data = Struct(
+radiometric_data_record = Struct(
     "preamble" / record_preamble,
     "radiometric_data_records_sequence_number" / AsciiInteger(4),
     "number_of_radiometric_fields" / AsciiInteger(4),

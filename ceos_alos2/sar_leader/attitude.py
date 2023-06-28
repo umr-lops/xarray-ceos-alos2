@@ -32,7 +32,7 @@ attitude_point = Struct(
     ),
 )
 
-attitude = Struct(
+attitude_record = Struct(
     "preamble" / record_preamble,
     "number_of_points" / AsciiInteger(4),
     "data_points" / attitude_point[62],

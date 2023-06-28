@@ -3,13 +3,13 @@ from construct import Bytes, Struct, this
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
 
-facility_related_data = Struct(
+facility_related_data_record = Struct(
     "preamble" / record_preamble,
     "record_sequence_number" / AsciiInteger(4),
     "blanks" / PaddedString(50),
     "raw_file_data" / Bytes(this.preamble.record_length - 12 - 4 - 50),
 )
-facility_related_data_5 = Struct(
+facility_related_data_5_record = Struct(
     "preamble" / record_preamble,
     "record_sequence_number" / AsciiInteger(4),
     "conversion_from_map_projection_to_pixel"

@@ -17,7 +17,7 @@ orbit_point = Struct(
         "z" / Metadata(AsciiFloat(22), units="m/s"),
     ),
 )
-platform_position_data = Struct(
+platform_position_record = Struct(
     "preamble" / record_preamble,
     "orbital_elements_designator" / PaddedString(32),
     "orbital_elements"

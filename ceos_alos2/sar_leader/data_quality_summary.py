@@ -11,7 +11,7 @@ misregistration_error = Struct(
     "along_track" / Metadata(AsciiFloat(16), units="m"),
     "across_track" / Metadata(AsciiFloat(16), units="m"),
 )
-data_quality_summary = Struct(
+data_quality_summary_record = Struct(
     "preamble" / record_preamble,
     "record_number" / AsciiInteger(4),
     "sar_channel_id" / PaddedString(4),

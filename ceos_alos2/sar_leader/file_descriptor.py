@@ -30,7 +30,7 @@ big_record_info = Struct(
     "number_of_records" / AsciiInteger(6),
     "record_length" / AsciiInteger(8),
 )
-sar_leader_file_descriptor = Struct(
+file_descriptor_record = Struct(
     "preamble" / record_preamble,
     "ascii_ebcdic_flag" / PaddedString(2),
     "blanks" / PaddedString(2),
