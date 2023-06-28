@@ -5,7 +5,10 @@ from construct import Struct
 
 class AsciiIntegerAdapter(Adapter):
     def _decode(self, obj, context, path):
-        return int(obj.rstrip())
+        stripped = obj.rstrip()
+        if not stripped:
+            return -(2**15)
+        return int(stripped)
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
