@@ -47,14 +47,10 @@ file_descriptor = Struct(
     "maximum_record_length_in_referenced_file" / AsciiInteger(8),
     "referenced_file_record_length_type" / PaddedString(12),
     "referenced_file_record_length_type_code" / PaddedString(4),
-    "number_of_the_physical_volume_set_containing_the_first_record_of_the_file"
-    / AsciiInteger(2),
-    "number_of_the_physical_volume_set_containing_the_last_record_of_the_file"
-    / AsciiInteger(2),
-    "record_number_of_the_first_record_appearing_on_this_physical_volume"
-    / AsciiInteger(8),
-    "record_number_of_the_last_record_appearing_on_this_physical_volume"
-    / AsciiInteger(8),
+    "number_of_the_physical_volume_set_containing_the_first_record_of_the_file" / AsciiInteger(2),
+    "number_of_the_physical_volume_set_containing_the_last_record_of_the_file" / AsciiInteger(2),
+    "record_number_of_the_first_record_appearing_on_this_physical_volume" / AsciiInteger(8),
+    "record_number_of_the_last_record_appearing_on_this_physical_volume" / AsciiInteger(8),
     "spare" / PaddedString(100),
     "local_use_segment" / PaddedString(100),
 )
@@ -73,7 +69,6 @@ text_record = Struct(
 
 volume_directory = Struct(
     "volume_descriptor" / volume_descriptor,
-    "file_descriptors"
-    / file_descriptor[this.volume_descriptor.number_of_file_pointer_records],
+    "file_descriptors" / file_descriptor[this.volume_descriptor.number_of_file_pointer_records],
     "text_record" / text_record,
 )

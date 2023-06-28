@@ -1,0 +1,75 @@
+from construct import Struct
+
+from ceos_alos2.common import record_preamble
+from ceos_alos2.datatypes import AsciiInteger, PaddedString
+
+record_types = {
+    "dataset_summary": (18, 10, 18, 20),
+    "map_projection_data": (18, 20, 18, 20),
+    "platform_position_data": (18, 30, 18, 20),
+    "attitude_data": (18, 40, 18, 20),
+    "radiometric_data": (18, 50, 18, 20),
+    "radiometric_compensation": (18, 51, 18, 20),
+    "data_quality_summary": (18, 60, 18, 20),
+    "data_histograms": (18, 70, 18, 20),
+    "range_spectra": (18, 80, 18, 20),
+    "digital_elevation_model_descriptor": (18, 90, 18, 20),
+    "radar_parameter_data_update": (18, 100, 18, 20),
+    "annotation_data": (18, 110, 18, 20),
+    "detailed_processing_parameters": (18, 120, 18, 20),
+    "calibration_data": (18, 130, 18, 20),
+    "ground_control_points": (18, 140, 18, 20),
+    "facility_related_data": (18, 200, 18, 20),
+}
+
+small_record_info = Struct(
+    "number_of_records" / AsciiInteger(6),
+    "record_length" / AsciiInteger(6),
+)
+big_record_info = Struct(
+    "number_of_records" / AsciiInteger(6),
+    "record_length" / AsciiInteger(8),
+)
+file_descriptor_record = Struct(
+    "preamble" / record_preamble,
+    "ascii_ebcdic_flag" / PaddedString(2),
+    "blanks" / PaddedString(2),
+    "format_control_document_id" / PaddedString(12),
+    "format_control_document_revision_level" / PaddedString(2),
+    "record_format_revision_level" / PaddedString(2),
+    "software_release_and_revision_number" / PaddedString(12),
+    "file_number" / AsciiInteger(4),
+    "file_id" / PaddedString(16),
+    "record_sequence_and_location_type_flag" / PaddedString(4),
+    "sequence_number_of_location" / AsciiInteger(8),
+    "field_length_of_sequence_number" / AsciiInteger(4),
+    "record_code_and_location_type_flag" / PaddedString(4),
+    "location_of_record_code" / AsciiInteger(8),
+    "field_length_of_record_code" / AsciiInteger(4),
+    "record_length_and_location_type_flag" / PaddedString(4),
+    "location_of_record_length" / AsciiInteger(8),
+    "field_length_of_record_length" / AsciiInteger(4),
+    "blanks1" / PaddedString(68),
+    "dataset_summary" / small_record_info,
+    "map_projection" / small_record_info,
+    "platform_position" / small_record_info,
+    "attitude" / small_record_info,
+    "radiometric_data" / small_record_info,
+    "radiometric_compensation" / small_record_info,
+    "data_quality_summary" / small_record_info,
+    "data_histogram" / small_record_info,
+    "range_spectra" / small_record_info,
+    "dem_descriptor" / small_record_info,
+    "radar_parameter_update" / small_record_info,
+    "annotation_data" / small_record_info,
+    "detail_processing" / small_record_info,
+    "calibration" / small_record_info,
+    "gcp" / small_record_info,
+    "spare" / PaddedString(60),
+    "facility_related_data_1" / big_record_info,
+    "facility_related_data_2" / big_record_info,
+    "facility_related_data_3" / big_record_info,
+    "facility_related_data_4" / big_record_info,
+    "facility_related_data_5" / big_record_info,
+    "blanks2" / PaddedString(230),
+)
