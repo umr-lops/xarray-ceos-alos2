@@ -26,3 +26,6 @@ skip_gitignore = true
 float_to_top = true
 default_section = "THIRDPARTY"
 known_first_party = "ceos_alos2"
+
+[tool.black]
+line-length = 100

@@ -25,9 +25,7 @@ def compare_exceptions(e1, e2):
             {"section": "Pds", "keyword": "ProductID", "value": "WWDR1.1__D"},
             id="valid_line2",
         ),
-        pytest.param(
-            'Scs_SceneShift"0"', ValueError("invalid line"), id="invalid_line1"
-        ),
+        pytest.param('Scs_SceneShift"0"', ValueError("invalid line"), id="invalid_line1"),
         pytest.param(
             'PdsProductID="WWDR1.1__D"',
             ValueError("invalid line"),
@@ -74,8 +72,7 @@ def test_parse_summary(content, expected):
 
         assert e.value.message == expected.message
         assert all(
-            compare_exceptions(e1, e2)
-            for e1, e2 in zip(e.value.exceptions, expected.exceptions)
+            compare_exceptions(e1, e2) for e1, e2 in zip(e.value.exceptions, expected.exceptions)
         )
         return
     actual = summary.parse_summary(content)
