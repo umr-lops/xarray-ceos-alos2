@@ -7,7 +7,7 @@ class AsciiIntegerAdapter(Adapter):
     def _decode(self, obj, context, path):
         stripped = obj.rstrip()
         if not stripped:
-            return -(2**15)
+            return -1
         return int(stripped)
 
     def _encode(self, obj, context, path):
