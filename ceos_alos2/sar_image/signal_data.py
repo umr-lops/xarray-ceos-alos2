@@ -1,7 +1,21 @@
-from construct import Bytes, Int16ub, Int32ub, Int64ub, Struct
+from construct import Bytes, Int32ub, Int64ub, Struct, this
 
 from ceos_alos2.common import record_preamble
-from ceos_alos2.datatypes import Factor, Metadata
+from ceos_alos2.datatypes import (
+    DatetimeYdms,
+    DatetimeYdus,
+    Factor,
+    Metadata,
+    StripNullBytes,
+)
+from ceos_alos2.sar_image.enums import (
+    Flag,
+    chirp_type_designator,
+    platform_position_parameters_update,
+    pulse_polarization,
+    sar_channel_code,
+    sar_channel_id,
+)
 
 signal_data_record = Struct(
     "preamble" / record_preamble,
@@ -16,27 +30,30 @@ signal_data_record = Struct(
     "sensor_parameters"
     / Struct(
         "sensor_parameters_update_flag" / Int32ub,
-        "sensor_acquisition"
-        / Struct(
-            "year" / Int32ub,
-            "day_of_year" / Int32ub,
-            "milliseconds_of_day" / Int32ub,
+        "sensor_acquisition_date"
+        / DatetimeYdms(
+            Struct(
+                "year" / Int32ub,
+                "day_of_year" / Int32ub,
+                "milliseconds" / Int32ub,
+            )
         ),
-        "sar_channel_id" / Int16ub,
-        "sar_channel_code" / Int16ub,
-        "transmitted_pulse_polarization" / Int16ub,
-        "received_pulse_polarization" / Int16ub,
+        "sar_channel_id" / sar_channel_id,
+        "sar_channel_code" / sar_channel_code,
+        "transmitted_pulse_polarization" / pulse_polarization,
+        "received_pulse_polarization" / pulse_polarization,
         "prf" / Metadata(Int32ub, units="mHz"),
         "scan_id" / Int32ub,
-        "onboard_range_compressed_flag" / Int16ub,
-        "chirp_type_designator" / Int16ub,
+        "onboard_range_compressed_flag" / Flag(2),
+        "chirp_type_designator" / chirp_type_designator,
         "chirp_length" / Metadata(Int32ub, units="ns"),
         "chirp_constant_coefficient" / Metadata(Int32ub, units="Hz"),
         "chirp_linear_coefficient" / Metadata(Int32ub, units="Hz/µs"),
         "chirp_quadratic_coefficient" / Metadata(Int32ub, units="Hz/µs^2"),
-        "sensor_acquisition_microseconds_of_day" / Int64ub,
+        "sensor_acquisition_date_microseconds"
+        / DatetimeYdus(Int64ub, this.sensor_acquisition_date),
         "receiver_gain" / Metadata(Int32ub, units="dB"),
-        "invalid_line_flag" / Int32ub,
+        "invalid_line_flag" / Flag(4),
         "elevation_angle_at_nadir_of_antenna"
         / Struct(
             "electronic" / Metadata(Int32ub, units="deg"),
@@ -53,7 +70,7 @@ signal_data_record = Struct(
     ),
     "platform_reference_information"
     / Struct(
-        "platform_position_parameters_update_flag" / Int32ub,
+        "platform_position_parameters_update_flag" / platform_position_parameters_update,
         "platform_latitude" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         "platform_longitude" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         "platform_altitude" / Metadata(Int32ub, units="deg"),
@@ -92,8 +109,8 @@ signal_data_record = Struct(
     / Struct(
         "burst_number" / Int32ub,
         "line_number_in_this_burst" / Int32ub,
-        "blanks" / Bytes(60),
+        "blanks" / StripNullBytes(Bytes(60)),
         "alos2_frame_number" / Int32ub,
-        "palsar_auxiliary_data" / Bytes(256),
+        "palsar_auxiliary_data" / StripNullBytes(Bytes(256)),
     ),
 )
