@@ -9,11 +9,11 @@ def parse_chunk(content, element_size):
     if n_elements * element_size != len(content):
         raise ValueError(
             f"sizes mismatch: chunksize is {n_elements * element_size}"
-            " but got {len(content)} bytes"
+            f" but got {len(content)} bytes"
         )
 
     parser = signal_data_record[n_elements]
-    return parser.parse(content)
+    return list(parser.parse(content))
 
 
 def read_metadata(f, records_per_chunk=1024):
