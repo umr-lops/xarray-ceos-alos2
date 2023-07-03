@@ -1,3 +1,4 @@
+import itertools
 import math
 
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
@@ -16,6 +17,18 @@ def parse_chunk(content, element_size):
     return list(parser.parse(content))
 
 
+def _adjust_offset(record, offset):
+    record.record_start += offset
+    record.data.start += offset
+    record.data.stop += offset
+
+    return record
+
+
+def adjust_offsets(records, offset):
+    return [_adjust_offset(record, offset) for record in records]
+
+
 def read_metadata(f, records_per_chunk=1024):
     header = file_descriptor_record.parse(f.read(720))
 
@@ -29,7 +42,17 @@ def read_metadata(f, records_per_chunk=1024):
         else n_records - records_per_chunk * index
         for index in range(n_chunks)
     ]
+    chunk_offsets = [
+        offset * record_size + 720 for offset in itertools.accumulate(chunksizes, initial=0)
+    ]
 
-    metadata = [parse_chunk(f.read(chunksize), record_size) for chunksize in chunksizes]
+    metadata = list(
+        itertools.chain.from_iterable(
+            adjust_offsets(
+                parse_chunk(f.read(chunksize * record_size), record_size), offset=chunk_offset
+            )
+            for chunksize, chunk_offset in zip(chunksizes, chunk_offsets)
+        )
+    )
 
     return header, metadata
