@@ -1,4 +1,4 @@
-from construct import Adapter, Bytes, Enum, Int8ub, Int16ub, Int32ub, Int64ub
+from construct import Adapter, Enum, Int8ub, Int16ub, Int32ub, Int64ub
 
 
 class Flag(Adapter):
@@ -23,7 +23,7 @@ class Flag(Adapter):
         return int(obj)
 
 
-sar_channel_id = Enum(Bytes(2), single_polarization=1, dual_polarization=2, full_polarization=4)
-sar_channel_code = Enum(Bytes(2), L=0, S=1, C=2, X=3, KU=4, KA=5)
-transmitted_pulse_polarization = Enum(Bytes(2), horizontal=0, vertical=1)
-chirp_type_designator = Enum(Bytes(2), linear_fm_chirp=0, phase_modulators=1)
+sar_channel_id = Enum(Int16ub, single_polarization=1, dual_polarization=2, full_polarization=4)
+sar_channel_code = Enum(Int16ub, L=0, S=1, C=2, X=3, KU=4, KA=5)
+pulse_polarization = Enum(Int16ub, horizontal=0, vertical=1)
+chirp_type_designator = Enum(Int16ub, linear_fm_chirp=0, phase_modulators=1)
