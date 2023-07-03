@@ -3,9 +3,9 @@ from construct import Bytes, Int16ub, Int32ub, Int64ub, Struct
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import Factor, Metadata
 
-signal_data_record_header = Struct(
+signal_data_record = Struct(
     "preamble" / record_preamble,
-    "prefix_data_general_information"
+    "general_information"
     / Struct(
         "sar_image_data_line_number" / Int32ub,
         "sar_image_data_record_index" / Int32ub,
@@ -13,7 +13,7 @@ signal_data_record_header = Struct(
         "actual_count_of_data_pixels" / Int32ub,
         "actual_count_of_right_fill_pixels" / Int32ub,
     ),
-    "prefix_data_sensor_parameters"
+    "sensor_parameters"
     / Struct(
         "sensor_parameters_update_flag" / Int32ub,
         "sensor_acquisition"
@@ -51,7 +51,7 @@ signal_data_record_header = Struct(
         "data_record_window_position" / Metadata(Int32ub, units="ns"),
         "spare" / Int32ub,
     ),
-    "prefix_data_platform_reference_information"
+    "platform_reference_information"
     / Struct(
         "platform_position_parameters_update_flag" / Int32ub,
         "platform_latitude" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
@@ -79,7 +79,7 @@ signal_data_record_header = Struct(
             "yaw" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         ),
     ),
-    "prefix_data_sensor_facility_specific_auxiliary_data"
+    "sensor_facility_specific_auxiliary_data"
     / Struct(
         "latitude_of_first_pixel" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         "latitude_of_center_pixel" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
