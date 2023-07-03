@@ -117,6 +117,7 @@ signal_data_record = Struct(
     "data"
     / Struct(
         "start" / Tell,
+        "size" / this._.preamble.record_length - (this.start - this._.record_start),
         "stop" / Seek(this._.record_start + this._.preamble.record_length),
     ),
 )
