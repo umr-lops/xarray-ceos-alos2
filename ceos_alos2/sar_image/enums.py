@@ -27,3 +27,4 @@ sar_channel_id = Enum(Int16ub, single_polarization=1, dual_polarization=2, full_
 sar_channel_code = Enum(Int16ub, L=0, S=1, C=2, X=3, KU=4, KA=5)
 pulse_polarization = Enum(Int16ub, horizontal=0, vertical=1)
 chirp_type_designator = Enum(Int16ub, linear_fm_chirp=0, phase_modulators=1)
+platform_position_parameters_update = Enum(Int32ub, repeat=0, update=1)
