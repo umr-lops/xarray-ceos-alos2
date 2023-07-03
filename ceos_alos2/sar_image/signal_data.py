@@ -1,4 +1,4 @@
-from construct import Bytes, Int32ub, Int64ub, Seek, Struct, Tell, this
+from construct import Bytes, Computed, Int32ub, Int64ub, Seek, Struct, Tell, this
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import (
@@ -117,7 +117,7 @@ signal_data_record = Struct(
     "data"
     / Struct(
         "start" / Tell,
-        "size" / this._.preamble.record_length - (this.start - this._.record_start),
+        "size" / Computed(this._.preamble.record_length - (this.start - this._.record_start)),
         "stop" / Seek(this._.record_start + this._.preamble.record_length),
     ),
 )
