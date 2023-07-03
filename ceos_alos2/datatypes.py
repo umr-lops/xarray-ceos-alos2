@@ -1,3 +1,5 @@
+import datetime
+
 from construct import Adapter
 from construct import PaddedString as PaddedString_
 from construct import Struct
@@ -83,6 +85,38 @@ class Metadata(Adapter):
 
     def _decode(self, obj, context, path):
         return (obj, self.attrs)
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class StripNullBytes(Adapter):
+    def _decode(self, obj, context, path):
+        return obj.strip(b"\x00")
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class DatetimeYdms(Adapter):
+    def _decode(self, obj, context, path):
+        base = datetime.datetime(obj["year"], 1, 1)
+        timedelta = datetime.timedelta(days=obj["day_of_year"], milliseconds=obj["milliseconds"])
+
+        return base + timedelta
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class DatetimeYdus(Adapter):
+    def __init__(self, base, reference_date):
+        self.reference_date = reference_date
+
+        super().__init__(base)
+
+    def _decode(self, obj, context, path):
+        return self.reference_date.date + datetime.timedelta(microseconds=obj)
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
