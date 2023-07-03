@@ -97,7 +97,7 @@ signal_data_record = Struct(
             "yaw" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         ),
     ),
-    "sensor_facility_specific_auxiliary_data"
+    "sensor_and_facility_specific_auxiliary_data"
     / Struct(
         "latitude_of_first_pixel" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         "latitude_of_center_pixel" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
