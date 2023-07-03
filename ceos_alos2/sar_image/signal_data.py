@@ -1,4 +1,4 @@
-from construct import Bytes, Int32ub, Int64ub, Struct, this
+from construct import Bytes, Int32ub, Int64ub, Seek, Struct, Tell, this
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import (
@@ -18,6 +18,7 @@ from ceos_alos2.sar_image.enums import (
 )
 
 signal_data_record = Struct(
+    "record_start" / Tell,
     "preamble" / record_preamble,
     "general_information"
     / Struct(
@@ -112,5 +113,10 @@ signal_data_record = Struct(
         "blanks" / StripNullBytes(Bytes(60)),
         "alos2_frame_number" / Int32ub,
         "palsar_auxiliary_data" / StripNullBytes(Bytes(256)),
+    ),
+    "data"
+    / Struct(
+        "start" / Tell,
+        "stop" / Seek(this._.record_start + this._.preamble.record_length),
     ),
 )
