@@ -116,7 +116,11 @@ class DatetimeYdus(Adapter):
         super().__init__(base)
 
     def _decode(self, obj, context, path):
-        return self.reference_date.date + datetime.timedelta(microseconds=obj)
+        reference_date = (
+            self.reference_date(context) if callable(self.reference_date) else self.reference_date
+        )
+        truncated = datetime.datetime.combine(reference_date.date(), datetime.time.min)
+        return truncated + datetime.timedelta(microseconds=obj)
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
