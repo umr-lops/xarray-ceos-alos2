@@ -124,3 +124,11 @@ class DatetimeYdus(Adapter):
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
+
+
+class ComplexAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return obj["real"] + 1j * obj["imaginary"]
+
+    def _encode(self, obj, context, path):
+        return {"real": obj.real, "imaginary": obj.imag}

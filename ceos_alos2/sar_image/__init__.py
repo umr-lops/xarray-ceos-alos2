@@ -1,6 +1,10 @@
 import itertools
 import math
 
+import numpy as np
+from construct import Float32b, Int16ub, Struct
+
+from ceos_alos2.datatypes import ComplexAdapter
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 
@@ -56,3 +60,29 @@ def read_metadata(f, records_per_chunk=1024):
     )
 
     return header, metadata
+
+
+parsers = {
+    # TODO: figure out whether that's actually what the docs mean
+    "C*8": ComplexAdapter(Struct("real" / Float32b, "imaginary" / Float32b)),
+    "IU2": Int16ub,
+}
+
+
+def read_data(f, offset, size, type_code):
+    base = parsers.get(type_code)
+    if base is None:
+        raise ValueError(f"unknown type code: {type_code}")
+
+    element_size = base.sizeof()
+    n_elements = size // element_size
+    if n_elements * element_size != size:
+        raise ValueError("type doesn't evenly divide buffer")
+
+    parser = base[n_elements]
+
+    f.seek(offset, whence=0)
+    content = f.read(size)
+    # TODO: try whether using `numpy.frombuffer` would be possible / faster
+    parsed = parser.parse(content)
+    return np.array(parsed)
