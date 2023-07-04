@@ -90,20 +90,32 @@ parsers = {
 }
 
 
-def read_data(f, offset, size, type_code):
+def parse_data(content, type_code):
     base = parsers.get(type_code)
     if base is None:
         raise ValueError(f"unknown type code: {type_code}")
 
     element_size = base.sizeof()
-    n_elements = size // element_size
-    if n_elements * element_size != size:
+    n_elements = len(content) // element_size
+    if n_elements * element_size != len(content):
         raise ValueError("type doesn't evenly divide buffer")
 
+    # TODO: try whether using `numpy.frombuffer` would be possible / faster
     parser = base[n_elements]
 
+    return np.array(parser.parse(content))
+
+
+def read_data_chunk(f, offset, record_size, type_code, records_per_chunk=1024):
     f.seek(offset, whence=0)
+
+    size = records_per_chunk * record_size
+
     content = f.read(size)
-    # TODO: try whether using `numpy.frombuffer` would be possible / faster
-    parsed = parser.parse(content)
-    return np.array(parsed)
+
+    metadata = parse_chunk(content, record_size)
+    byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
+
+    return np.stack(
+        [parse_data(content[start:stop], type_code) for start, stop in byte_ranges], axis=0
+    )
