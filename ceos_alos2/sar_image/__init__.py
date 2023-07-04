@@ -4,9 +4,26 @@ import math
 import numpy as np
 from construct import Float32b, Int16ub, Struct
 
+from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import ComplexAdapter
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
+from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
+
+
+def extract_record_type(preamble):
+    return (
+        preamble.first_record_subtype,
+        preamble.record_type,
+        preamble.second_record_subtype,
+        preamble.third_record_subtype,
+    )
+
+
+record_types = {
+    10: signal_data_record,
+    11: processed_data_record,
+}
 
 
 def parse_chunk(content, element_size):
@@ -17,7 +34,12 @@ def parse_chunk(content, element_size):
             f" but got {len(content)} bytes"
         )
 
-    parser = signal_data_record[n_elements]
+    record_type = record_preamble.parse(content[:12]).record_type
+    data_record = record_types.get(record_type)
+    if data_record is None:
+        raise ValueError(f"unknown record type code: {record_type}")
+
+    parser = data_record[n_elements]
     return list(parser.parse(content))
 
 
@@ -63,7 +85,6 @@ def read_metadata(f, records_per_chunk=1024):
 
 
 parsers = {
-    # TODO: figure out whether that's actually what the docs mean
     "C*8": ComplexAdapter(Struct("real" / Float32b, "imaginary" / Float32b)),
     "IU2": Int16ub,
 }
