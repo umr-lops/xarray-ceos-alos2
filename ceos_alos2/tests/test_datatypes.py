@@ -133,3 +133,22 @@ def test_datetime_ydus(data, expected):
     actual = parser.parse(data)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["metadata"],
+    (
+        pytest.param({"units": "m"}),
+        pytest.param({"scale": 10, "units": "us"}),
+    ),
+)
+def test_metadata(metadata):
+    data = b"\x32"
+    base = Int8ub
+
+    expected = (50, metadata)
+
+    parser = datatypes.Metadata(base, **metadata)
+    actual = parser.parse(data)
+
+    assert actual == expected
