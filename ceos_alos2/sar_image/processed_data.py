@@ -47,7 +47,7 @@ processed_data_record = Struct(
         "azimuth_fm_rate_of_last_pixel" / Metadata(Int32ub, units="Hz/ms"),
         "look_angle_of_nadir" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
         "azimuth_squint_angle" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
-        "blanks" / Int32ub,
+        "blanks" / StripNullBytes(Bytes(20)),
     ),
     "geographic_reference_info"
     / Struct(
@@ -61,12 +61,11 @@ processed_data_record = Struct(
         "northing_of_first_pixel" / Metadata(Int32ub, units="m"),
         "blanks1" / StripNullBytes(Bytes(4)),
         "northing_of_last_pixel" / Metadata(Int32ub, units="m"),
-        "blanks2" / StripNullBytes(Bytes(4)),
         "easting_of_first_pixel" / Metadata(Int32ub, units="m"),
-        "blanks3" / StripNullBytes(Bytes(4)),
+        "blanks2" / StripNullBytes(Bytes(4)),
         "easting_of_last_pixel" / Metadata(Int32ub, units="m"),
         "line_heading" / Metadata(Factor(Int32ub, 1e-6), units="deg"),
-        "blanks4" / StripNullBytes(Bytes(8)),
+        "blanks3" / StripNullBytes(Bytes(8)),
     ),
     "data"
     / Struct(
