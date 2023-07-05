@@ -101,7 +101,9 @@ class StripNullBytes(Adapter):
 class DatetimeYdms(Adapter):
     def _decode(self, obj, context, path):
         base = datetime.datetime(obj["year"], 1, 1)
-        timedelta = datetime.timedelta(days=obj["day_of_year"], milliseconds=obj["milliseconds"])
+        timedelta = datetime.timedelta(
+            days=obj["day_of_year"] - 1, milliseconds=obj["milliseconds"]
+        )
 
         return base + timedelta
 
