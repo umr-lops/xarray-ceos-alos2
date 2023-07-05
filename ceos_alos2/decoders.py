@@ -5,7 +5,7 @@ from tlz.dicttoolz import merge
 from tlz.functoolz import curry
 from tlz.itertoolz import identity as passthrough
 
-from .dicttoolz import valsplit
+from ceos_alos2.dicttoolz import valsplit
 
 scene_id_re = re.compile(
     r"""(?x)

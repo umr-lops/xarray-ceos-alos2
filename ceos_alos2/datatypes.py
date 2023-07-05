@@ -1,3 +1,5 @@
+import datetime
+
 from construct import Adapter
 from construct import PaddedString as PaddedString_
 from construct import Struct
@@ -86,3 +88,47 @@ class Metadata(Adapter):
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
+
+
+class StripNullBytes(Adapter):
+    def _decode(self, obj, context, path):
+        return obj.strip(b"\x00")
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class DatetimeYdms(Adapter):
+    def _decode(self, obj, context, path):
+        base = datetime.datetime(obj["year"], 1, 1)
+        timedelta = datetime.timedelta(days=obj["day_of_year"], milliseconds=obj["milliseconds"])
+
+        return base + timedelta
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class DatetimeYdus(Adapter):
+    def __init__(self, base, reference_date):
+        self.reference_date = reference_date
+
+        super().__init__(base)
+
+    def _decode(self, obj, context, path):
+        reference_date = (
+            self.reference_date(context) if callable(self.reference_date) else self.reference_date
+        )
+        truncated = datetime.datetime.combine(reference_date.date(), datetime.time.min)
+        return truncated + datetime.timedelta(microseconds=obj)
+
+    def _encode(self, obj, context, path):
+        raise NotImplementedError
+
+
+class ComplexAdapter(Adapter):
+    def _decode(self, obj, context, path):
+        return obj["real"] + 1j * obj["imaginary"]
+
+    def _encode(self, obj, context, path):
+        return {"real": obj.real, "imaginary": obj.imag}

@@ -1,16 +1,16 @@
 from construct import Struct, this
 
-from .attitude import attitude_record
-from .data_quality_summary import data_quality_summary_record
-from .dataset_summary import dataset_summary_record
-from .facility_related_data import (
+from ceos_alos2.sar_leader.attitude import attitude_record
+from ceos_alos2.sar_leader.data_quality_summary import data_quality_summary_record
+from ceos_alos2.sar_leader.dataset_summary import dataset_summary_record
+from ceos_alos2.sar_leader.facility_related_data import (
     facility_related_data_5_record,
     facility_related_data_record,
 )
-from .file_descriptor import file_descriptor_record
-from .map_projection import map_projection_record
-from .platform_position import platform_position_record
-from .radiometric_data import radiometric_data_record
+from ceos_alos2.sar_leader.file_descriptor import file_descriptor_record
+from ceos_alos2.sar_leader.map_projection import map_projection_record
+from ceos_alos2.sar_leader.platform_position import platform_position_record
+from ceos_alos2.sar_leader.radiometric_data import radiometric_data_record
 
 sar_leader = Struct(
     "file_descriptor" / file_descriptor_record,
