@@ -2,10 +2,10 @@ import itertools
 import math
 
 import numpy as np
-from construct import Float32b, Int16ub, Struct
+from tlz.functoolz import curry
+from tlz.itertoolz import partition_all
 
 from ceos_alos2.common import record_preamble
-from ceos_alos2.datatypes import ComplexAdapter
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
@@ -84,38 +84,49 @@ def read_metadata(f, records_per_chunk=1024):
     return header, metadata
 
 
-parsers = {
-    "C*8": ComplexAdapter(Struct("real" / Float32b, "imaginary" / Float32b)),
-    "IU2": Int16ub,
+dtypes = {
+    "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
+    "IU2": np.dtype(">u2"),
 }
 
 
 def parse_data(content, type_code):
-    base = parsers.get(type_code)
-    if base is None:
+    dtype = dtypes.get(type_code)
+    if dtype is None:
         raise ValueError(f"unknown type code: {type_code}")
 
-    element_size = base.sizeof()
-    n_elements = len(content) // element_size
-    if n_elements * element_size != len(content):
-        raise ValueError("type doesn't evenly divide buffer")
-
-    # TODO: try whether using `numpy.frombuffer` would be possible / faster
-    parser = base[n_elements]
-
-    return np.array(parser.parse(content))
+    raw = np.frombuffer(content, dtype)
+    if type_code == "C*8":
+        return raw["real"] + 1j * raw["imag"]
+    return raw
 
 
-def read_data_chunk(f, offset, record_size, type_code, records_per_chunk=1024):
-    f.seek(offset, whence=0)
+def parse_data_chunked(bytes_, ranges, type_code):
+    raw = np.stack([parse_data(bytes_[start:stop], type_code) for start, stop in ranges], axis=0)
 
-    size = records_per_chunk * record_size
+    return np.where(raw != 0, raw, np.nan)
 
-    content = f.read(size)
 
-    metadata = parse_chunk(content, record_size)
-    byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
+def compute_chunk_info(metadata, type_code):
+    offset = metadata[0].record_start
+    chunksize = metadata[0].preamble.record_length * len(metadata)
+    return {
+        "offset": offset,
+        "size": chunksize,
+        "type_code": type_code,
+        "ranges": [(m.data.start - offset, m.data.stop - offset) for m in metadata],
+    }
 
-    return np.stack(
-        [parse_data(content[start:stop], type_code) for start, stop in byte_ranges], axis=0
-    )
+
+def read_chunk(f, offset, size, ranges, type_code):
+    f.seek(offset)
+    chunk = f.read(size)
+
+    return parse_data_chunked(chunk, ranges, type_code)
+
+
+def read_data_chunked(f, metadata, *, type_code, records_per_chunk=1024):
+    partitioned = partition_all(records_per_chunk, metadata)
+    chunk_info = list(map(curry(compute_chunk_info, type_code=type_code), partitioned))
+
+    return np.concatenate([read_chunk(f, **info) for info in chunk_info], axis=0)
