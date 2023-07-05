@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 import pytest
-from construct import Int8ub, Int32ub, Struct
+from construct import Int8ub, Int32ub, Int64ub, Struct
 
 from ceos_alos2 import datatypes
 
@@ -107,5 +107,29 @@ def test_datetime_ydms(data, expected):
     )
 
     actual = datatypes.DatetimeYdms(base).parse(data)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["data", "expected"],
+    (
+        pytest.param(
+            b"\x00\x00\x00\x00\x00\x00\x00\x00",
+            datetime.datetime(2019, 1, 1),
+            id="offset_zero",
+        ),
+        pytest.param(
+            b"\x00\x00\x00\tx\x0f\xb1@",
+            datetime.datetime(2019, 1, 1, 11, 17, 49),
+            id="full_seconds",
+        ),
+    ),
+)
+def test_datetime_ydus(data, expected):
+    reference_date = datetime.datetime(2019, 1, 1, 21, 37, 52, 107000)
+
+    parser = datatypes.DatetimeYdus(Int64ub, reference_date)
+    actual = parser.parse(data)
 
     assert actual == expected
