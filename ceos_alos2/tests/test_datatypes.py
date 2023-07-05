@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from construct import Int8ub
 
 from ceos_alos2 import datatypes
 
@@ -64,4 +65,20 @@ def test_padded_string(data, n_bytes, expected):
     parser = datatypes.PaddedString(n_bytes)
 
     actual = parser.parse(data)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["data", "factor", "expected"],
+    (
+        pytest.param(b"\x32", 1e-2, 0.5, id="negative_factor"),
+        pytest.param(b"\x32", 1e3, 50000, id="positive_factor"),
+    ),
+)
+def test_factor(data, factor, expected):
+    base = Int8ub
+    parser = datatypes.Factor(base, factor=factor)
+
+    actual = parser.parse(data)
+
     assert actual == expected
