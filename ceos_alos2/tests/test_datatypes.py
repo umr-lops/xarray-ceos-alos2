@@ -1,6 +1,8 @@
+import datetime
+
 import numpy as np
 import pytest
-from construct import Int8ub
+from construct import Int8ub, Int32ub, Struct
 
 from ceos_alos2 import datatypes
 
@@ -80,5 +82,30 @@ def test_factor(data, factor, expected):
     parser = datatypes.Factor(base, factor=factor)
 
     actual = parser.parse(data)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["data", "expected"],
+    (
+        pytest.param(
+            b"\x00\x00\x07\xc6\x00\x00\x01\x0e\x03\x19\xf2f",
+            datetime.datetime(1990, 9, 27, 14, 27, 12, 102000),
+        ),
+        pytest.param(
+            b"\x00\x00\x08\x0b\x00\x00\x00\x01\x00\x00\x00\x00",
+            datetime.datetime(2059, 1, 1),
+        ),
+    ),
+)
+def test_datetime_ydms(data, expected):
+    base = Struct(
+        "year" / Int32ub,
+        "day_of_year" / Int32ub,
+        "milliseconds" / Int32ub,
+    )
+
+    actual = datatypes.DatetimeYdms(base).parse(data)
 
     assert actual == expected
