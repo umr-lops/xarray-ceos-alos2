@@ -20,9 +20,13 @@ class AsciiInteger(Adapter):
         raise NotImplementedError
 
 
-class AsciiFloatAdapter(Adapter):
+class AsciiFloat(Adapter):
+    def __init__(self, n_bytes):
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
-        stripped = obj.rstrip()
+        stripped = obj.strip()
         if not stripped:
             stripped = "nan"
 
@@ -32,7 +36,14 @@ class AsciiFloatAdapter(Adapter):
         raise NotImplementedError
 
 
-class AsciiComplexAdapter(Adapter):
+class AsciiComplex(Adapter):
+    def __init__(self, n_bytes):
+        base = Struct(
+            "real" / AsciiFloat(n_bytes // 2),
+            "imaginary" / AsciiFloat(n_bytes // 2),
+        )
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
         return obj.real + 1j * obj.imaginary
 
@@ -40,29 +51,16 @@ class AsciiComplexAdapter(Adapter):
         raise NotImplementedError
 
 
-class PaddedStringAdapter(Adapter):
+class PaddedString(Adapter):
+    def __init__(self, n_bytes):
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
         return obj.strip()
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
-
-
-def AsciiFloat(n_bytes):
-    return AsciiFloatAdapter(PaddedString_(n_bytes, "ascii"))
-
-
-def PaddedString(n_bytes):
-    return PaddedStringAdapter(PaddedString_(n_bytes, "ascii"))
-
-
-def AsciiComplex(n_bytes):
-    obj = Struct(
-        "real" / AsciiFloat(n_bytes // 2),
-        "imaginary" / AsciiFloat(n_bytes // 2),
-    )
-
-    return AsciiComplexAdapter(obj)
 
 
 class Factor(Adapter):
