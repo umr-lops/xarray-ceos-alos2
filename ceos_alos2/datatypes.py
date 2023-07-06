@@ -7,7 +7,6 @@ from construct import Struct
 
 class AsciiInteger(Adapter):
     def __init__(self, n_bytes):
-        self.n_bytes = n_bytes
         base = PaddedString_(n_bytes, "ascii")
         super().__init__(base)
 
