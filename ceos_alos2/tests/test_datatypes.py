@@ -22,6 +22,9 @@ def test_ascii_integer(data, n_bytes, expected):
     actual = parser.parse(data)
     assert actual == expected
 
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
+
 
 @pytest.mark.parametrize(
     ["data", "n_bytes", "expected"],
@@ -39,6 +42,9 @@ def test_ascii_float(data, n_bytes, expected):
     actual = parser.parse(data)
     np.testing.assert_equal(actual, expected)
 
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
+
 
 @pytest.mark.parametrize(
     ["data", "n_bytes", "expected"],
@@ -55,6 +61,9 @@ def test_ascii_complex(data, n_bytes, expected):
     actual = parser.parse(data)
     np.testing.assert_equal(actual, expected)
 
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
+
 
 @pytest.mark.parametrize(
     ["data", "n_bytes", "expected"],
@@ -68,6 +77,9 @@ def test_padded_string(data, n_bytes, expected):
 
     actual = parser.parse(data)
     assert actual == expected
+
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
 
 
 @pytest.mark.parametrize(
@@ -84,6 +96,9 @@ def test_factor(data, factor, expected):
     actual = parser.parse(data)
 
     assert actual == expected
+
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
 
 
 @pytest.mark.parametrize(
@@ -106,9 +121,14 @@ def test_datetime_ydms(data, expected):
         "milliseconds" / Int32ub,
     )
 
-    actual = datatypes.DatetimeYdms(base).parse(data)
+    parser = datatypes.DatetimeYdms(base)
+
+    actual = parser.parse(data)
 
     assert actual == expected
+
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
 
 
 @pytest.mark.parametrize(
@@ -134,6 +154,9 @@ def test_datetime_ydus(data, expected):
 
     assert actual == expected
 
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
+
 
 @pytest.mark.parametrize(
     ["metadata"],
@@ -152,3 +175,6 @@ def test_metadata(metadata):
     actual = parser.parse(data)
 
     assert actual == expected
+
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
