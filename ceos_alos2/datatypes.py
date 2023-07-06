@@ -5,7 +5,12 @@ from construct import PaddedString as PaddedString_
 from construct import Struct
 
 
-class AsciiIntegerAdapter(Adapter):
+class AsciiInteger(Adapter):
+    def __init__(self, n_bytes):
+        self.n_bytes = n_bytes
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
         stripped = obj.rstrip()
         if not stripped:
@@ -42,10 +47,6 @@ class PaddedStringAdapter(Adapter):
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
-
-
-def AsciiInteger(n_bytes):
-    return AsciiIntegerAdapter(PaddedString_(n_bytes, "ascii"))
 
 
 def AsciiFloat(n_bytes):
