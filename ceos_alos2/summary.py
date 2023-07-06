@@ -6,8 +6,8 @@ from tlz.itertoolz import groupby
 
 try:
     ExceptionGroup
-except NameError:
-    from exceptiongroup import ExceptionGroup
+except NameError:  # pragma: no cover
+    from exceptiongroup import ExceptionGroup  # pragma: no cover
 
 entry_re = re.compile(r'(?P<section>[A-Za-z]{3})_(?P<keyword>.*?)="(?P<value>.*?)"')
 
