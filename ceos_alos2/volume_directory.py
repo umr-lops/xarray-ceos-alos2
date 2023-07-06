@@ -67,7 +67,7 @@ text_record = Struct(
     "blanks" / PaddedString(124),
 )
 
-volume_directory = Struct(
+volume_directory_record = Struct(
     "volume_descriptor" / volume_descriptor,
     "file_descriptors" / file_descriptor[this.volume_descriptor.number_of_file_pointer_records],
     "text_record" / text_record,

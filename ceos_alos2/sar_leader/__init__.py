@@ -12,7 +12,7 @@ from ceos_alos2.sar_leader.map_projection import map_projection_record
 from ceos_alos2.sar_leader.platform_position import platform_position_record
 from ceos_alos2.sar_leader.radiometric_data import radiometric_data_record
 
-sar_leader = Struct(
+sar_leader_record = Struct(
     "file_descriptor" / file_descriptor_record,
     "dataset_summary"
     / dataset_summary_record[this.file_descriptor.dataset_summary.number_of_records],
