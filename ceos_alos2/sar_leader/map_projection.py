@@ -135,14 +135,14 @@ map_projection_record = Struct(
         "map_projection_to_pixels"
         / Metadata(
             Struct(
-                "A11" / AsciiFloat(16),
-                "A12" / AsciiFloat(16),
-                "A13" / AsciiFloat(16),
-                "A14" / AsciiFloat(16),
-                "A21" / AsciiFloat(16),
-                "A22" / AsciiFloat(16),
-                "A23" / AsciiFloat(16),
-                "A24" / AsciiFloat(16),
+                "A11" / AsciiFloat(20),
+                "A12" / AsciiFloat(20),
+                "A13" / AsciiFloat(20),
+                "A14" / AsciiFloat(20),
+                "A21" / AsciiFloat(20),
+                "A22" / AsciiFloat(20),
+                "A23" / AsciiFloat(20),
+                "A24" / AsciiFloat(20),
             ),
             formula=(
                 "E = A11 + A12 * L + A13 * P + A14 * L * P;"
@@ -152,14 +152,14 @@ map_projection_record = Struct(
         "pixels_to_map_projection"
         / Metadata(
             Struct(
-                "B11" / AsciiFloat(16),
-                "B12" / AsciiFloat(16),
-                "B13" / AsciiFloat(16),
-                "B14" / AsciiFloat(16),
-                "B21" / AsciiFloat(16),
-                "B22" / AsciiFloat(16),
-                "B23" / AsciiFloat(16),
-                "B24" / AsciiFloat(16),
+                "B11" / AsciiFloat(20),
+                "B12" / AsciiFloat(20),
+                "B13" / AsciiFloat(20),
+                "B14" / AsciiFloat(20),
+                "B21" / AsciiFloat(20),
+                "B22" / AsciiFloat(20),
+                "B23" / AsciiFloat(20),
+                "B24" / AsciiFloat(20),
             ),
             formula=(
                 "L = B11 + B12 * E + B13 * N + B14 * E * N;"
