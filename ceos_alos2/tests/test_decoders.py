@@ -26,6 +26,11 @@ from ceos_alos2 import decoders
         pytest.param(
             "ALOS2225333200-a87433",
             ValueError("invalid scene id"),
+            id="invalid_id-invalid_date_chars",
+        ),
+        pytest.param(
+            "ALOS2225333200-987433",
+            ValueError("invalid scene id"),
             id="invalid_id-invalid_date",
         ),
     ),
