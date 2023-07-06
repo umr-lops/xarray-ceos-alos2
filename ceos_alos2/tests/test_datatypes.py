@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 import pytest
-from construct import Int8ub, Int32ub, Int64ub, Struct
+from construct import Bytes, Int8ub, Int32ub, Int64ub, Struct
 
 from ceos_alos2 import datatypes
 
@@ -174,6 +174,30 @@ def test_metadata(metadata):
     parser = datatypes.Metadata(base, **metadata)
     actual = parser.parse(data)
 
+    assert actual == expected
+
+    with pytest.raises(NotImplementedError):
+        parser.build(expected)
+
+
+@pytest.mark.parametrize(
+    ["data", "expected"],
+    (
+        pytest.param(b"\x01", b"\x01", id="no_padding"),
+        pytest.param(b"\x00\x01", b"\x01", id="left_padding-1"),
+        pytest.param(b"\x00\x00\x01", b"\x01", id="left_padding-2"),
+        pytest.param(b"\x01\x00", b"\x01", id="right_padding-1"),
+        pytest.param(b"\x01\x00\x00", b"\x01", id="right_padding-2"),
+        pytest.param(b"\x00\x01\x00", b"\x01", id="both_padding-1"),
+        pytest.param(b"\x00\x00\x01\x00\x00", b"\x01", id="both_padding-1"),
+        pytest.param(b"\x01\x00\x01", b"\x01\x00\x01", id="mid"),
+    ),
+)
+def test_strip_null_bytes(data, expected):
+    base = Bytes(len(data))
+    parser = datatypes.StripNullBytes(base)
+
+    actual = parser.parse(data)
     assert actual == expected
 
     with pytest.raises(NotImplementedError):
