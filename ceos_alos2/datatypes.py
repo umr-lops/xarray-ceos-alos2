@@ -12,7 +12,7 @@ class AsciiInteger(Adapter):
         super().__init__(base)
 
     def _decode(self, obj, context, path):
-        stripped = obj.rstrip()
+        stripped = obj.strip()
         if not stripped:
             return -1
         return int(stripped)

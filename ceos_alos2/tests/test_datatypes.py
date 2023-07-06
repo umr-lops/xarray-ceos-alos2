@@ -12,7 +12,7 @@ from ceos_alos2 import datatypes
     (
         pytest.param(b"15", 2, 15, id="2bytes-no_padding"),
         pytest.param(b"3989", 4, 3989, id="4bytes-no_padding"),
-        pytest.param(b"16  ", 4, 16, id="4bytes-padding"),
+        pytest.param(b"  16", 4, 16, id="4bytes-padding"),
         pytest.param(b"    ", 4, -1, id="4bytes-all_padding"),
     ),
 )
