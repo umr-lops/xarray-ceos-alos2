@@ -5,9 +5,13 @@ from construct import PaddedString as PaddedString_
 from construct import Struct
 
 
-class AsciiIntegerAdapter(Adapter):
+class AsciiInteger(Adapter):
+    def __init__(self, n_bytes):
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
-        stripped = obj.rstrip()
+        stripped = obj.strip()
         if not stripped:
             return -1
         return int(stripped)
@@ -16,9 +20,13 @@ class AsciiIntegerAdapter(Adapter):
         raise NotImplementedError
 
 
-class AsciiFloatAdapter(Adapter):
+class AsciiFloat(Adapter):
+    def __init__(self, n_bytes):
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
-        stripped = obj.rstrip()
+        stripped = obj.strip()
         if not stripped:
             stripped = "nan"
 
@@ -28,7 +36,14 @@ class AsciiFloatAdapter(Adapter):
         raise NotImplementedError
 
 
-class AsciiComplexAdapter(Adapter):
+class AsciiComplex(Adapter):
+    def __init__(self, n_bytes):
+        base = Struct(
+            "real" / AsciiFloat(n_bytes // 2),
+            "imaginary" / AsciiFloat(n_bytes // 2),
+        )
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
         return obj.real + 1j * obj.imaginary
 
@@ -36,33 +51,16 @@ class AsciiComplexAdapter(Adapter):
         raise NotImplementedError
 
 
-class PaddedStringAdapter(Adapter):
+class PaddedString(Adapter):
+    def __init__(self, n_bytes):
+        base = PaddedString_(n_bytes, "ascii")
+        super().__init__(base)
+
     def _decode(self, obj, context, path):
         return obj.strip()
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
-
-
-def AsciiInteger(n_bytes):
-    return AsciiIntegerAdapter(PaddedString_(n_bytes, "ascii"))
-
-
-def AsciiFloat(n_bytes):
-    return AsciiFloatAdapter(PaddedString_(n_bytes, "ascii"))
-
-
-def PaddedString(n_bytes):
-    return PaddedStringAdapter(PaddedString_(n_bytes, "ascii"))
-
-
-def AsciiComplex(n_bytes):
-    obj = Struct(
-        "real" / AsciiFloat(n_bytes // 2),
-        "imaginary" / AsciiFloat(n_bytes // 2),
-    )
-
-    return AsciiComplexAdapter(obj)
 
 
 class Factor(Adapter):
@@ -101,7 +99,9 @@ class StripNullBytes(Adapter):
 class DatetimeYdms(Adapter):
     def _decode(self, obj, context, path):
         base = datetime.datetime(obj["year"], 1, 1)
-        timedelta = datetime.timedelta(days=obj["day_of_year"], milliseconds=obj["milliseconds"])
+        timedelta = datetime.timedelta(
+            days=obj["day_of_year"] - 1, milliseconds=obj["milliseconds"]
+        )
 
         return base + timedelta
 
@@ -124,11 +124,3 @@ class DatetimeYdus(Adapter):
 
     def _encode(self, obj, context, path):
         raise NotImplementedError
-
-
-class ComplexAdapter(Adapter):
-    def _decode(self, obj, context, path):
-        return obj["real"] + 1j * obj["imaginary"]
-
-    def _encode(self, obj, context, path):
-        return {"real": obj.real, "imaginary": obj.imag}
