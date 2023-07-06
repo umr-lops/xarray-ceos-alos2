@@ -29,3 +29,13 @@ known_first_party = "ceos_alos2"
 
 [tool.black]
 line-length = 100
+
+[tool.coverage.run]
+omit = [
+  "*/ceos_alos2/tests/*",
+]
+source = ["ceos_alos2"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
