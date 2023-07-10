@@ -145,3 +145,12 @@ def test_relocate_ranges(chunk_info, expected):
 
     actual = array.relocate_ranges(chunk_info, byte_ranges)
     assert actual == (chunk_info, expected)
+
+
+def test_extract_ranges():
+    data = b"buwaox94ks"
+    ranges = [(1, 3), (2, 4), (3, 4), (7, 10)]
+    expected = [b"uw", b"wa", b"a", b"4ks"]
+
+    actual = array.extract_ranges(data, ranges)
+    assert actual == expected
