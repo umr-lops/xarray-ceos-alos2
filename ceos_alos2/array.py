@@ -5,10 +5,6 @@ import numpy as np
 from tlz.itertoolz import first, get, groupby, partition_all, second
 
 
-def unique(iterable):
-    return tuple(dict.fromkeys(iterable))
-
-
 def determine_nearest_chunksize(sizes, reference_size):
     diff = np.cumsum(sizes) - reference_size
     index = np.argmin(abs(diff))
