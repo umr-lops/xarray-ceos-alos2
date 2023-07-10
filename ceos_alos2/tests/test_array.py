@@ -56,3 +56,38 @@ def test_compute_chunk_ranges(ranges, n_chunks, expected):
 def test_to_offset_size(ranges, expected):
     actual = array.to_offset_size(ranges)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["indexer", "expected"],
+    (
+        pytest.param(2, [(2, (16, 19))], id="scalar-positive"),
+        pytest.param(-1, [(3, (22, 25))], id="scalar-negative"),
+        pytest.param([0, 2], [(0, (0, 3)), (2, (16, 19))], id="list-positive"),
+        pytest.param([0, -1], [(0, (0, 3)), (3, (22, 25))], id="list-negative"),
+        pytest.param(slice(0, 1), [(0, (0, 3))], id="slice-positive_start-positive_stop-no_step"),
+        pytest.param(
+            slice(2, None),
+            [(2, (16, 19)), (3, (22, 25))],
+            id="slice-positive_start-no_stop-no_step",
+        ),
+        pytest.param(
+            slice(None, 2), [(0, (0, 3)), (1, (5, 8))], id="slice-no_start-postive_stop-no_step"
+        ),
+        pytest.param(
+            slice(None, None, 2),
+            [(0, (0, 3)), (2, (16, 19))],
+            id="slice-no_start-no_stop-positive_step",
+        ),
+        pytest.param(
+            slice(-1, None, -2),
+            [(3, (22, 25)), (1, (5, 8))],
+            id="slice-negative_start-no_stop-negative_step",
+        ),
+    ),
+)
+def test_compute_selected_ranges(indexer, expected):
+    byte_ranges = [(0, 3), (5, 8), (16, 19), (22, 25)]
+
+    actual = array.compute_selected_ranges(byte_ranges, indexer)
+    assert actual == expected

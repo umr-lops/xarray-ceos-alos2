@@ -32,9 +32,15 @@ def compute_chunk_offsets(byte_ranges, chunks):
 
 def compute_selected_ranges(byte_ranges, indexer):
     n_rows = len(byte_ranges)
-    selected_rows = range(n_rows)[indexer]
+    if isinstance(indexer, int):
+        indexer = [indexer]
 
-    return get(list(selected_rows), list(enumerate(byte_ranges)))
+    if isinstance(indexer, slice):
+        selected_rows = range(n_rows)[indexer]
+    else:
+        selected_rows = indexer
+
+    return list(get(list(selected_rows), list(enumerate(byte_ranges))))
 
 
 def groupby_chunks(byte_ranges, chunksize):
