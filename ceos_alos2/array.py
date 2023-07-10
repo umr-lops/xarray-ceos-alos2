@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
+from tlz.functoolz import juxt
 from tlz.itertoolz import first, get, groupby, partition_all, second
 
 
@@ -108,7 +109,7 @@ class Array:
         selected_ranges = compute_selected_ranges(self.byte_ranges, indexers[0])
         grouped = groupby_chunks(selected_ranges, chunksize=rows_per_chunk)
         merged = merge_chunk_info(grouped, chunk_offsets=self.chunk_offsets)
-        tasks = [relocate_ranges(info, ranges) for info, ranges in merged]
+        tasks = [juxt(first, relocate_ranges)(info, ranges) for info, ranges in merged]
 
         with self.fs.open(self.url, mode="rb") as f:
             data = []

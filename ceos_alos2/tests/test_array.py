@@ -106,3 +106,42 @@ def test_groupby_chunks(chunksize, expected):
     actual = array.groupby_chunks(list(enumerate(byte_ranges)), chunksize)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["selected", "expected"],
+    (
+        pytest.param(
+            {0: [(0, 5), (6, 9)], 2: [(26, 28), (28, 30)]},
+            [((0, 12), [(0, 5), (6, 9)]), ((26, 5), [(26, 28), (28, 30)])],
+        ),
+        pytest.param(
+            {1: [(17, 18), (19, 23)], 3: [(38, 41), (41, 45), (46, 48)]},
+            [((17, 8), [(17, 18), (19, 23)]), ((37, 10), [(38, 41), (41, 45), (46, 48)])],
+        ),
+    ),
+)
+def test_merge_chunk_info(selected, expected):
+    chunk_offsets = {0: (0, 12), 1: (17, 8), 2: (26, 5), 3: (37, 10)}
+    actual = array.merge_chunk_info(selected, chunk_offsets)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["chunk_info", "expected"],
+    (
+        pytest.param(
+            {"offset": 10, "size": 200},
+            [(30, 33), (33, 36), (36, 39), (39, 42), (42, 45), (45, 48)],
+        ),
+        pytest.param(
+            {"offset": 15, "size": 200},
+            [(25, 28), (28, 31), (31, 34), (34, 37), (37, 40), (40, 43)],
+        ),
+    ),
+)
+def test_relocate_ranges(chunk_info, expected):
+    byte_ranges = [(40, 43), (43, 46), (46, 49), (49, 52), (52, 55), (55, 58)]
+
+    actual = array.relocate_ranges(chunk_info, byte_ranges)
+    assert actual == (chunk_info, expected)
