@@ -45,7 +45,7 @@ def compute_selected_ranges(byte_ranges, indexer):
 
 def groupby_chunks(byte_ranges, chunksize):
     grouped = groupby(lambda it: it[0] // chunksize, byte_ranges)
-    return {key: value for key, (_, value) in grouped.items()}
+    return {key: [value for _, value in ranges] for key, ranges in grouped.items()}
 
 
 def merge_chunk_info(selected, chunk_offsets):

@@ -91,3 +91,18 @@ def test_compute_selected_ranges(indexer, expected):
 
     actual = array.compute_selected_ranges(byte_ranges, indexer)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["chunksize", "expected"],
+    (
+        pytest.param(2, {0: [(0, 3), (3, 6)], 1: [(6, 9), (9, 12)], 2: [(12, 15), (15, 18)]}),
+        pytest.param(3, {0: [(0, 3), (3, 6), (6, 9)], 1: [(9, 12), (12, 15), (15, 18)]}),
+    ),
+)
+def test_groupby_chunks(chunksize, expected):
+    byte_ranges = [(0, 3), (3, 6), (6, 9), (9, 12), (12, 15), (15, 18)]
+
+    actual = array.groupby_chunks(list(enumerate(byte_ranges)), chunksize)
+
+    assert actual == expected
