@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
-from tlz.functoolz import juxt
 from tlz.itertoolz import first, get, groupby, partition_all, second
 
 
@@ -32,7 +31,9 @@ def compute_chunk_ranges(byte_ranges, chunks):
 
 
 def to_offset_size(ranges):
-    return [{"offset": start, "size": stop - start} for start, stop in ranges]
+    return {
+        index: {"offset": start, "size": stop - start} for index, (start, stop) in ranges.items()
+    }
 
 
 def compute_chunk_offsets(byte_ranges, chunks):
@@ -120,7 +121,7 @@ class Array:
         selected_ranges = compute_selected_ranges(self.byte_ranges, indexers[0])
         grouped = groupby_chunks(selected_ranges, chunksize=rows_per_chunk)
         merged = merge_chunk_info(grouped, chunk_offsets=self.chunk_offsets)
-        tasks = [juxt(first, relocate_ranges)(info, ranges) for info, ranges in merged]
+        tasks = [relocate_ranges(info, ranges) for info, ranges in merged]
 
         with self.fs.open(self.url, mode="rb") as f:
             data = []
