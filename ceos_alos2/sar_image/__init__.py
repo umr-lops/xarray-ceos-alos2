@@ -95,14 +95,28 @@ def extract_shape(header):
     )
 
 
-dtypes = {
+raw_dtypes = {
     "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
     "IU2": np.dtype(">u2"),
 }
 
+dtypes = {
+    "C*8": np.dtype("complex64"),
+    "IU2": np.dtype("uint16"),
+}
+
+
+def extract_dtype(header):
+    type_code = extract_format_type(header)
+    dtype = dtypes.get(type_code)
+    if dtype is None:
+        raise ValueError(f"unknown type code: {type_code}")
+
+    return dtype
+
 
 def parse_data(content, type_code):
-    dtype = dtypes.get(type_code)
+    dtype = raw_dtypes.get(type_code)
     if dtype is None:
         raise ValueError(f"unknown type code: {type_code}")
 
