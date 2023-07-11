@@ -84,6 +84,17 @@ def read_metadata(f, records_per_chunk=1024):
     return header, metadata
 
 
+def extract_format_type(header):
+    return header.prefix_suffix_data_locators.sar_data_format_type_code
+
+
+def extract_shape(header):
+    return (
+        header.sar_related_data_in_the_record.number_of_lines_per_dataset,
+        header.sar_related_data_in_the_record.number_of_data_groups_per_line,
+    )
+
+
 dtypes = {
     "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
     "IU2": np.dtype(">u2"),
