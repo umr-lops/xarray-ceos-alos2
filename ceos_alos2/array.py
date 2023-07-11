@@ -106,7 +106,7 @@ class Array:
         sizes = np.array([stop - start for start, stop in self.byte_ranges])
         possible_chunksizes = np.cumsum(sizes)
         if self.chunks is None:
-            self.chunks = (1, self.shape[1])
+            self.chunks = (4096, self.shape[1])
         elif self.chunks == "auto":
             reference_size = 100 * 2**20
             rows_per_chunk = determine_nearest_chunksize(possible_chunksizes, reference_size)
