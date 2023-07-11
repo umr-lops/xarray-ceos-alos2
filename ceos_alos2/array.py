@@ -6,6 +6,15 @@ from tlz.functoolz import juxt
 from tlz.itertoolz import first, get, groupby, partition_all, second
 
 
+def normalize_chunks(chunks, shape):
+    def normalize(chunksize, dim_size):
+        if chunksize in (None, -1) or chunksize > dim_size:
+            return dim_size
+        return chunksize
+
+    return tuple(normalize(chunksize, dim_size) for chunksize, dim_size in zip(chunks, shape))
+
+
 def determine_nearest_chunksize(sizes, reference_size):
     diff = np.cumsum(sizes) - reference_size
     index = np.argmin(abs(diff))
@@ -101,6 +110,8 @@ class Array:
             reference_size = 100 * 2**20
             rows_per_chunk = determine_nearest_chunksize(possible_chunksizes, reference_size)
             self.chunks = (rows_per_chunk, self.shape[1])
+        else:
+            self.chunks = normalize_chunks(self.chunks, self.shape)
         self.chunk_offsets = compute_chunk_offsets(self.byte_ranges, self.chunks[0])
 
     def __getitem__(self, indexers):
