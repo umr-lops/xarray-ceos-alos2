@@ -49,6 +49,12 @@ class Group(Mapping):
     path: str
     attrs: dict[str, Any]
 
+    def __getitem__(self, path):
+        if path.startswith("/"):
+            raise KeyError(f"absolute paths are not allowed in subgroups: {path}")
+        parts = path.split("/")
+        return get_in(parts, self)
+
     @property
     def name(self):
         if "/" not in self.path:
