@@ -47,13 +47,11 @@ class Variable:
 @dataclass(frozen=True)
 class Group(Mapping):
     path: str
+    data: dict[str, "Group | Variable"]
     attrs: dict[str, Any]
 
-    def __getitem__(self, path):
-        if path.startswith("/"):
-            raise KeyError(f"absolute paths are not allowed in subgroups: {path}")
-        parts = path.split("/")
-        return get_in(parts, self)
+    def __getitem__(self, item):
+        return self.data[item]
 
     @property
     def name(self):
@@ -62,6 +60,12 @@ class Group(Mapping):
 
         _, name = self.rsplit("/", 1)
         return name
+
+    def __len__(self):
+        return len(self.keys())
+
+    def __iter__(self):
+        yield from self.keys()
 
     @property
     def groups(self):
@@ -105,7 +109,7 @@ class File:
         raw_variables = coords | {"data": image_variable}
         variables = {name: Variable(*var) for name, var in raw_variables.items()}
 
-        return Group(groups={}, variables=variables, attrs=group_attrs)
+        return Group(path=None, data=variables, attrs=group_attrs)
 
     def __init__(self, url_or_dirfs, chunks=None, **options):
         if isinstance(url_or_dirfs, DirFileSystem):
