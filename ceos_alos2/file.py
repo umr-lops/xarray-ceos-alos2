@@ -5,7 +5,7 @@ from typing import Any
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 from rich.console import Console
-from tlz.dicttoolz import valfilter
+from tlz.dicttoolz import get_in, valfilter
 from tlz.functoolz import curry
 
 from ceos_alos2 import sar_image
@@ -159,6 +159,10 @@ class File:
         #         f"Cannot find the sar trailer file (`{fnames['sar_trailer']}`)."
         #         f" Make sure the dataset at {url} is complete and in the JAXA CEOS format."
         #     )
+
+    def __getitem__(self, path):
+        parts = path.lstrip("/").split("/")
+        return get_in(parts, self._groups, no_default=True)
 
     @property
     def groups(self):
