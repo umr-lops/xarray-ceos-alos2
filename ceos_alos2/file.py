@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -43,10 +44,25 @@ class Variable:
 
 
 @dataclass(frozen=True)
-class Group:
-    groups: dict[str, "Group"]
-    variables: dict[str, Variable]
+class Group(Mapping):
+    path: str
     attrs: dict[str, Any]
+
+    @property
+    def name(self):
+        if "/" not in self.path:
+            return self.path
+
+        _, name = self.rsplit("/", 1)
+        return name
+
+    @property
+    def groups(self):
+        return [el for el in self.values() if isinstance(el, Group)]
+
+    @property
+    def variables(self):
+        return [el for el in self.values() if isinstance(el, Variable)]
 
 
 class File:
