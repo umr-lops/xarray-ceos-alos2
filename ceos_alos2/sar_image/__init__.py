@@ -123,6 +123,16 @@ def transform_metadata(metadata):
     return {}, {}
 
 
+def filename_to_groupname(path):
+    from ceos_alos2.decoders import decode_filename
+
+    info = decode_filename(path)
+    scan_number = f"scan{info['scan_number']}" if "scan_number" in info else None
+    polarization = info.get("polarization")
+    parts = [polarization, scan_number]
+    return "_".join([_ for _ in parts if _])
+
+
 def parse_data(content, type_code):
     dtype = raw_dtypes.get(type_code)
     if dtype is None:
