@@ -1,4 +1,8 @@
+import io
+
+import fsspec
 import pytest
+from fsspec.implementations.dirfs import DirFileSystem
 
 from ceos_alos2 import array
 
@@ -158,3 +162,43 @@ def test_extract_ranges():
 
     actual = array.extract_ranges(data, ranges)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["offset", "size"],
+    (
+        pytest.param(0, 10),
+        pytest.param(50, 100),
+        pytest.param(29, 1),
+        pytest.param(240, 0),
+    ),
+)
+def test_read_chunk(offset, size):
+    data = bytes(range(256))
+    f = io.BytesIO(data)
+
+    actual = array.read_chunk(f, offset, size)
+    expected = data[offset : offset + size]
+    assert actual == expected
+
+
+class TestArray:
+    @pytest.mark.parametrize("shape", ((10, 10), (20, 10), (10, 20), (20, 20)))
+    @pytest.mark.parametrize("dtype", ("uint16", "complex64"))
+    @pytest.mark.parametrize("chunks", (None, "auto", (-1, 10), (10, -1), (10, 10)))
+    def test_init(self, shape, dtype, chunks):
+        fs = DirFileSystem(fs=fsspec.filesystem("memory"), path="/")
+        url = "image-file"
+
+        byte_ranges = [(1, 3), (2, 4), (3, 4), (7, 10)]
+        parser = lambda x: x
+
+        array.Array(
+            fs=fs,
+            url=url,
+            byte_ranges=byte_ranges,
+            shape=shape,
+            dtype=dtype,
+            chunks=chunks,
+            parse_bytes=parser,
+        )
