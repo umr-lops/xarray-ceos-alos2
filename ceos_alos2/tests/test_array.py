@@ -44,12 +44,16 @@ def test_compute_chunk_ranges(ranges, n_chunks, expected):
     ["ranges", "expected"],
     (
         pytest.param(
-            [(0, 3), (3, 9), (9, 16)],
-            [{"offset": 0, "size": 3}, {"offset": 3, "size": 6}, {"offset": 9, "size": 7}],
+            {0: (0, 3), 1: (3, 9), 2: (9, 16)},
+            {0: {"offset": 0, "size": 3}, 1: {"offset": 3, "size": 6}, 2: {"offset": 9, "size": 7}},
         ),
         pytest.param(
-            [(0, 3), (17, 18), (31, 100)],
-            [{"offset": 0, "size": 3}, {"offset": 17, "size": 1}, {"offset": 31, "size": 69}],
+            {0: (0, 3), 1: (17, 18), 2: (31, 100)},
+            {
+                0: {"offset": 0, "size": 3},
+                1: {"offset": 17, "size": 1},
+                2: {"offset": 31, "size": 69},
+            },
         ),
     ),
 )
