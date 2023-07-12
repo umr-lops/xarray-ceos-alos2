@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
-from tlz.itertoolz import first, get, groupby, partition_all, second
+from tlz.itertoolz import cons, first, get, groupby, partition_all, second
 
 
 def normalize_chunks(chunks, shape):
@@ -124,11 +124,14 @@ class Array:
         tasks = [relocate_ranges(info, ranges) for info, ranges in merged]
 
         with self.fs.open(self.url, mode="rb") as f:
-            data = []
+            data_ = []
             for chunk_info, ranges in tasks:
                 chunk = read_chunk(f, **chunk_info)
                 raw_bytes = extract_ranges(chunk, ranges)
                 chunk_data = [self.parse_bytes(part) for part in raw_bytes]
-                data.extend(chunk_data)
+                data_.extend(chunk_data)
 
-            return np.stack(data, axis=0)
+            data = np.stack(data_, axis=0)
+
+        new_indexers = tuple(cons(slice(None), indexers[1:]))
+        return data[new_indexers]
