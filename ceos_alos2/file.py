@@ -167,3 +167,7 @@ class File:
     @property
     def groups(self):
         return self._groups
+
+    @property
+    def filename(self):
+        return self.fs.path
