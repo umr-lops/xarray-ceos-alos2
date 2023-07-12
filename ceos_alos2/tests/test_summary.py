@@ -4,7 +4,7 @@ from ceos_alos2 import summary
 
 try:
     ExceptionGroup
-except NameError:
+except NameError:  # pragma: no cover
     from exceptiongroup import ExceptionGroup
 
 
