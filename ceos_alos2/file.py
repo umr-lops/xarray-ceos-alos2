@@ -5,6 +5,7 @@ from typing import Any
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
 from rich.console import Console
+from tlz.dicttoolz import valfilter
 from tlz.functoolz import curry
 
 from ceos_alos2 import sar_image
@@ -58,11 +59,11 @@ class Group(Mapping):
 
     @property
     def groups(self):
-        return [el for el in self.values() if isinstance(el, Group)]
+        return valfilter(lambda el: isinstance(el, Group), self)
 
     @property
     def variables(self):
-        return [el for el in self.values() if isinstance(el, Variable)]
+        return valfilter(lambda el: isinstance(el, Variable), self)
 
 
 class File:
