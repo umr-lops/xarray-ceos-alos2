@@ -115,6 +115,14 @@ def extract_dtype(header):
     return dtype
 
 
+def extract_attrs(header):
+    return {}
+
+
+def transform_metadata(metadata):
+    return {}, {}
+
+
 def parse_data(content, type_code):
     dtype = raw_dtypes.get(type_code)
     if dtype is None:
