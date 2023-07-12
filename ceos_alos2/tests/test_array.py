@@ -3,6 +3,7 @@ import io
 import fsspec
 import pytest
 from fsspec.implementations.dirfs import DirFileSystem
+from tlz.itertoolz import identity
 
 from ceos_alos2 import array
 
@@ -191,7 +192,6 @@ class TestArray:
         url = "image-file"
 
         byte_ranges = [(1, 3), (2, 4), (3, 4), (7, 10)]
-        parser = lambda x: x
 
         array.Array(
             fs=fs,
@@ -200,5 +200,5 @@ class TestArray:
             shape=shape,
             dtype=dtype,
             chunks=chunks,
-            parse_bytes=parser,
+            parse_bytes=identity,
         )
