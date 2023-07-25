@@ -1,3 +1,4 @@
+import posixpath
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -30,11 +31,34 @@ class Variable:
         return self.data.chunks
 
 
-@dataclass(frozen=True)
+@dataclass
 class Group(Mapping):
-    path: str
+    path: str | None
     data: dict[str, "Group | Variable"]
     attrs: dict[str, Any]
+
+    def __post_init__(self):
+        if self.path is None and self.groups:
+            self.path = "/"  # or raise
+
+        for name, item in self.data.items():
+            if not isinstance(item, Group):
+                continue
+
+            path = item.path
+            if path is None:
+                item.path = posixpath.join(self.path, name)
+            elif not isinstance(path, str):
+                raise TypeError("paths should be `str` or `None`")
+            elif not posixpath.isabs(path):
+                if "/" in path:
+                    raise ValueError("relative paths cannot contain slashes")
+                item.path = posixpath.join(self.path, path)
+            elif posixpath.commonpath([self.path, path]) != self.path:
+                raise ValueError(
+                    "group paths need to be either `None`, relative paths,"
+                    " or absolute paths below the parent group"
+                )
 
     def __getitem__(self, item):
         return self.data[item]
