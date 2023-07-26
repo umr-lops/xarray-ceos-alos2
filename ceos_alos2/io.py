@@ -1,6 +1,5 @@
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
-from rich.console import Console
 from tlz.functoolz import curry
 
 from ceos_alos2 import sar_image
@@ -13,8 +12,6 @@ from ceos_alos2.summary import parse_summary
 # from ceos_alos2.utils import to_dict
 
 # from ceos_alos2.volume_directory import volume_directory_record
-
-console = Console()
 
 
 def read_summary(mapper, path):
