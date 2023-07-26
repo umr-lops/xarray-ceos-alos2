@@ -135,3 +135,7 @@ class Array:
 
         new_indexers = tuple(cons(slice(None), indexers[1:]))
         return data[new_indexers]
+
+    @property
+    def ndim(self):
+        return len(self.shape)
