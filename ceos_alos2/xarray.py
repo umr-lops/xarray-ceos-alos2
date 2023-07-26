@@ -6,7 +6,7 @@ from xarray.backends import BackendArray
 from xarray.backends.locks import SerializableLock
 from xarray.core import indexing
 
-from ceos_alos2 import file as io
+from ceos_alos2 import io
 from ceos_alos2.array import Array
 
 
