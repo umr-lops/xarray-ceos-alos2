@@ -63,7 +63,7 @@ def read_image(fs, path, chunks):
 
     group_name = sar_image.filename_to_groupname(path)
 
-    return Group(path=group_name, data=variables, attrs=group_attrs)
+    return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
 
 
 def open(path, chunks=None, storage_options={}):
@@ -86,12 +86,14 @@ def open(path, chunks=None, storage_options={}):
     imagery_groups = [
         read_image(dirfs, path, chunks, **storage_options) for path in filenames["sar_imagery"]
     ]
-    imagery = Group("/imagery", data={group.name: group for group in imagery_groups}, attrs={})
+    imagery = Group(
+        "/imagery", url=mapper.root, data={group.name: group for group in imagery_groups}, attrs={}
+    )
     # read sar trailer
 
     subgroups = {"imagery": imagery}
 
-    return Group(path="/", data=subgroups, attrs={})
+    return Group(path="/", data=subgroups, url=mapper.root, attrs={})
 
 
 # try:
