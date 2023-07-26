@@ -13,3 +13,5 @@ dependencies:
   - python-dateutil
   - construct
   - fsspec
+  - xarray
+  - xarray-datatree

@@ -1,6 +1,5 @@
 import fsspec
 from fsspec.implementations.dirfs import DirFileSystem
-from rich.console import Console
 from tlz.functoolz import curry
 
 from ceos_alos2 import sar_image
@@ -13,8 +12,6 @@ from ceos_alos2.summary import parse_summary
 # from ceos_alos2.utils import to_dict
 
 # from ceos_alos2.volume_directory import volume_directory_record
-
-console = Console()
 
 
 def read_summary(mapper, path):
@@ -30,8 +27,11 @@ def read_summary(mapper, path):
 
 
 def read_image(fs, path, chunks):
+    dims = ["rows", "columns"]
+    chunksizes = tuple(chunks.get(dim, -1) for dim in dims)
+
     with fs.open(path, mode="rb") as f:
-        header, metadata = sar_image.read_metadata(f, chunks[0])
+        header, metadata = sar_image.read_metadata(f, chunksizes[0])
 
     byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
     type_code = sar_image.extract_format_type(header)
@@ -39,7 +39,6 @@ def read_image(fs, path, chunks):
 
     shape = sar_image.extract_shape(header)
     dtype = sar_image.extract_dtype(header)
-
     image_data = Array(
         fs=fs,
         url=path,
@@ -47,7 +46,7 @@ def read_image(fs, path, chunks):
         shape=shape,
         dtype=dtype,
         parse_bytes=parser,
-        chunks=chunks,
+        chunks=chunksizes,
     )
 
     # transform metadata:
@@ -56,7 +55,7 @@ def read_image(fs, path, chunks):
     # - image variable attrs
     group_attrs = sar_image.extract_attrs(header)
     coords, var_attrs = sar_image.transform_metadata(metadata)
-    image_variable = (["rows", "columns"], image_data, var_attrs)
+    image_variable = (dims, image_data, var_attrs)
 
     raw_variables = coords | {"data": image_variable}
     variables = {name: Variable(*var) for name, var in raw_variables.items()}
@@ -70,9 +69,9 @@ def open(path, chunks=None, storage_options={}):
     mapper = fsspec.get_mapper(path, **storage_options)
     dirfs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
-    # fill in fallback chunks
+    # the default is to read 1024 records at once
     if chunks is None:
-        chunks = (1024, -1)
+        chunks = {"rows": 1024}
 
     # read summary
     # TODO: split into metadata for the reader and human-readable metadata
