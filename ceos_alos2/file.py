@@ -31,7 +31,7 @@ def read_summary(mapper, path):
 
 def read_image(fs, path, chunks):
     dims = ["rows", "columns"]
-    chunksizes = tuple(chunks[dim] for dim in dims)
+    chunksizes = tuple(chunks.get(dim, -1) for dim in dims)
 
     with fs.open(path, mode="rb") as f:
         header, metadata = sar_image.read_metadata(f, chunksizes[0])
