@@ -72,9 +72,9 @@ def open(path, chunks=None, storage_options={}):
     mapper = fsspec.get_mapper(path, **storage_options)
     dirfs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
-    # fill in fallback chunks
+    # the default is to read 1024 records at once
     if chunks is None:
-        chunks = (1024, -1)
+        chunks = {"rows": 1024}
 
     # read summary
     # TODO: split into metadata for the reader and human-readable metadata
