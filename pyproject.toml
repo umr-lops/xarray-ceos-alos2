@@ -6,6 +6,7 @@ dependencies = [
   "toolz",
   "python-dateutil",
   "construct>=2.10",
+  "fsspec",
   "exceptiongroup; python_version < '3.11'",
 ]
 dynamic = ["version"]
