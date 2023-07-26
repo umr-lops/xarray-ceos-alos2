@@ -28,7 +28,7 @@ class Variable:
 
     @property
     def chunks(self):
-        return self.data.chunks
+        return dict(zip(self.dims, self.data.chunks))
 
 
 @dataclass
