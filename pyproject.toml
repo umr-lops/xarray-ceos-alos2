@@ -6,6 +6,7 @@ dependencies = [
   "toolz",
   "python-dateutil",
   "construct>=2.10",
+  "fsspec",
   "exceptiongroup; python_version < '3.11'",
 ]
 dynamic = ["version"]
@@ -39,4 +40,4 @@ branch = true
 
 [tool.coverage.report]
 show_missing = true
-exclude_lines = ["pragma: no cover"]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING"]

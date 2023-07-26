@@ -1,8 +1,12 @@
 import re
 
 from tlz.dicttoolz import merge, valmap
-from tlz.functoolz import compose_left, curry
-from tlz.itertoolz import groupby
+from tlz.functoolz import compose_left, curry, juxt
+from tlz.itertoolz import first, groupby
+from tlz.itertoolz import identity as passthrough
+from tlz.itertoolz import second
+
+from ceos_alos2.dicttoolz import keysplit
 
 try:
     ExceptionGroup
@@ -51,4 +55,55 @@ def parse_summary(content):
             compose_left(curry(map, lambda x: {x["keyword"]: x["value"]}), merge),
         ),
     )
-    return merge_sections(entries)
+    merged = merge_sections(entries)
+    return process_sections(merged)
+
+
+def categorize_filenames(filenames):
+    filenames_ = list(filenames.values())
+    return {
+        "volume_directory": filenames_[0],
+        "sar_leader": filenames_[1],
+        "sar_imagery": filenames_[2:-1],
+        "sar_trailer": filenames_[-1],
+    }
+
+
+def transform_product_info(section):
+    file_info, remainder = keysplit(lambda x: "ProductFileName" in x, section)
+    # ignore the file count
+    _, filenames = keysplit(lambda x: x.startswith("Cnt"), file_info)
+    categorized = categorize_filenames(filenames)
+
+    shape_related, remainder = keysplit(
+        lambda x: x.startswith(("NoOfPixels", "NoOfLines")), remainder
+    )
+    shapes_ = valmap(
+        compose_left(
+            curry(
+                map,
+                juxt(
+                    compose_left(first, lambda x: first(x.split("_"))),
+                    compose_left(second, int),
+                ),
+            ),
+            dict,
+        ),
+        groupby(lambda it: second(first(it).split("_")), shape_related.items()),
+    )
+    shapes = valmap(lambda x: (x["NoOfLines"], x["NoOfPixels"]), shapes_)
+    metadata = remainder
+
+    return {
+        "data_files": categorized,
+        "shapes": shapes,
+        **metadata,
+    }
+
+
+def process_sections(sections):
+    transformers = {
+        "Pdi": transform_product_info,
+    }
+
+    return {k: transformers.get(k, passthrough)(v) for k, v in sections.items()}

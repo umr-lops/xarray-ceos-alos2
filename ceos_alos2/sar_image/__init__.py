@@ -84,14 +84,57 @@ def read_metadata(f, records_per_chunk=1024):
     return header, metadata
 
 
-dtypes = {
+def extract_format_type(header):
+    return header.prefix_suffix_data_locators.sar_data_format_type_code
+
+
+def extract_shape(header):
+    return (
+        header.sar_related_data_in_the_record.number_of_lines_per_dataset,
+        header.sar_related_data_in_the_record.number_of_data_groups_per_line,
+    )
+
+
+raw_dtypes = {
     "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
     "IU2": np.dtype(">u2"),
 }
 
+dtypes = {
+    "C*8": np.dtype("complex64"),
+    "IU2": np.dtype("uint16"),
+}
+
+
+def extract_dtype(header):
+    type_code = extract_format_type(header)
+    dtype = dtypes.get(type_code)
+    if dtype is None:
+        raise ValueError(f"unknown type code: {type_code}")
+
+    return dtype
+
+
+def extract_attrs(header):
+    return {}
+
+
+def transform_metadata(metadata):
+    return {}, {}
+
+
+def filename_to_groupname(path):
+    from ceos_alos2.decoders import decode_filename
+
+    info = decode_filename(path)
+    scan_number = f"scan{info['scan_number']}" if "scan_number" in info else None
+    polarization = info.get("polarization")
+    parts = [polarization, scan_number]
+    return "_".join([_ for _ in parts if _])
+
 
 def parse_data(content, type_code):
-    dtype = dtypes.get(type_code)
+    dtype = raw_dtypes.get(type_code)
     if dtype is None:
         raise ValueError(f"unknown type code: {type_code}")
 

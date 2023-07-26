@@ -67,7 +67,7 @@ signal_data_record = Struct(
         ),
         "slant_range_to_first_data_sample" / Metadata(Int32ub, units="m"),
         "data_record_window_position" / Metadata(Int32ub, units="ns"),
-        "spare" / Int32ub,
+        "blanks" / Int32ub,
     ),
     "platform_reference_information"
     / Struct(

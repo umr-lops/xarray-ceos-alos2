@@ -12,3 +12,4 @@ dependencies:
   - cytoolz
   - python-dateutil
   - construct
+  - fsspec

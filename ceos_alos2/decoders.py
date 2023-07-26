@@ -120,6 +120,9 @@ def decode_product_id(product_id):
 
 
 def decode_scan_info(scan_info):
+    if scan_info is None:
+        return {}
+
     match = scan_info_re.fullmatch(scan_info)
     if match is None:
         raise ValueError(f"invalid scan info: {scan_info}")
