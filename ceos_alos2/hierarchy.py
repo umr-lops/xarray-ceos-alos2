@@ -76,15 +76,15 @@ class Group(Mapping):
         return name
 
     def __len__(self):
-        return len(self.keys())
+        return len(self.data.keys())
 
     def __iter__(self):
-        yield from self.keys()
+        yield from self.data.keys()
 
     @property
     def groups(self):
-        return valfilter(lambda el: isinstance(el, Group), self)
+        return valfilter(lambda el: isinstance(el, Group), self.data)
 
     @property
     def variables(self):
-        return valfilter(lambda el: isinstance(el, Variable), self)
+        return valfilter(lambda el: isinstance(el, Variable), self.data)
