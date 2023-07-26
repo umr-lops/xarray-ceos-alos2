@@ -6,6 +6,7 @@ from xarray.backends import BackendArray
 from xarray.backends.locks import SerializableLock
 from xarray.core import indexing
 
+from ceos_alos2 import file as io
 from ceos_alos2.array import Array
 
 
@@ -64,3 +65,9 @@ def to_datatree(group, chunks=None):
     for name, subgroup in group.groups.items():
         root[name] = to_datatree(subgroup, chunks=chunks)
     return root
+
+
+def open_alos2(path, chunks=None, storage_options={}):
+    root = io.open(path, chunks=chunks, storage_options=storage_options)
+
+    return to_datatree(root, chunks=chunks)
