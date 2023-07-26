@@ -30,8 +30,11 @@ def read_summary(mapper, path):
 
 
 def read_image(fs, path, chunks):
+    dims = ["rows", "columns"]
+    chunksizes = tuple(chunks[dim] for dim in dims)
+
     with fs.open(path, mode="rb") as f:
-        header, metadata = sar_image.read_metadata(f, chunks[0])
+        header, metadata = sar_image.read_metadata(f, chunksizes[0])
 
     byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
     type_code = sar_image.extract_format_type(header)
@@ -39,7 +42,6 @@ def read_image(fs, path, chunks):
 
     shape = sar_image.extract_shape(header)
     dtype = sar_image.extract_dtype(header)
-
     image_data = Array(
         fs=fs,
         url=path,
@@ -47,7 +49,7 @@ def read_image(fs, path, chunks):
         shape=shape,
         dtype=dtype,
         parse_bytes=parser,
-        chunks=chunks,
+        chunks=chunksizes,
     )
 
     # transform metadata:
@@ -56,7 +58,7 @@ def read_image(fs, path, chunks):
     # - image variable attrs
     group_attrs = sar_image.extract_attrs(header)
     coords, var_attrs = sar_image.transform_metadata(metadata)
-    image_variable = (["rows", "columns"], image_data, var_attrs)
+    image_variable = (dims, image_data, var_attrs)
 
     raw_variables = coords | {"data": image_variable}
     variables = {name: Variable(*var) for name, var in raw_variables.items()}
