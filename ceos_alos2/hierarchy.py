@@ -34,6 +34,7 @@ class Variable:
 @dataclass
 class Group(Mapping):
     path: str | None
+    url: str
     data: dict[str, "Group | Variable"]
     attrs: dict[str, Any]
 
@@ -59,6 +60,9 @@ class Group(Mapping):
                     "group paths need to be either `None`, relative paths,"
                     " or absolute paths below the parent group"
                 )
+
+            if item.url is None:
+                item.url = self.url
 
     def __getitem__(self, item):
         return self.data[item]
