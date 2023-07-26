@@ -40,4 +40,4 @@ branch = true
 
 [tool.coverage.report]
 show_missing = true
-export_lines = ["pragma: no cover", "if TYPE_CHECKING"]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING"]
