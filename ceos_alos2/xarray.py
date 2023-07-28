@@ -42,9 +42,15 @@ def to_variable(var):
     return xr.Variable(var.dims, data, var.attrs, encoding={"preferred_chunks": var.chunks})
 
 
+def decode_coords(ds):
+    coords = ds.attrs.pop("coordinates", [])
+
+    return ds.set_coords(coords)
+
+
 def to_dataset(group, chunks=None):
     variables = {name: to_variable(var) for name, var in group.variables.items()}
-    backend_ds = xr.Dataset(variables, attrs=group.attrs)
+    backend_ds = xr.Dataset(variables, attrs=group.attrs).pipe(decode_coords)
 
     return xr.backends.api._dataset_from_backend_dataset(
         backend_ds,
