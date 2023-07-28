@@ -5,6 +5,7 @@ from tlz.functoolz import curry
 from ceos_alos2 import sar_image
 from ceos_alos2.array import Array
 from ceos_alos2.hierarchy import Group, Variable
+from ceos_alos2.metadata import extract_attrs, transform_metadata  # noqa: F401
 
 # from ceos_alos2.sar_leader import sar_leader_record
 from ceos_alos2.summary import parse_summary

@@ -115,14 +115,6 @@ def extract_dtype(header):
     return dtype
 
 
-def extract_attrs(header):
-    return {}
-
-
-def transform_metadata(metadata):
-    return {}, {}
-
-
 def filename_to_groupname(path):
     from ceos_alos2.decoders import decode_filename
 
