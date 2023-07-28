@@ -1,6 +1,6 @@
 import numpy as np
 from rich.console import Console
-from tlz.dicttoolz import keyfilter, keymap, merge_with, valmap
+from tlz.dicttoolz import itemmap, keyfilter, keymap, merge_with, valmap
 from tlz.functoolz import compose_left, curry
 from tlz.itertoolz import first
 
@@ -40,7 +40,28 @@ def rename(mapping, translations):
 
 
 def extract_attrs(header):
-    return {}
+    # valid attrs:
+    # - pixel range (level 1.5)
+    # - burst data per file (level 1.1 specan)
+    # - lines per burst (level 1.1 specan)
+    # - overlap lines with adjacent bursts (level 1.1 specan)
+    known_attrs = {
+        "interleaving_id",
+        "maximum_data_range_of_pixel",
+        "number_of_burst_data",
+        "number_of_lines_per_burst",
+        "number_of_overlap_lines_with_adjacent_bursts",
+    }
+    translators = {
+        "maximum_data_range_of_pixel": lambda it: ("valid_range", [it[1][1]["start"], it[1][0]])
+    }
+    filter = compose_left(
+        curry(keyfilter, lambda k: k != "preamble"),
+        curry(remove_nesting_layer),
+        curry(keyfilter, lambda k: k in known_attrs),
+        curry(itemmap, lambda it: translators.get(it[0], lambda it: it)(it)),
+    )
+    return filter(header)
 
 
 def transform_metadata(metadata):
