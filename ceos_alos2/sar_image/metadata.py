@@ -35,6 +35,10 @@ def transform_variable(data):
     return ("rows", np.array(values), metadata)
 
 
+def rename(mapping, translations):
+    return keymap(lambda k: translations.get(k, k), mapping)
+
+
 def extract_attrs(header):
     return {}
 
@@ -59,7 +63,7 @@ def transform_metadata(metadata):
         curry(map, remove_nesting_layer),
         curry(starcall, curry(merge_with, list)),
         curry(keyfilter, lambda k: k not in ignored_fields and not k.startswith("blanks")),
-        curry(keymap, lambda k: to_rename.get(k, k)),
+        curry(rename, translations=to_rename),
     )
     merged = merge(metadata)
 
