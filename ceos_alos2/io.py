@@ -62,7 +62,9 @@ def read_image(fs, path, chunks):
 
     group_name = sar_image.filename_to_groupname(path)
 
-    return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
+    attrs = group_attrs | {"coordinates": list(coords)}
+
+    return Group(path=group_name, data=variables, attrs=attrs, url=None)
 
 
 def open(path, chunks=None, storage_options={}):
