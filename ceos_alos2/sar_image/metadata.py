@@ -1,10 +1,10 @@
 import numpy as np
 from rich.console import Console
-from tlz.dicttoolz import keyfilter, merge_with, valmap
+from tlz.dicttoolz import keyfilter, keymap, merge_with, valmap
 from tlz.functoolz import compose_left, curry
-from tlz.itertoolz import first, unique
+from tlz.itertoolz import first
 
-from ceos_alos2.dicttoolz import valsplit
+from ceos_alos2.dicttoolz import itemsplit
 
 console = Console()
 
@@ -23,20 +23,6 @@ def remove_nesting_layer(mapping):
             yield from value.items()
 
     return dict(_remove(mapping))
-
-
-def is_variable(data):
-    # "variables" are defined as one or more of:
-    # - have metadata
-    # - have multiple unique values (might have to adjust that)
-    if not isinstance(data, list) or len(data) == 0:
-        return False
-
-    first_elem = data[0]
-    if not isinstance(first_elem, tuple) and len(list(unique(data))) <= 1:
-        return False
-
-    return True
 
 
 def transform_variable(data):
@@ -60,22 +46,37 @@ def transform_metadata(metadata):
     # - merge_with list
     # - split into variables and attributes (TODO: criteria for variable without metadata?)
     format_metadata = {"record_start", "preamble", "data"}
+    to_rename = {"sar_image_data_line_number": "rows"}
     ignored_fields = {
         "_io",
         "actual_count_of_left_fill_pixels",
         "actual_count_of_right_fill_pixels",
         "actual_count_of_data_pixels",
+        "palsar_auxiliary_data",
     }
     merge = compose_left(
         curry(map, curry(keyfilter, lambda k: k not in format_metadata)),
         curry(map, remove_nesting_layer),
         curry(starcall, curry(merge_with, list)),
         curry(keyfilter, lambda k: k not in ignored_fields and not k.startswith("blanks")),
+        curry(keymap, lambda k: to_rename.get(k, k)),
     )
     merged = merge(metadata)
 
     # TODO split using known variable names instead?
-    raw_vars, raw_attrs = valsplit(is_variable, merged)
+    known_attrs = {
+        "sar_image_data_record_index",
+        "sensor_parameters_update_flag",
+        "scan_id",
+        "sar_channel_code",
+        "sar_channel_id",
+        "onboard_range_compressed_flag",
+        "chirp_type_designator",
+        "platform_position_parameters_update_flag",
+        "alos2_frame_number",
+        "geographic_reference_parameter_update_flag",
+    }
+    raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
     variables = valmap(transform_variable, raw_vars)
     attrs = valmap(first, raw_attrs)
