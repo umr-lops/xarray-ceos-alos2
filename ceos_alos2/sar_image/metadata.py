@@ -31,14 +31,19 @@ def data_astype(var, dtype):
     return dims, data.astype(dtype), *attrs
 
 
-def transform_variable(data):
+def transform_variable(data, dtype=None):
     if isinstance(data[0], tuple):
         values, metadata_ = zip(*data)
         metadata = metadata_[0]
     else:
         values = data
         metadata = {}
-    return ("rows", np.array(values), metadata)
+
+    if dtype is not None:
+        data_ = np.array(values, dtype=dtype)
+    else:
+        data_ = np.array(values)
+    return ("rows", data_, metadata)
 
 
 def postprocess_variables(variables):
@@ -126,6 +131,10 @@ def transform_metadata(metadata):
     }
     raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
-    variables = postprocess_variables(valmap(transform_variable, raw_vars))
+    override_dtypes = dict.fromkeys(raw_vars) | {"sensor_acquisition_date": "datetime64[ns]"}
+    variables = valmap(
+        curry(starcall, transform_variable),
+        merge_with(list, raw_vars, override_dtypes),
+    )
     attrs = valmap(first, raw_attrs)
     return variables, attrs
