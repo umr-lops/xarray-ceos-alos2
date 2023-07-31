@@ -1,12 +1,9 @@
 import numpy as np
-from rich.console import Console
 from tlz.dicttoolz import itemmap, keyfilter, keymap, merge_with, valmap
 from tlz.functoolz import compose_left, curry
 from tlz.itertoolz import first
 
 from ceos_alos2.dicttoolz import itemsplit
-
-console = Console()
 
 
 def starcall(func, args, **kwargs):
