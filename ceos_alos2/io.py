@@ -33,7 +33,7 @@ def read_image(fs, path, chunks):
     with fs.open(path, mode="rb") as f:
         header, metadata = sar_image.read_metadata(f, chunksizes[0])
 
-    byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
+    byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
     type_code = sar_image.extract_format_type(header)
     parser = curry(sar_image.parse_data, type_code=type_code)
 
