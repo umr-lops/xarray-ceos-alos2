@@ -13,6 +13,7 @@ from ceos_alos2.sar_image.metadata import (  # noqa: F401
 )
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
+from ceos_alos2.utils import to_dict
 
 
 def extract_record_type(preamble):
@@ -85,7 +86,7 @@ def read_metadata(f, records_per_chunk=1024):
         )
     )
 
-    return header, metadata
+    return to_dict(header), to_dict(metadata)
 
 
 def extract_format_type(header):
