@@ -1,7 +1,7 @@
 import numpy as np
 from rich.console import Console
 from tlz.dicttoolz import itemmap, keyfilter, keymap, merge_with, valmap
-from tlz.functoolz import compose_left, curry
+from tlz.functoolz import compose_left, curry, juxt
 from tlz.itertoolz import first
 
 from ceos_alos2.dicttoolz import itemsplit
@@ -25,6 +25,12 @@ def remove_nesting_layer(mapping):
     return dict(_remove(mapping))
 
 
+def data_astype(var, dtype):
+    dims, data, *attrs = var
+
+    return dims, data.astype(dtype), *attrs
+
+
 def transform_variable(data):
     if isinstance(data[0], tuple):
         values, metadata_ = zip(*data)
@@ -33,6 +39,21 @@ def transform_variable(data):
         values = data
         metadata = {}
     return ("rows", np.array(values), metadata)
+
+
+def postprocess_variables(variables):
+    postprocessors = {
+        "sensor_acquisition_date": curry(data_astype, dtype="datetime64[ns]"),
+    }
+
+    def apply_postprocessor(name, data):
+        postprocessor = postprocessors.get(name)
+        if postprocessor is None:
+            return data
+
+        return postprocessor(data)
+
+    return itemmap(juxt(first, curry(starcall, apply_postprocessor)), variables)
 
 
 def rename(mapping, translations):
@@ -103,6 +124,6 @@ def transform_metadata(metadata):
     }
     raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
-    variables = valmap(transform_variable, raw_vars)
+    variables = postprocess_variables(valmap(transform_variable, raw_vars))
     attrs = valmap(first, raw_attrs)
     return variables, attrs
