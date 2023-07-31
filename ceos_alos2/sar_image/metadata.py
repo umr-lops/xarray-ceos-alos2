@@ -121,6 +121,8 @@ def transform_metadata(metadata):
         "platform_position_parameters_update_flag",
         "alos2_frame_number",
         "geographic_reference_parameter_update_flag",
+        "transmitted_pulse_polarization",
+        "received_pulse_polarization",
     }
     raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
