@@ -110,10 +110,14 @@ def transform_metadata(metadata):
     }
     raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
-    override_dtypes = dict.fromkeys(raw_vars) | {"sensor_acquisition_date": "datetime64[ns]"}
+    override_dtypes = {
+        "sensor_acquisition_date": "datetime64[ns]",
+        "sensor_acquisition_date_microseconds": "datetime64[ns]",
+    }
+    all_dtypes = dict.fromkeys(raw_vars) | keyfilter(lambda x: x in raw_vars, override_dtypes)
     variables = valmap(
         curry(starcall, transform_variable),
-        merge_with(list, raw_vars, override_dtypes),
+        merge_with(list, raw_vars, all_dtypes),
     )
     attrs = valmap(first, raw_attrs)
     return variables, attrs
