@@ -53,18 +53,18 @@ def read_image(fs, path, chunks):
     # - group attrs
     # - coords
     # - image variable attrs
-    group_attrs = sar_image.extract_attrs(header)
-    coords, var_attrs = sar_image.transform_metadata(metadata)
-    image_variable = (dims, image_data, var_attrs)
+    header_attrs = sar_image.extract_attrs(header)
+    coords, attrs = sar_image.transform_metadata(metadata)
+    image_variable = (dims, image_data, {})
 
     raw_variables = coords | {"data": image_variable}
     variables = {name: Variable(*var) for name, var in raw_variables.items()}
 
     group_name = sar_image.filename_to_groupname(path)
 
-    attrs = group_attrs | {"coordinates": list(coords)}
+    group_attrs = attrs | header_attrs | {"coordinates": list(coords)}
 
-    return Group(path=group_name, data=variables, attrs=attrs, url=None)
+    return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
 
 
 def open(path, chunks=None, storage_options={}):
