@@ -26,9 +26,8 @@ def read_summary(mapper, path):
     return parse_summary(bytes_.decode())
 
 
-def read_image(mapper, path, chunks, *, use_cache=True, create_cache=False):
+def read_image(mapper, path, *, use_cache=True, create_cache=False, records_per_chunk=None):
     dims = ["rows", "columns"]
-    chunksizes = tuple(chunks.get(dim, -1) for dim in dims)
 
     try:
         fs = mapper.dirfs
@@ -42,7 +41,7 @@ def read_image(mapper, path, chunks, *, use_cache=True, create_cache=False):
         metadata = sar_image.read_cache(mapper, path)
     except sar_image.CachingError:
         with fs.open(path, mode="rb") as f:
-            metadata = sar_image.read_metadata(f, chunksizes[0])
+            metadata = sar_image.read_metadata(f, records_per_chunk)
         if create_cache:
             sar_image.create_cache(mapper, path, metadata)
 
@@ -59,7 +58,7 @@ def read_image(mapper, path, chunks, *, use_cache=True, create_cache=False):
         shape=metadata["shape"],
         dtype=dtype,
         parse_bytes=parser,
-        chunks=chunksizes,
+        records_per_chunk=records_per_chunk,
     )
 
     # transform metadata:
@@ -78,12 +77,8 @@ def read_image(mapper, path, chunks, *, use_cache=True, create_cache=False):
     return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
 
 
-def open(path, chunks=None, *, storage_options={}, create_cache=False, use_cache=True):
+def open(path, *, storage_options={}, create_cache=False, use_cache=True, records_per_chunk=1024):
     mapper = fsspec.get_mapper(path, **storage_options)
-
-    # the default is to read 1024 records at once
-    if chunks is None:
-        chunks = {"rows": 1024}
 
     # read summary
     # TODO: split into metadata for the reader and human-readable metadata
@@ -95,7 +90,13 @@ def open(path, chunks=None, *, storage_options={}, create_cache=False, use_cache
     # read sar leader
     # read actual imagery
     imagery_groups = [
-        read_image(mapper, path, chunks, create_cache=create_cache, use_cache=use_cache)
+        read_image(
+            mapper,
+            path,
+            records_per_chunk=records_per_chunk,
+            create_cache=create_cache,
+            use_cache=use_cache,
+        )
         for path in filenames["sar_imagery"]
     ]
     imagery = Group(
