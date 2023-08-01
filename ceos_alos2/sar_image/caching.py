@@ -145,5 +145,6 @@ def create_cache(mapper, path, data):
     # ensure the directory exists
     local.parent.mkdir(exist_ok=True, parents=True)
 
-    encoded = encode(data)
+    remote_url = mapper.fs.sep.join((mapper.root, path))
+    encoded = encode({"url": remote_url} | data)
     local.write_text(encoded)
