@@ -15,6 +15,11 @@ class Variable:
     data: Array | ArrayLike
     attrs: dict[str, Any]
 
+    def __post_init__(self):
+        if isinstance(self.dims, str):
+            # normalize, need the hack
+            super().__setattr__("dims", [self.dims])
+
     @property
     def ndim(self):
         return self.data.ndim
@@ -33,6 +38,10 @@ class Variable:
             return dict.fromkeys(self.dims)
 
         return dict(zip(self.dims, self.data.chunks))
+
+    @property
+    def sizes(self):
+        return dict(zip(self.dims, self.data.shape))
 
 
 @dataclass

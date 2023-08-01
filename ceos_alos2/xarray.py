@@ -30,6 +30,20 @@ class LazilyIndexedWrapper(BackendArray):
             return self.array[key]
 
 
+def extract_encoding(var):
+    chunks = var.chunks
+
+    if all(c is None for c in chunks.values()):
+        return {}
+
+    normalized_chunks = {
+        dim: chunksize if chunksize not in (None, -1) else var.sizes[dim]
+        for dim, chunksize in chunks.items()
+    }
+
+    return {"preferred_chunksizes": normalized_chunks}
+
+
 def to_variable(var):
     # only need a read lock, we don't support writing
     # TODO: do we even need the lock?
@@ -39,7 +53,7 @@ def to_variable(var):
     else:
         data = var.data
 
-    return xr.Variable(var.dims, data, var.attrs, encoding={"preferred_chunks": var.chunks})
+    return xr.Variable(var.dims, data, var.attrs, encoding=extract_encoding(var))
 
 
 def decode_coords(ds):
@@ -74,6 +88,6 @@ def to_datatree(group, chunks=None):
 
 
 def open_alos2(path, chunks=None, storage_options={}, backend_options={}):
-    root = io.open(path, chunks=chunks, storage_options=storage_options, **backend_options)
+    root = io.open(path, storage_options=storage_options, **backend_options)
 
     return to_datatree(root, chunks=chunks)
