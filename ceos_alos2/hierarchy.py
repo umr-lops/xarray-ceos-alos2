@@ -39,6 +39,10 @@ class Variable:
 
         return dict(zip(self.dims, self.data.chunks))
 
+    @property
+    def sizes(self):
+        return dict(zip(self.dims, self.data.shape))
+
 
 @dataclass
 class Group(Mapping):
