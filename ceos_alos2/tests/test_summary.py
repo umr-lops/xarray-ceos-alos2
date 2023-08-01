@@ -9,7 +9,7 @@ except NameError:  # pragma: no cover
 
 
 def compare_exceptions(e1, e2):
-    return type(e1) == type(e2) and e1.args == e2.args
+    return type(e1) is type(e2) and e1.args == e2.args
 
 
 @pytest.mark.parametrize(
