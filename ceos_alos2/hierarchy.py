@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from numpy.typing import ArrayLike
 from tlz.dicttoolz import valfilter
 
 from ceos_alos2.array import Array
@@ -11,7 +12,7 @@ from ceos_alos2.array import Array
 @dataclass(frozen=True)
 class Variable:
     dims: str | list[str]
-    data: Array
+    data: Array | ArrayLike
     attrs: dict[str, Any]
 
     @property
@@ -28,6 +29,9 @@ class Variable:
 
     @property
     def chunks(self):
+        if not isinstance(self.data, Array):
+            return dict.fromkeys(self.dims)
+
         return dict(zip(self.dims, self.data.chunks))
 
 

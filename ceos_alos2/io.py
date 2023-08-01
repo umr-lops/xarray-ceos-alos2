@@ -33,7 +33,7 @@ def read_image(fs, path, chunks):
     with fs.open(path, mode="rb") as f:
         header, metadata = sar_image.read_metadata(f, chunksizes[0])
 
-    byte_ranges = [(m.data.start, m.data.stop) for m in metadata]
+    byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
     type_code = sar_image.extract_format_type(header)
     parser = curry(sar_image.parse_data, type_code=type_code)
 
@@ -53,14 +53,16 @@ def read_image(fs, path, chunks):
     # - group attrs
     # - coords
     # - image variable attrs
-    group_attrs = sar_image.extract_attrs(header)
-    coords, var_attrs = sar_image.transform_metadata(metadata)
-    image_variable = (dims, image_data, var_attrs)
+    header_attrs = sar_image.extract_attrs(header)
+    coords, attrs = sar_image.transform_metadata(metadata)
+    image_variable = (dims, image_data, {})
 
     raw_variables = coords | {"data": image_variable}
     variables = {name: Variable(*var) for name, var in raw_variables.items()}
 
     group_name = sar_image.filename_to_groupname(path)
+
+    group_attrs = attrs | header_attrs | {"coordinates": list(coords)}
 
     return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
 
