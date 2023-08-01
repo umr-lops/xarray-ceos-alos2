@@ -21,7 +21,7 @@ def hashsum(data, algorithm="sha256"):
 
 
 def local_cache_location(remote_root, path):
-    subdirs, fname = path.rstrip("/", 1)
+    subdirs, fname = f"/{path}".rsplit("/", 1)
     cache_name = f"{fname}.index"
 
     local_root = pathlib.Path(platformdirs.user_cache_dir(project_name))
@@ -69,7 +69,7 @@ def encode_array(obj):
 
 def decode_datetime(obj):
     encoding = obj["encoding"]
-    reference = np.array(encoding["reference_date"], dtype=obj["dtype"])
+    reference = np.array(encoding["reference"], dtype=obj["dtype"])
 
     timedelta = np.array(obj["data"], dtype=f"timedelta64[{encoding['units']}]")
 
@@ -113,7 +113,7 @@ def preprocess(data):
     elif isinstance(data, list):
         return list(map(preprocess, data))
     elif isinstance(data, tuple):
-        return {"__type__": "tuple", "data": list(preprocess(data))}
+        return {"__type__": "tuple", "data": list(data)}
     else:
         return data
 
@@ -131,10 +131,10 @@ def read_cache(mapper, path):
     local = local_cache_location(mapper.root, path)
 
     if local.is_file():
-        return decode(local.read_binary())
+        return decode(local.read_text())
 
     if remote in mapper:
-        return decode(mapper[remote])
+        return decode(mapper[remote].decode())
 
     raise CachingError(f"no cache found for {path}")
 
