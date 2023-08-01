@@ -136,3 +136,7 @@ class Array:
     @property
     def ndim(self):
         return len(self.shape)
+
+    @property
+    def chunks(self):
+        return (self.records_per_chunk, *self.shape[1:])
