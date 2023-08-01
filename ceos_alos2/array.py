@@ -179,7 +179,6 @@ class Array:
 
     def __post_init__(self):
         sizes = np.array([stop - start for start, stop in self.byte_ranges])
-        possible_chunksizes = np.cumsum(sizes)
         if self.records_per_chunk is None:
             self.records_per_chunk = 1024
         elif isinstance(self.records_per_chunk, str):
@@ -188,7 +187,7 @@ class Array:
             else:
                 size = parse_bytes(self.records_per_chunk)
 
-            self.records_per_chunk = determine_nearest_chunksize(possible_chunksizes, size)
+            self.records_per_chunk = determine_nearest_chunksize(sizes, size)
         else:
             self.records_per_chunk = normalize_chunksize(self.records_per_chunk, self.shape[0])
         self.chunk_offsets = compute_chunk_offsets(self.byte_ranges, self.records_per_chunk)
