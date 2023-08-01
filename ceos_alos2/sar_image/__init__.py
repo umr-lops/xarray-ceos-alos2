@@ -7,10 +7,7 @@ from tlz.itertoolz import partition_all
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
-from ceos_alos2.sar_image.metadata import (  # noqa: F401
-    extract_attrs,
-    transform_metadata,
-)
+from ceos_alos2.sar_image.metadata import transform  # noqa: F401
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 from ceos_alos2.utils import to_dict
@@ -86,18 +83,7 @@ def read_metadata(f, records_per_chunk=1024):
         )
     )
 
-    return to_dict(header), to_dict(metadata)
-
-
-def extract_format_type(header):
-    return header["prefix_suffix_data_locators"]["sar_data_format_type_code"]
-
-
-def extract_shape(header):
-    return (
-        header["sar_related_data_in_the_record"]["number_of_lines_per_dataset"],
-        header["sar_related_data_in_the_record"]["number_of_data_groups_per_line"],
-    )
+    return transform(to_dict(header), to_dict(metadata))
 
 
 raw_dtypes = {
@@ -109,15 +95,6 @@ dtypes = {
     "C*8": np.dtype("complex64"),
     "IU2": np.dtype("uint16"),
 }
-
-
-def extract_dtype(header):
-    type_code = extract_format_type(header)
-    dtype = dtypes.get(type_code)
-    if dtype is None:
-        raise ValueError(f"unknown type code: {type_code}")
-
-    return dtype
 
 
 def filename_to_groupname(path):
