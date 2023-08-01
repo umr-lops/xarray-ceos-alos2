@@ -26,24 +26,37 @@ def read_summary(mapper, path):
     return parse_summary(bytes_.decode())
 
 
-def read_image(fs, path, chunks):
+def read_image(mapper, path, chunks, *, use_cache=True, create_cache=False):
     dims = ["rows", "columns"]
     chunksizes = tuple(chunks.get(dim, -1) for dim in dims)
 
-    with fs.open(path, mode="rb") as f:
-        header, metadata = sar_image.read_metadata(f, chunksizes[0])
+    try:
+        fs = mapper.dirfs
+    except AttributeError:
+        fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
-    byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
-    type_code = sar_image.extract_format_type(header)
-    parser = curry(sar_image.parse_data, type_code=type_code)
+    try:
+        if not use_cache:
+            # don't use the cache
+            raise sar_image.CachingError()
+        metadata = sar_image.read_cache(mapper, path)
+    except sar_image.CachingError:
+        with fs.open(path, mode="rb") as f:
+            metadata = sar_image.read_metadata(f, chunksizes[0])
+        if create_cache:
+            sar_image.create_cache(mapper, path, metadata)
 
-    shape = sar_image.extract_shape(header)
-    dtype = sar_image.extract_dtype(header)
+    parser = curry(sar_image.parse_data, type_code=metadata["type_code"])
+
+    dtype = sar_image.dtypes.get(metadata["type_code"])
+    if dtype is None:
+        raise ValueError(f"unknown type code: {metadata['type_code']}")
+
     image_data = Array(
         fs=fs,
         url=path,
-        byte_ranges=byte_ranges,
-        shape=shape,
+        byte_ranges=metadata["byte_ranges"],
+        shape=metadata["shape"],
         dtype=dtype,
         parse_bytes=parser,
         chunks=chunksizes,
@@ -53,23 +66,20 @@ def read_image(fs, path, chunks):
     # - group attrs
     # - coords
     # - image variable attrs
-    header_attrs = sar_image.extract_attrs(header)
-    coords, attrs = sar_image.transform_metadata(metadata)
     image_variable = (dims, image_data, {})
 
-    raw_variables = coords | {"data": image_variable}
+    raw_variables = metadata["variables"] | {"data": image_variable}
     variables = {name: Variable(*var) for name, var in raw_variables.items()}
 
     group_name = sar_image.filename_to_groupname(path)
 
-    group_attrs = attrs | header_attrs | {"coordinates": list(coords)}
+    group_attrs = metadata["attrs"]
 
     return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
 
 
-def open(path, chunks=None, storage_options={}):
+def open(path, chunks=None, *, storage_options={}, create_cache=False, use_cache=True):
     mapper = fsspec.get_mapper(path, **storage_options)
-    dirfs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
     # the default is to read 1024 records at once
     if chunks is None:
@@ -85,7 +95,8 @@ def open(path, chunks=None, storage_options={}):
     # read sar leader
     # read actual imagery
     imagery_groups = [
-        read_image(dirfs, path, chunks, **storage_options) for path in filenames["sar_imagery"]
+        read_image(mapper, path, chunks, create_cache=create_cache, use_cache=use_cache)
+        for path in filenames["sar_imagery"]
     ]
     imagery = Group(
         "/imagery", url=mapper.root, data={group.name: group for group in imagery_groups}, attrs={}

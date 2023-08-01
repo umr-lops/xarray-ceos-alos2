@@ -6,6 +6,17 @@ from tlz.itertoolz import first
 from ceos_alos2.dicttoolz import itemsplit
 
 
+def extract_format_type(header):
+    return header["prefix_suffix_data_locators"]["sar_data_format_type_code"]
+
+
+def extract_shape(header):
+    return (
+        header["sar_related_data_in_the_record"]["number_of_lines_per_dataset"],
+        header["sar_related_data_in_the_record"]["number_of_data_groups_per_line"],
+    )
+
+
 def starcall(func, args, **kwargs):
     return func(*args, **kwargs)
 
@@ -118,3 +129,23 @@ def transform_metadata(metadata):
     )
     attrs = valmap(first, raw_attrs)
     return variables, attrs
+
+
+def transform(header, metadata):
+    byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
+    type_code = extract_format_type(header)
+
+    shape = extract_shape(header)
+
+    header_attrs = extract_attrs(header)
+    coords, attrs = transform_metadata(metadata)
+
+    all_attrs = header_attrs | attrs | {"coordinates": list(coords)}
+
+    return {
+        "variables": coords,
+        "attrs": all_attrs,
+        "type_code": type_code,
+        "shape": shape,
+        "byte_ranges": byte_ranges,
+    }

@@ -73,7 +73,7 @@ def to_datatree(group, chunks=None):
     return root
 
 
-def open_alos2(path, chunks=None, storage_options={}):
-    root = io.open(path, chunks=chunks, storage_options=storage_options)
+def open_alos2(path, chunks=None, storage_options={}, backend_options={}):
+    root = io.open(path, chunks=chunks, storage_options=storage_options, **backend_options)
 
     return to_datatree(root, chunks=chunks)
