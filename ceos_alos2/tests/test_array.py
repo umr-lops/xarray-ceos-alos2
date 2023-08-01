@@ -186,8 +186,8 @@ def test_read_chunk(offset, size):
 class TestArray:
     @pytest.mark.parametrize("shape", ((10, 10), (20, 10), (10, 20), (20, 20)))
     @pytest.mark.parametrize("dtype", ("uint16", "complex64"))
-    @pytest.mark.parametrize("chunks", (None, "auto", (-1, 10), (10, -1), (10, 10)))
-    def test_init(self, shape, dtype, chunks):
+    @pytest.mark.parametrize("chunksize", (None, "auto", -1, 10))
+    def test_init(self, shape, dtype, chunksize):
         fs = DirFileSystem(fs=fsspec.filesystem("memory"), path="/")
         url = "image-file"
 
@@ -199,6 +199,6 @@ class TestArray:
             byte_ranges=byte_ranges,
             shape=shape,
             dtype=dtype,
-            chunks=chunks,
+            records_per_chunk=chunksize,
             parse_bytes=identity,
         )

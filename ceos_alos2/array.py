@@ -5,13 +5,11 @@ import numpy as np
 from tlz.itertoolz import cons, first, get, groupby, partition_all, second
 
 
-def normalize_chunks(chunks, shape):
-    def normalize(chunksize, dim_size):
-        if chunksize in (None, -1) or chunksize > dim_size:
-            return dim_size
-        return chunksize
+def normalize_chunksize(chunksize, dim_size):
+    if chunksize in (None, -1) or chunksize > dim_size:
+        return dim_size
 
-    return tuple(normalize(chunksize, dim_size) for chunksize, dim_size in zip(chunks, shape))
+    return chunksize
 
 
 def determine_nearest_chunksize(sizes, reference_size):
@@ -99,27 +97,26 @@ class Array:
     parse_bytes: callable = field(repr=False)
 
     # chunk sizes: chunks in (rows, cols)
-    chunks: tuple[int, int] = field(repr=True, default=None)
+    records_per_chunk: int | None = field(repr=True, default=None)
     chunk_offsets: list[tuple[int, int]] = field(repr=False, init=False)
 
     def __post_init__(self):
         sizes = np.array([stop - start for start, stop in self.byte_ranges])
         possible_chunksizes = np.cumsum(sizes)
-        if self.chunks is None:
-            self.chunks = (4096, self.shape[1])
-        elif self.chunks == "auto":
+        if self.records_per_chunk is None:
+            self.records_per_chunk = 1024
+        elif self.records_per_chunk == "auto":
             reference_size = 100 * 2**20
-            rows_per_chunk = determine_nearest_chunksize(possible_chunksizes, reference_size)
-            self.chunks = (rows_per_chunk, self.shape[1])
+            self.records_per_chunk = determine_nearest_chunksize(
+                possible_chunksizes, reference_size
+            )
         else:
-            self.chunks = normalize_chunks(self.chunks, self.shape)
-        self.chunk_offsets = compute_chunk_offsets(self.byte_ranges, self.chunks[0])
+            self.records_per_chunk = normalize_chunksize(self.records_per_chunk, self.shape[0])
+        self.chunk_offsets = compute_chunk_offsets(self.byte_ranges, self.records_per_chunk)
 
     def __getitem__(self, indexers):
-        rows_per_chunk = self.chunks[0]
-
         selected_ranges = compute_selected_ranges(self.byte_ranges, indexers[0])
-        grouped = groupby_chunks(selected_ranges, chunksize=rows_per_chunk)
+        grouped = groupby_chunks(selected_ranges, chunksize=self.records_per_chunk)
         merged = merge_chunk_info(grouped, chunk_offsets=self.chunk_offsets)
         tasks = [relocate_ranges(info, ranges) for info, ranges in merged]
 
