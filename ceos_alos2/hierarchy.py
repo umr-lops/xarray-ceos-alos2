@@ -80,6 +80,9 @@ class Group(Mapping):
     def __getitem__(self, item):
         return self.data[item]
 
+    def __setitem__(self, item, value):
+        self.data[item] = value
+
     @property
     def name(self):
         if "/" not in self.path:
