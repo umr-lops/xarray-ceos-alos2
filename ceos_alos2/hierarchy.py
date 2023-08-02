@@ -60,7 +60,7 @@ class Group(Mapping):
                 continue
 
             path = item.path
-            if path is None:
+            if path is None or path == "":
                 item.path = posixpath.join(self.path, name)
             elif not isinstance(path, str):
                 raise TypeError("paths should be `str` or `None`")
@@ -88,7 +88,7 @@ class Group(Mapping):
         if "/" not in self.path:
             return self.path
 
-        _, name = self.rsplit("/", 1)
+        _, name = self.path.rsplit("/", 1)
         return name
 
     def __len__(self):

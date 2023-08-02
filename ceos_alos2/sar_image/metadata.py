@@ -1,9 +1,12 @@
+import datetime as dt
+
 import numpy as np
 from tlz.dicttoolz import itemmap, keyfilter, keymap, merge_with, valmap
-from tlz.functoolz import compose_left, curry
-from tlz.itertoolz import first
+from tlz.functoolz import apply, compose_left, curry, juxt
+from tlz.itertoolz import cons, first, get, identity
 
 from ceos_alos2.dicttoolz import itemsplit
+from ceos_alos2.hierarchy import Group, Variable
 
 
 def extract_format_type(header):
@@ -31,21 +34,6 @@ def remove_nesting_layer(mapping):
             yield from value.items()
 
     return dict(_remove(mapping))
-
-
-def transform_variable(data, dtype=None):
-    if isinstance(data[0], tuple):
-        values, metadata_ = zip(*data)
-        metadata = metadata_[0]
-    else:
-        values = data
-        metadata = {}
-
-    if dtype is not None:
-        data_ = np.array(values, dtype=dtype)
-    else:
-        data_ = np.array(values)
-    return ("rows", data_, metadata)
 
 
 def rename(mapping, translations):
@@ -77,7 +65,61 @@ def extract_attrs(header):
     return filter(header)
 
 
-def transform_metadata(metadata):
+def to_hierarchical(mapping, dtype_overrides={}):
+    def transform_variable(data, dtype=None):
+        if isinstance(data[0], tuple):
+            values, metadata_ = zip(*data)
+            metadata = metadata_[0]
+        else:
+            values = data
+            metadata = {}
+
+        if dtype is not None:
+            data_ = np.array(values, dtype=dtype)
+        else:
+            data_ = np.array(values)
+        return Variable(dims="rows", data=data_, attrs=metadata)
+
+    def transform_subgroup(data):
+        merged = merge_with(list, data)
+        subgroup_data = to_hierarchical(merged)
+
+        return Group(path=None, url=None, data=subgroup_data, attrs={})
+
+    def detect_type(data):
+        if not isinstance(data, list):
+            raise ValueError("not a list")
+        elif len(data) == 0:
+            raise ValueError("empty list")
+
+        elem = data[0]
+        if isinstance(elem, dict):
+            return "group"
+        elif isinstance(elem, (int, float, str, dt.datetime, tuple)):
+            return "variable"
+        else:
+            raise ValueError(f"unknown element type: {type(elem)}")
+
+    processors = {
+        "group": transform_subgroup,
+        "variable": transform_variable,
+    }
+
+    transform_entry = compose_left(
+        juxt(
+            compose_left(first, detect_type, curry(get, seq=processors, default=identity)), identity
+        ),
+        curry(starcall, cons),
+        curry(starcall, apply),
+    )
+
+    # TODO: do we need to get this to work with subgroups?
+    with_overrides = merge_with(tuple, mapping, dtype_overrides)
+
+    return valmap(transform_entry, with_overrides)
+
+
+def metadata_to_groups(metadata):
     # process:
     # - drop format metadata
     # - remove categories
@@ -102,6 +144,7 @@ def transform_metadata(metadata):
     merged = merge(metadata)
 
     # TODO split using known variable names instead?
+    # TODO: what about deduplicating known constant variables?
     known_attrs = {
         "sar_image_data_record_index",
         "sensor_parameters_update_flag",
@@ -116,19 +159,18 @@ def transform_metadata(metadata):
         "transmitted_pulse_polarization",
         "received_pulse_polarization",
     }
-    raw_vars, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
+    raw_data, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
 
     override_dtypes = {
         "sensor_acquisition_date": "datetime64[ns]",
         "sensor_acquisition_date_microseconds": "datetime64[ns]",
     }
-    all_dtypes = dict.fromkeys(raw_vars) | keyfilter(lambda x: x in raw_vars, override_dtypes)
-    variables = valmap(
-        curry(starcall, transform_variable),
-        merge_with(list, raw_vars, all_dtypes),
-    )
+
+    processed = to_hierarchical(raw_data, override_dtypes)
+
     attrs = valmap(first, raw_attrs)
-    return variables, attrs
+
+    return Group(path="", url=None, data=processed, attrs=attrs)
 
 
 raw_dtypes = {
@@ -142,7 +184,7 @@ dtypes = {
 }
 
 
-def transform(header, metadata):
+def transform_metadata(header, metadata):
     byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
     type_code = extract_format_type(header)
 
@@ -152,15 +194,14 @@ def transform(header, metadata):
         raise ValueError(f"unknown type code: {type_code}")
 
     header_attrs = extract_attrs(header)
-    coords, attrs = transform_metadata(metadata)
+    group = metadata_to_groups(metadata)
+    group.attrs |= header_attrs | {"coordinates": list(group.variables)}
 
-    all_attrs = header_attrs | attrs | {"coordinates": list(coords)}
-
-    return {
-        "variables": coords,
-        "attrs": all_attrs,
+    array_metadata = {
         "type_code": type_code,
         "shape": shape,
         "dtype": str(dtype),
         "byte_ranges": byte_ranges,
     }
+
+    return group, array_metadata
