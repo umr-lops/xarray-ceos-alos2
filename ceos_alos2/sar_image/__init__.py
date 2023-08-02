@@ -2,8 +2,7 @@ import itertools
 import math
 
 import numpy as np
-from tlz.functoolz import curry
-from tlz.itertoolz import partition_all
+from tlz.itertoolz import concat
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.sar_image.caching import (  # noqa: F401
@@ -16,16 +15,6 @@ from ceos_alos2.sar_image.metadata import transform  # noqa: F401
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 from ceos_alos2.utils import to_dict
-
-
-def extract_record_type(preamble):
-    return (
-        preamble.first_record_subtype,
-        preamble.record_type,
-        preamble.second_record_subtype,
-        preamble.third_record_subtype,
-    )
-
 
 record_types = {
     10: signal_data_record,
@@ -79,14 +68,14 @@ def read_metadata(f, records_per_chunk=1024):
         offset * record_size + 720 for offset in itertools.accumulate(chunksizes, initial=0)
     ]
 
-    metadata = list(
-        itertools.chain.from_iterable(
-            adjust_offsets(
-                parse_chunk(f.read(chunksize * record_size), record_size), offset=chunk_offset
-            )
-            for chunksize, chunk_offset in zip(chunksizes, chunk_offsets)
-        )
+    raw_metadata = (
+        parse_chunk(f.read(chunksize * record_size), record_size) for chunksize in chunksizes
     )
+    adjusted = (
+        adjust_offsets(records, offset=offset)
+        for records, offset in zip(raw_metadata, chunk_offsets)
+    )
+    metadata = list(concat(adjusted))
 
     return transform(to_dict(header), to_dict(metadata))
 
@@ -121,34 +110,3 @@ def parse_data(content, type_code):
     if type_code == "C*8":
         return raw["real"] + 1j * raw["imag"]
     return raw
-
-
-def parse_data_chunked(bytes_, ranges, type_code):
-    raw = np.stack([parse_data(bytes_[start:stop], type_code) for start, stop in ranges], axis=0)
-
-    return np.where(raw != 0, raw, np.nan)
-
-
-def compute_chunk_info(metadata, type_code):
-    offset = metadata[0].record_start
-    chunksize = metadata[0].preamble.record_length * len(metadata)
-    return {
-        "offset": offset,
-        "size": chunksize,
-        "type_code": type_code,
-        "ranges": [(m.data.start - offset, m.data.stop - offset) for m in metadata],
-    }
-
-
-def read_chunk(f, offset, size, ranges, type_code):
-    f.seek(offset)
-    chunk = f.read(size)
-
-    return parse_data_chunked(chunk, ranges, type_code)
-
-
-def read_data_chunked(f, metadata, *, type_code, records_per_chunk=1024):
-    partitioned = partition_all(records_per_chunk, metadata)
-    chunk_info = list(map(curry(compute_chunk_info, type_code=type_code), partitioned))
-
-    return np.concatenate([read_chunk(f, **info) for info in chunk_info], axis=0)
