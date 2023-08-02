@@ -11,7 +11,7 @@ from ceos_alos2.sar_image.caching import (  # noqa: F401
     read_cache,
 )
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
-from ceos_alos2.sar_image.metadata import transform  # noqa: F401
+from ceos_alos2.sar_image.metadata import raw_dtypes, transform  # noqa: F401
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 from ceos_alos2.utils import to_dict
@@ -78,17 +78,6 @@ def read_metadata(f, records_per_chunk=1024):
     metadata = list(concat(adjusted))
 
     return transform(to_dict(header), to_dict(metadata))
-
-
-raw_dtypes = {
-    "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
-    "IU2": np.dtype(">u2"),
-}
-
-dtypes = {
-    "C*8": np.dtype("complex64"),
-    "IU2": np.dtype("uint16"),
-}
 
 
 def filename_to_groupname(path):

@@ -131,11 +131,25 @@ def transform_metadata(metadata):
     return variables, attrs
 
 
+raw_dtypes = {
+    "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
+    "IU2": np.dtype(">u2"),
+}
+
+dtypes = {
+    "C*8": np.dtype("complex64"),
+    "IU2": np.dtype("uint16"),
+}
+
+
 def transform(header, metadata):
     byte_ranges = [(m["data"]["start"], m["data"]["stop"]) for m in metadata]
     type_code = extract_format_type(header)
 
     shape = extract_shape(header)
+    dtype = dtypes.get(type_code)
+    if dtype is None:
+        raise ValueError(f"unknown type code: {type_code}")
 
     header_attrs = extract_attrs(header)
     coords, attrs = transform_metadata(metadata)
@@ -147,5 +161,6 @@ def transform(header, metadata):
         "attrs": all_attrs,
         "type_code": type_code,
         "shape": shape,
+        "dtype": str(dtype),
         "byte_ranges": byte_ranges,
     }

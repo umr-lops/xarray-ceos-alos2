@@ -47,16 +47,12 @@ def read_image(mapper, path, *, use_cache=True, create_cache=False, records_per_
 
     parser = curry(sar_image.parse_data, type_code=metadata["type_code"])
 
-    dtype = sar_image.dtypes.get(metadata["type_code"])
-    if dtype is None:
-        raise ValueError(f"unknown type code: {metadata['type_code']}")
-
     image_data = Array(
         fs=fs,
         url=path,
         byte_ranges=metadata["byte_ranges"],
         shape=metadata["shape"],
-        dtype=dtype,
+        dtype=metadata["dtype"],
         parse_bytes=parser,
         records_per_chunk=records_per_chunk,
     )
