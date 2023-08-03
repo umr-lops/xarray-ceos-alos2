@@ -17,7 +17,7 @@ def open(path, *, storage_options={}, create_cache=False, use_cache=True, record
     # TODO: split into metadata for the reader and human-readable metadata
     summary = open_summary(mapper, "summary.txt")
 
-    filenames = summary["Pdi"]["data_files"]
+    filenames = summary["product_information"]["data_files"].attrs
 
     # read volume directory
     # read sar leader
