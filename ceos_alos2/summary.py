@@ -6,8 +6,9 @@ from tlz.itertoolz import first, groupby
 from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
+from ceos_alos2 import decoders
 from ceos_alos2.dicttoolz import keysplit
-from ceos_alos2.utils import rename
+from ceos_alos2.utils import remove_nesting_layer, rename
 
 try:
     ExceptionGroup
@@ -119,6 +120,29 @@ def to_isoformat(s):
     return f"{date[:4]}-{date[4:6]}-{date[6:]}T{time}"
 
 
+def transform_ordering_info(section):
+    # TODO: figure out what this means or what it would be used for
+    return section
+
+
+def apply_to_items(funcs, mapping, default=passthrough):
+    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+
+
+def transform_scene_spec(section):
+    transformers = {
+        "SceneID": compose_left(
+            decoders.decode_scene_id,
+            curry(
+                apply_to_items,
+                {"date": lambda d: d.isoformat(), "scene_frame": int, "orbit_accumulation": int},
+            ),
+        ),
+        "SceneShift": int,
+    }
+    return remove_nesting_layer(apply_to_items(transformers, section))
+
+
 def transform_image_info(section):
     def determine_type(key):
         if "DateTime" in key:
@@ -126,20 +150,22 @@ def transform_image_info(section):
         else:
             return "float"
 
-    processors = {
+    transformers = {
         "datetime": to_isoformat,
         "float": float,
     }
-    return {k: processors[determine_type(k)](v) for k, v in section.items()}
+    return {k: transformers[determine_type(k)](v) for k, v in section.items()}
 
 
 def process_sections(sections):
     transformers = {
+        "odi": transform_ordering_info,
+        "scs": transform_scene_spec,
         "pdi": transform_product_info,
         "img": transform_image_info,
     }
 
-    return {k: transformers.get(k, passthrough)(v) for k, v in sections.items()}
+    return apply_to_items(transformers, sections)
 
 
 def transform_summary(summary):
