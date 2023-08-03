@@ -114,9 +114,29 @@ def transform_product_info(section):
     }
 
 
+def to_isoformat(s):
+    date, time = s.split()
+    return f"{date[:4]}-{date[4:6]}-{date[6:]}T{time}"
+
+
+def transform_image_info(section):
+    def determine_type(key):
+        if "DateTime" in key:
+            return "datetime"
+        else:
+            return "float"
+
+    processors = {
+        "datetime": to_isoformat,
+        "float": float,
+    }
+    return {k: processors[determine_type(k)](v) for k, v in section.items()}
+
+
 def process_sections(sections):
     transformers = {
         "pdi": transform_product_info,
+        "img": transform_image_info,
     }
 
     return {k: transformers.get(k, passthrough)(v) for k, v in sections.items()}
