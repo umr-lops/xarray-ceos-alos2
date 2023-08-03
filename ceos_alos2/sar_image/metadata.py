@@ -1,7 +1,7 @@
 import datetime as dt
 
 import numpy as np
-from tlz.dicttoolz import itemmap, keyfilter, keymap, merge_with, valmap
+from tlz.dicttoolz import get_in, itemmap, keyfilter, keymap, merge_with, valmap
 from tlz.functoolz import apply, compose_left, curry, juxt
 from tlz.itertoolz import cons, first, get, identity
 
@@ -65,6 +65,19 @@ def extract_attrs(header):
     return filter(header)
 
 
+def key_exists(mapping, key):
+    if "." in key:
+        key = key.split(".")
+    else:
+        key = [key]
+
+    sentinel = object()
+
+    value = get_in(key, mapping, default=sentinel)
+
+    return value is not sentinel
+
+
 def to_hierarchical(mapping, dtype_overrides={}):
     def transform_variable(data, dtype=None):
         if isinstance(data[0], tuple):
@@ -114,7 +127,8 @@ def to_hierarchical(mapping, dtype_overrides={}):
     )
 
     # TODO: do we need to get this to work with subgroups?
-    with_overrides = merge_with(tuple, mapping, dtype_overrides)
+    filtered_overrides = keyfilter(curry(key_exists, mapping), dtype_overrides)
+    with_overrides = merge_with(tuple, mapping, filtered_overrides)
 
     return valmap(transform_entry, with_overrides)
 
