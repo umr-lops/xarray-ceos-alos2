@@ -1,12 +1,13 @@
 import re
 
-from tlz.dicttoolz import merge, valmap
-from tlz.functoolz import compose_left, curry, juxt
+from tlz.dicttoolz import dissoc, keymap, merge, valmap
+from tlz.functoolz import compose_left, curry, juxt, pipe
 from tlz.itertoolz import first, groupby
 from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
 from ceos_alos2.dicttoolz import keysplit
+from ceos_alos2.utils import rename
 
 try:
     ExceptionGroup
@@ -14,6 +15,17 @@ except NameError:  # pragma: no cover
     from exceptiongroup import ExceptionGroup  # pragma: no cover
 
 entry_re = re.compile(r'(?P<section>[A-Za-z]{3})_(?P<keyword>.*?)="(?P<value>.*?)"')
+
+section_names = {
+    "odi": "ordering_information",
+    "scs": "scene_specification",
+    "pds": "product_specification",
+    "img": "image_information",
+    "pdi": "product_information",
+    "ach": "autocheck",
+    "rad": "result_information",
+    "lbi": "label_information",
+}
 
 
 def parse_line(line):
@@ -56,7 +68,7 @@ def parse_summary(content):
         ),
     )
     merged = merge_sections(entries)
-    return process_sections(merged)
+    return process_sections(keymap(str.lower, merged))
 
 
 def categorize_filenames(filenames):
@@ -71,8 +83,9 @@ def categorize_filenames(filenames):
 
 def transform_product_info(section):
     file_info, remainder = keysplit(lambda x: "ProductFileName" in x, section)
-    # ignore the file count
-    _, filenames = keysplit(lambda x: x.startswith("Cnt"), file_info)
+
+    count_fields = [name for name in file_info if name.startswith("Cnt")]
+    filenames = dissoc(file_info, *count_fields)
     categorized = categorize_filenames(filenames)
 
     shape_related, remainder = keysplit(
@@ -103,7 +116,28 @@ def transform_product_info(section):
 
 def process_sections(sections):
     transformers = {
-        "Pdi": transform_product_info,
+        "pdi": transform_product_info,
     }
 
     return {k: transformers.get(k, passthrough)(v) for k, v in sections.items()}
+
+
+def transform_summary(summary):
+    return pipe(
+        summary,
+        curry(rename, translations=section_names),
+    )
+
+
+def open_summary(mapper, path):
+    try:
+        bytes_ = mapper[path]
+    except FileNotFoundError as e:
+        raise OSError(
+            f"Cannot find the summary file (`{path}`)."
+            f" Make sure the dataset at {mapper.root} is complete and in the JAXA CEOS format."
+        ) from e
+
+    raw_summary = parse_summary(bytes_.decode())
+
+    return transform_summary(raw_summary)

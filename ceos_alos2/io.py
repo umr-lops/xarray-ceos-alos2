@@ -5,23 +5,9 @@ from ceos_alos2 import sar_image
 from ceos_alos2.hierarchy import Group
 
 # from ceos_alos2.sar_leader import sar_leader_record
-from ceos_alos2.summary import parse_summary
-
-# from ceos_alos2.utils import to_dict
+from ceos_alos2.summary import open_summary
 
 # from ceos_alos2.volume_directory import volume_directory_record
-
-
-def read_summary(mapper, path):
-    try:
-        bytes_ = mapper[path]
-    except FileNotFoundError as e:
-        raise OSError(
-            f"Cannot find the summary file (`{path}`)."
-            f" Make sure the dataset at {mapper.root} is complete and in the JAXA CEOS format."
-        ) from e
-
-    return parse_summary(bytes_.decode())
 
 
 def open(path, *, storage_options={}, create_cache=False, use_cache=True, records_per_chunk=1024):
@@ -29,7 +15,7 @@ def open(path, *, storage_options={}, create_cache=False, use_cache=True, record
 
     # read summary
     # TODO: split into metadata for the reader and human-readable metadata
-    summary = read_summary(mapper, "summary.txt")
+    summary = open_summary(mapper, "summary.txt")
 
     filenames = summary["Pdi"]["data_files"]
 
