@@ -8,6 +8,7 @@ from tlz.itertoolz import second
 
 from ceos_alos2 import decoders
 from ceos_alos2.dicttoolz import keysplit
+from ceos_alos2.hierarchy import Group
 from ceos_alos2.utils import remove_nesting_layer, rename
 
 try:
@@ -82,6 +83,68 @@ def categorize_filenames(filenames):
     }
 
 
+def reformat_date(s):
+    return f"{s[:4]}-{s[4:6]}-{s[6:]}"
+
+
+def to_isoformat(s):
+    date, time = s.split()
+    return f"{reformat_date(date)}T{time}"
+
+
+def transform_ordering_info(section):
+    # TODO: figure out what this means or what it would be used for
+    return Group(path=None, url=None, data={}, attrs=section)
+
+
+def apply_to_items(funcs, mapping, default=passthrough):
+    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+
+
+def transform_scene_spec(section):
+    transformers = {
+        "SceneID": compose_left(
+            decoders.decode_scene_id,
+            curry(
+                apply_to_items,
+                {"date": lambda d: d.isoformat(), "scene_frame": int, "orbit_accumulation": int},
+            ),
+        ),
+        "SceneShift": int,
+    }
+    attrs = remove_nesting_layer(apply_to_items(transformers, section))
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_product_spec(section):
+    transformers = {
+        "ProductID": decoders.decode_product_id,
+        "ResamplingMethod": passthrough,
+        "UTM_ZoneNo": int,
+        "MapDirection": passthrough,
+        "OrbitDataPrecision": passthrough,
+        "AttitudeDataPrecision": passthrough,
+    }
+
+    attrs = remove_nesting_layer(apply_to_items(transformers, section, default=float))
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_image_info(section):
+    def determine_type(key):
+        if "DateTime" in key:
+            return "datetime"
+        else:
+            return "float"
+
+    transformers = {
+        "datetime": to_isoformat,
+        "float": float,
+    }
+    attrs = {k: transformers[determine_type(k)](v) for k, v in section.items()}
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
 def transform_product_info(section):
     file_info, remainder = keysplit(lambda x: "ProductFileName" in x, section)
 
@@ -105,64 +168,43 @@ def transform_product_info(section):
         ),
         groupby(lambda it: second(first(it).split("_")), shape_related.items()),
     )
-    shapes = valmap(lambda x: (x["NoOfLines"], x["NoOfPixels"]), shapes_)
-    metadata = remainder
+    shapes = Group(
+        path="shapes",
+        url=None,
+        data={},
+        attrs=valmap(lambda x: (x["NoOfLines"], x["NoOfPixels"]), shapes_),
+    )
 
-    return {
-        "data_files": categorized,
-        "shapes": shapes,
-        **metadata,
-    }
-
-
-def to_isoformat(s):
-    date, time = s.split()
-    return f"{date[:4]}-{date[4:6]}-{date[6:]}T{time}"
-
-
-def transform_ordering_info(section):
-    # TODO: figure out what this means or what it would be used for
-    return section
+    filenames = Group(path="data_files", url=None, data={}, attrs=categorized)
+    # TODO: ignore shapes?
+    return Group(
+        path="", url=None, data={"data_files": filenames, "shapes": shapes}, attrs=remainder
+    )
 
 
-def apply_to_items(funcs, mapping, default=passthrough):
-    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+def transform_autocheck(section):
+    attrs = valmap(lambda s: s or "N/A", section)
+
+    return Group(path=None, url=None, data={}, attrs=attrs)
 
 
-def transform_scene_spec(section):
+def transform_label_info(section):
     transformers = {
-        "SceneID": compose_left(
-            decoders.decode_scene_id,
-            curry(
-                apply_to_items,
-                {"date": lambda d: d.isoformat(), "scene_frame": int, "orbit_accumulation": int},
-            ),
-        ),
-        "SceneShift": int,
+        "ObservationDate": reformat_date,
     }
-    return remove_nesting_layer(apply_to_items(transformers, section))
-
-
-def transform_image_info(section):
-    def determine_type(key):
-        if "DateTime" in key:
-            return "datetime"
-        else:
-            return "float"
-
-    transformers = {
-        "datetime": to_isoformat,
-        "float": float,
-    }
-    return {k: transformers[determine_type(k)](v) for k, v in section.items()}
+    attrs = apply_to_items(transformers, section)
+    return Group(path=None, url=None, data={}, attrs=attrs)
 
 
 def process_sections(sections):
     transformers = {
         "odi": transform_ordering_info,
         "scs": transform_scene_spec,
-        "pdi": transform_product_info,
+        "pds": transform_product_spec,
         "img": transform_image_info,
+        "pdi": transform_product_info,
+        "ach": transform_autocheck,
+        "lbi": transform_label_info,
     }
 
     return apply_to_items(transformers, sections)
@@ -172,6 +214,7 @@ def transform_summary(summary):
     return pipe(
         summary,
         curry(rename, translations=section_names),
+        curry(Group, "summary", None, attrs={}),
     )
 
 
