@@ -1,10 +1,8 @@
 import fsspec
-from fsspec.implementations.dirfs import DirFileSystem
 from tlz.functoolz import curry
 
 from ceos_alos2 import sar_image
-from ceos_alos2.array import Array
-from ceos_alos2.hierarchy import Group, Variable
+from ceos_alos2.hierarchy import Group
 
 # from ceos_alos2.sar_leader import sar_leader_record
 from ceos_alos2.summary import parse_summary
@@ -26,57 +24,6 @@ def read_summary(mapper, path):
     return parse_summary(bytes_.decode())
 
 
-def read_image(mapper, path, *, use_cache=True, create_cache=False, records_per_chunk=None):
-    dims = ["rows", "columns"]
-
-    try:
-        fs = mapper.dirfs
-    except AttributeError:
-        fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
-
-    try:
-        if not use_cache:
-            # don't use the cache
-            raise sar_image.CachingError()
-        metadata = sar_image.read_cache(mapper, path)
-    except sar_image.CachingError:
-        with fs.open(path, mode="rb") as f:
-            metadata = sar_image.read_metadata(f, records_per_chunk)
-        if create_cache:
-            sar_image.create_cache(mapper, path, metadata)
-
-    parser = curry(sar_image.parse_data, type_code=metadata["type_code"])
-
-    dtype = sar_image.dtypes.get(metadata["type_code"])
-    if dtype is None:
-        raise ValueError(f"unknown type code: {metadata['type_code']}")
-
-    image_data = Array(
-        fs=fs,
-        url=path,
-        byte_ranges=metadata["byte_ranges"],
-        shape=metadata["shape"],
-        dtype=dtype,
-        parse_bytes=parser,
-        records_per_chunk=records_per_chunk,
-    )
-
-    # transform metadata:
-    # - group attrs
-    # - coords
-    # - image variable attrs
-    image_variable = (dims, image_data, {})
-
-    raw_variables = metadata["variables"] | {"data": image_variable}
-    variables = {name: Variable(*var) for name, var in raw_variables.items()}
-
-    group_name = sar_image.filename_to_groupname(path)
-
-    group_attrs = metadata["attrs"]
-
-    return Group(path=group_name, data=variables, attrs=group_attrs, url=None)
-
-
 def open(path, *, storage_options={}, create_cache=False, use_cache=True, records_per_chunk=1024):
     mapper = fsspec.get_mapper(path, **storage_options)
 
@@ -89,16 +36,18 @@ def open(path, *, storage_options={}, create_cache=False, use_cache=True, record
     # read volume directory
     # read sar leader
     # read actual imagery
-    imagery_groups = [
-        read_image(
-            mapper,
-            path,
-            records_per_chunk=records_per_chunk,
-            create_cache=create_cache,
-            use_cache=use_cache,
+    imagery_groups = list(
+        map(
+            curry(
+                sar_image.open_image,
+                mapper,
+                records_per_chunk=records_per_chunk,
+                create_cache=create_cache,
+                use_cache=use_cache,
+            ),
+            filenames["sar_imagery"],
         )
-        for path in filenames["sar_imagery"]
-    ]
+    )
     imagery = Group(
         "/imagery", url=mapper.root, data={group.name: group for group in imagery_groups}, attrs={}
     )
