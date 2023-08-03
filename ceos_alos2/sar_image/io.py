@@ -2,17 +2,13 @@ import itertools
 import math
 
 import numpy as np
-from fsspec.implementations.dirfs import DirFileSystem
 from tlz.functoolz import curry
 from tlz.itertoolz import concat
 
 from ceos_alos2.array import Array
 from ceos_alos2.common import record_preamble
-from ceos_alos2.hierarchy import Variable
-from ceos_alos2.sar_image import caching
-from ceos_alos2.sar_image.caching import CachingError
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
-from ceos_alos2.sar_image.metadata import raw_dtypes, transform_metadata
+from ceos_alos2.sar_image.metadata import raw_dtypes
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 from ceos_alos2.utils import to_dict
@@ -21,16 +17,6 @@ record_types = {
     10: signal_data_record,
     11: processed_data_record,
 }
-
-
-def filename_to_groupname(path):
-    from ceos_alos2.decoders import decode_filename
-
-    info = decode_filename(path)
-    scan_number = f"scan{info['scan_number']}" if "scan_number" in info else None
-    polarization = info.get("polarization")
-    parts = [polarization, scan_number]
-    return "_".join([_ for _ in parts if _])
 
 
 def parse_data(content, type_code):
@@ -114,33 +100,3 @@ def read_metadata(f, records_per_chunk=1024):
     metadata = list(concat(adjusted))
 
     return to_dict(header), to_dict(metadata)
-
-
-def open_image(mapper, path, *, use_cache=True, create_cache=False, records_per_chunk=None):
-    if use_cache:
-        try:
-            return caching.read_cache(mapper, path)
-        except CachingError:
-            pass
-
-    try:
-        fs = mapper.dirfs
-    except AttributeError:
-        fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
-
-    with fs.open(path, mode="rb") as f:
-        header, metadata = read_metadata(f, records_per_chunk)
-
-        group, array_metadata = transform_metadata(header, metadata)
-
-    group["data"] = Variable(
-        dims=["rows", "columns"],
-        data=create_array(fs=fs, path=path, records_per_chunk=records_per_chunk, **array_metadata),
-        attrs={},
-    )
-    group.path = filename_to_groupname(path)
-
-    if create_cache:
-        caching.create_cache(mapper, path, group)
-
-    return group
