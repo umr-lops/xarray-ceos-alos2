@@ -39,7 +39,7 @@ def open(path, *, storage_options={}, create_cache=False, use_cache=True, record
     )
     # read sar trailer
 
-    subgroups = {"imagery": imagery}
+    subgroups = {"imagery": imagery, "summary": summary}
 
     return Group(path="/", data=subgroups, url=mapper.root, attrs={})
 
