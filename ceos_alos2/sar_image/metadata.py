@@ -7,7 +7,7 @@ from tlz.itertoolz import cons, first, get, identity
 
 from ceos_alos2.dicttoolz import itemsplit
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.utils import rename
+from ceos_alos2.utils import remove_nesting_layer, rename
 
 
 def extract_format_type(header):
@@ -23,18 +23,6 @@ def extract_shape(header):
 
 def starcall(func, args, **kwargs):
     return func(*args, **kwargs)
-
-
-def remove_nesting_layer(mapping):
-    def _remove(mapping):
-        for key, value in mapping.items():
-            if not isinstance(value, dict):
-                yield key, value
-                continue
-
-            yield from value.items()
-
-    return dict(_remove(mapping))
 
 
 def extract_attrs(header):

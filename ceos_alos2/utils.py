@@ -24,6 +24,18 @@ def rename(mapping, translations):
     return keymap(lambda k: translations.get(k, k), mapping)
 
 
+def remove_nesting_layer(mapping):
+    def _remove(mapping):
+        for key, value in mapping.items():
+            if not isinstance(value, dict):
+                yield key, value
+                continue
+
+            yield from value.items()
+
+    return dict(_remove(mapping))
+
+
 # vendored from `dask.utils.parse_bytes`
 # https://github.com/dask/dask/blob/a68bbc814306c51177407d32067ee5a8aaa22181/dask/utils.py#L1455-L1528
 byte_sizes = {
