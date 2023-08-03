@@ -1,12 +1,13 @@
 import datetime as dt
 
 import numpy as np
-from tlz.dicttoolz import get_in, itemmap, keyfilter, keymap, merge_with, valmap
+from tlz.dicttoolz import get_in, itemmap, keyfilter, merge_with, valmap
 from tlz.functoolz import apply, compose_left, curry, juxt
 from tlz.itertoolz import cons, first, get, identity
 
 from ceos_alos2.dicttoolz import itemsplit
 from ceos_alos2.hierarchy import Group, Variable
+from ceos_alos2.utils import rename
 
 
 def extract_format_type(header):
@@ -34,10 +35,6 @@ def remove_nesting_layer(mapping):
             yield from value.items()
 
     return dict(_remove(mapping))
-
-
-def rename(mapping, translations):
-    return keymap(lambda k: translations.get(k, k), mapping)
 
 
 def extract_attrs(header):

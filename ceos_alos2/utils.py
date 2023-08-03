@@ -2,6 +2,7 @@ import datetime
 
 from construct import EnumIntegerString
 from construct.lib.containers import ListContainer
+from tlz.dicttoolz import keymap
 
 
 def to_dict(container):
@@ -17,6 +18,10 @@ def to_dict(container):
         return type_(to_dict(elem) for elem in container)
 
     return {name: to_dict(section) for name, section in container.items() if name != "_io"}
+
+
+def rename(mapping, translations):
+    return keymap(lambda k: translations.get(k, k), mapping)
 
 
 # vendored from `dask.utils.parse_bytes`
