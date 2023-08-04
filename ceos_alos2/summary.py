@@ -124,7 +124,7 @@ def transform_scene_spec(section):
 def transform_product_spec(section):
     transformers = {
         "ProductID": decoders.decode_product_id,
-        "ResamplingMethod": passthrough,
+        "ResamplingMethod": curry(decoders.lookup, decoders.resampling_methods),
         "UTM_ZoneNo": int,
         "MapDirection": passthrough,
         "OrbitDataPrecision": passthrough,

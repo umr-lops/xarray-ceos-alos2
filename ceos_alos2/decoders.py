@@ -69,6 +69,7 @@ processing_options = {"G": "geo-code", "R": "geo-reference", "_": "not specified
 map_projections = {"U": "UTM", "P": "PS", "M": "MER", "L": "LCC", "_": "not specified"}
 orbit_directions = {"A": "ascending", "D": "descending"}
 processing_methods = {"F": "full aperture_method", "B": "SPECAN method"}
+resampling_methods = {"NN": "nearest-neighbor", "BL": "bilinear", "CC": "cubic convolution"}
 
 
 def lookup(mapping, code):
