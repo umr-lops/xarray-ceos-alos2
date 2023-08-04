@@ -114,3 +114,16 @@ def test_categorize_filenames(mapping, expected):
 
     actual = summary.categorize_filenames(mapping)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["date", "expected"],
+    (
+        pytest.param("20190109", "2019-01-09"),
+        pytest.param("19971231", "1997-12-31"),
+    ),
+)
+def test_reformat_date(date, expected):
+    actual = summary.reformat_date(date)
+
+    assert actual == expected
