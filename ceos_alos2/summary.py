@@ -193,9 +193,14 @@ def transform_autocheck(section):
     return Group(path=None, url=None, data={}, attrs=attrs)
 
 
+def transform_result_info(section):
+    return Group(path=None, url=None, data={}, attrs=section)
+
+
 def transform_label_info(section):
     transformers = {
         "ObservationDate": reformat_date,
+        "ProcessFacility": curry(decoders.lookup, decoders.processing_facilities),
     }
     attrs = apply_to_items(transformers, section)
     return Group(path=None, url=None, data={}, attrs=attrs)
@@ -209,6 +214,7 @@ def process_sections(sections):
         "img": transform_image_info,
         "pdi": transform_product_info,
         "ach": transform_autocheck,
+        "rad": transform_result_info,
         "lbi": transform_label_info,
     }
 

@@ -341,3 +341,103 @@ def test_transform_image_info(section, expected):
     actual = summary.transform_image_info(section)
 
     assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"TimeCheck": "GOOD", "AttitudeCheck": "POOR"},
+            Group(
+                path=None, url=None, data={}, attrs={"TimeCheck": "GOOD", "AttitudeCheck": "POOR"}
+            ),
+            id="available",
+        ),
+        pytest.param(
+            {"AbsoluteNavigationTime": "", "PRF_Check": ""},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={"AbsoluteNavigationTime": "N/A", "PRF_Check": "N/A"},
+            ),
+            id="missing",
+        ),
+    ),
+)
+def test_transform_autocheck(section, expected):
+    actual = summary.transform_autocheck(section)
+
+    assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"PracticeResultCode": "GOOD"},
+            Group(path=None, url=None, data={}, attrs={"PracticeResultCode": "GOOD"}),
+            id="good",
+        ),
+        pytest.param(
+            {"PracticeResultCode": "FAIR"},
+            Group(path=None, url=None, data={}, attrs={"PracticeResultCode": "FAIR"}),
+            id="fair",
+        ),
+    ),
+)
+def test_transform_result_info(section, expected):
+    actual = summary.transform_result_info(section)
+
+    assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"ObservationDate": "20191011"},
+            Group(path=None, url=None, data={}, attrs={"ObservationDate": "2019-10-11"}),
+            id="datetime1",
+        ),
+        pytest.param(
+            {"ObservationDate": "20180726"},
+            Group(path=None, url=None, data={}, attrs={"ObservationDate": "2018-07-26"}),
+            id="datetime2",
+        ),
+        pytest.param(
+            {"ProcessFacility": "SCMO"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={"ProcessFacility": "spacecraft control mission operation system"},
+            ),
+            id="facility1",
+        ),
+        pytest.param(
+            {"ProcessFacility": "EICS"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={"ProcessFacility": "earth intelligence collection and sharing system"},
+            ),
+            id="facility2",
+        ),
+        pytest.param(
+            {"Satellite": "ALOS2", "Sensor": "SAR", "ProcessLevel": "1.1"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={"Satellite": "ALOS2", "Sensor": "SAR", "ProcessLevel": "1.1"},
+            ),
+            id="other_metadata",
+        ),
+    ),
+)
+def test_transform_label_info(section, expected):
+    actual = summary.transform_label_info(section)
+
+    assert_identical(actual, expected)

@@ -70,6 +70,10 @@ map_projections = {"U": "UTM", "P": "PS", "M": "MER", "L": "LCC", "_": "not spec
 orbit_directions = {"A": "ascending", "D": "descending"}
 processing_methods = {"F": "full aperture_method", "B": "SPECAN method"}
 resampling_methods = {"NN": "nearest-neighbor", "BL": "bilinear", "CC": "cubic convolution"}
+processing_facilities = {
+    "SCMO": "spacecraft control mission operation system",
+    "EICS": "earth intelligence collection and sharing system",
+}
 
 
 def lookup(mapping, code):
