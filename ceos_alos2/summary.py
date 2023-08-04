@@ -206,7 +206,7 @@ def transform_label_info(section):
     return Group(path=None, url=None, data={}, attrs=attrs)
 
 
-def process_sections(sections):
+def transform_summary(summary):
     transformers = {
         "odi": transform_ordering_info,
         "scs": transform_scene_spec,
@@ -218,12 +218,9 @@ def process_sections(sections):
         "lbi": transform_label_info,
     }
 
-    return apply_to_items(transformers, sections)
-
-
-def transform_summary(summary):
     return pipe(
         summary,
+        curry(apply_to_items, transformers),
         curry(rename, translations=section_names),
         curry(Group, "summary", None, attrs={}),
     )
@@ -239,6 +236,5 @@ def open_summary(mapper, path):
         ) from e
 
     raw_summary = parse_summary(bytes_.decode())
-    processed = process_sections(raw_summary)
 
-    return transform_summary(processed)
+    return transform_summary(raw_summary)
