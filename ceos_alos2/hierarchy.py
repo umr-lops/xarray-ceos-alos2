@@ -35,7 +35,7 @@ class Variable:
     @property
     def chunks(self):
         if not isinstance(self.data, Array):
-            return dict.fromkeys(self.dims)
+            return {}
 
         return dict(zip(self.dims, self.data.chunks))
 
