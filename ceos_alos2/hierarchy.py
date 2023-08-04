@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 from numpy.typing import ArrayLike
 from tlz.dicttoolz import valfilter
 
@@ -19,6 +20,22 @@ class Variable:
         if isinstance(self.dims, str):
             # normalize, need the hack
             super().__setattr__("dims", [self.dims])
+
+    def identical(self, other):
+        if not isinstance(other, Variable):
+            return False
+
+        if self.dims != other.dims:
+            return False
+        if type(self.data) is not type(other.data):
+            return False
+        if self.attrs != other.attrs:
+            return False
+
+        if isinstance(self.data, Array):
+            return self.data == other.data
+        else:
+            return np.all(self.data == other.data)
 
     @property
     def ndim(self):

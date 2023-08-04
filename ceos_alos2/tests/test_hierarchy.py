@@ -101,3 +101,73 @@ class TestVariable:
         actual = var.sizes
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["a", "b", "expected"],
+        (
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                [1],
+                False,
+                id="type_mismatch",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                True,
+                id="identical-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                hierarchy.Variable(dims="y", data=np.array([1]), attrs={}),
+                False,
+                id="different_dims-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                hierarchy.Variable(dims="x", data=np.array([2]), attrs={}),
+                False,
+                id="different_data-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                False,
+                id="different_data-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                True,
+                id="identical_array-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(2,)), attrs={}),
+                False,
+                id="different_array-without_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                True,
+                id="identical-identical_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 2}),
+                False,
+                id="identical-different_attrs",
+            ),
+            pytest.param(
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1, "b": 1}),
+                False,
+                id="identical-mismatching_attrs",
+            ),
+        ),
+    )
+    def test_identical(self, a, b, expected):
+        actual = a.identical(b)
+
+        assert actual == expected
