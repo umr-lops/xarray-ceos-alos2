@@ -121,3 +121,33 @@ class Group(Mapping):
     @property
     def variables(self):
         return valfilter(lambda el: isinstance(el, Variable), self.data)
+
+    def identical(self, other):
+        if not isinstance(other, Group):
+            return False
+
+        if self.name != other.name:
+            return False
+        if self.url != other.url:
+            return False
+        if list(self.variables) != list(other.variables):
+            # same variable names
+            return False
+        if list(self.groups) != list(other.groups):
+            return False
+        if self.attrs != other.attrs:
+            return False
+
+        for name, var in self.variables.items():
+            if var.identical(other.data[name]):
+                continue
+
+            return False
+
+        for name, group in self.groups.items():
+            if group.identical(other.data[name]):
+                continue
+
+            return False
+
+        return True
