@@ -2,7 +2,7 @@ import re
 
 from tlz.dicttoolz import dissoc, keymap, merge, valmap
 from tlz.functoolz import compose_left, curry, juxt, pipe
-from tlz.itertoolz import first, groupby
+from tlz.itertoolz import first, get, groupby
 from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
@@ -62,14 +62,14 @@ def parse_summary(content):
         new_errors = [with_lineno(error, lineno) for lineno, error in errors.items()]
         raise ExceptionGroup("failed to parse the summary", new_errors)
 
-    merge_sections = compose_left(
-        curry(groupby, lambda x: x["section"]),
+    merged = pipe(
+        entries,
+        curry(groupby, curry(get, "section")),
         curry(
             valmap,
             compose_left(curry(map, lambda x: {x["keyword"]: x["value"]}), merge),
         ),
     )
-    merged = merge_sections(entries)
     return keymap(str.lower, merged)
 
 
