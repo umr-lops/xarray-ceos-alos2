@@ -1,6 +1,8 @@
 import pytest
 
 from ceos_alos2 import summary
+from ceos_alos2.hierarchy import Group
+from ceos_alos2.testing import assert_identical
 
 try:
     ExceptionGroup
@@ -158,3 +160,22 @@ def test_apply_to_items(funcs, default, expected):
     actual = summary.apply_to_items(funcs, mapping, default=default)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"SceneId": "abc", "SiteDateTime": "def"},
+            Group(path=None, url=None, data={}, attrs={"SceneId": "abc", "SiteDateTime": "def"}),
+        ),
+        pytest.param(
+            {"SceneId": "ab", "SiteDateTime": "cd"},
+            Group(path=None, url=None, data={}, attrs={"SceneId": "ab", "SiteDateTime": "cd"}),
+        ),
+    ),
+)
+def test_transform_ordering_info(section, expected):
+    actual = summary.transform_ordering_info(section)
+
+    assert_identical(actual, expected)
