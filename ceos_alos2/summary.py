@@ -70,7 +70,7 @@ def parse_summary(content):
         ),
     )
     merged = merge_sections(entries)
-    return process_sections(keymap(str.lower, merged))
+    return keymap(str.lower, merged)
 
 
 def categorize_filenames(filenames):
@@ -228,5 +228,6 @@ def open_summary(mapper, path):
         ) from e
 
     raw_summary = parse_summary(bytes_.decode())
+    processed = process_sections(raw_summary)
 
-    return transform_summary(raw_summary)
+    return transform_summary(processed)

@@ -49,7 +49,7 @@ def test_parse_line(line, expected):
     (
         pytest.param(
             'Scs_SceneShift="0"\nPds_ProductID="WWDR1.1__D"',
-            {"Scs": {"SceneShift": "0"}, "Pds": {"ProductID": "WWDR1.1__D"}},
+            {"scs": {"SceneShift": "0"}, "pds": {"ProductID": "WWDR1.1__D"}},
             id="valid_lines",
         ),
         pytest.param(
