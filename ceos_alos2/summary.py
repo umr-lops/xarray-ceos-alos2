@@ -93,13 +93,13 @@ def to_isoformat(s):
     return f"{reformat_date(date)}T{time}"
 
 
+def apply_to_items(funcs, mapping, default=passthrough):
+    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+
+
 def transform_ordering_info(section):
     # TODO: figure out what this means or what it would be used for
     return Group(path=None, url=None, data={}, attrs=section)
-
-
-def apply_to_items(funcs, mapping, default=passthrough):
-    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
 
 
 def transform_scene_spec(section):
