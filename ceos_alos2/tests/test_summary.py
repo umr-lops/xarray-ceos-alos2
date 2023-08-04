@@ -294,3 +294,50 @@ def test_transform_product_spec(section, expected):
     actual = summary.transform_product_spec(section)
 
     assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {
+                "SceneCenterDateTime": "20191011 14:43:15.525",
+                "SceneStartDateTime": "20191011 14:42:49.525",
+                "SceneEndDateTime": "20191011 14:43:41.524",
+            },
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "SceneCenterDateTime": "2019-10-11T14:43:15.525",
+                    "SceneStartDateTime": "2019-10-11T14:42:49.525",
+                    "SceneEndDateTime": "2019-10-11T14:43:41.524",
+                },
+            ),
+            id="datetime",
+        ),
+        pytest.param(
+            {
+                "ImageSceneCenterLatitude": "30.385",
+                "ImageSceneCenterLongitude": "137.504",
+                "OffNadirAngle": "21.3",
+            },
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "ImageSceneCenterLatitude": 30.385,
+                    "ImageSceneCenterLongitude": 137.504,
+                    "OffNadirAngle": 21.3,
+                },
+            ),
+            id="floats",
+        ),
+    ),
+)
+def test_transform_image_info(section, expected):
+    actual = summary.transform_image_info(section)
+
+    assert_identical(actual, expected)
