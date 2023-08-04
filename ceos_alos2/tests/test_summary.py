@@ -77,3 +77,40 @@ def test_parse_summary(content, expected):
         return
     actual = summary.parse_summary(content)
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["mapping", "expected"],
+    (
+        pytest.param(
+            {"1": "vd", "2": "l", "3": "im1", "4": "im2", "5": "tr"},
+            {
+                "volume_directory": "vd",
+                "sar_leader": "l",
+                "sar_imagery": ["im1", "im2"],
+                "sar_trailer": "tr",
+            },
+            id="normal",
+        ),
+        pytest.param(
+            {"1": "vd", "2": "l", "3": "im1", "4": "im2", "5": "im3", "6": "im4", "7": "tr"},
+            {
+                "volume_directory": "vd",
+                "sar_leader": "l",
+                "sar_imagery": ["im1", "im2", "im3", "im4"],
+                "sar_trailer": "tr",
+            },
+            id="long",
+        ),
+        pytest.param({"1": "vd", "2": "l"}, ValueError(""), id="short"),
+    ),
+)
+def test_categorize_filenames(mapping, expected):
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            summary.categorize_filenames(mapping)
+
+        return
+
+    actual = summary.categorize_filenames(mapping)
+    assert actual == expected

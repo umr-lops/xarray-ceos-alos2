@@ -73,13 +73,14 @@ def parse_summary(content):
     return keymap(str.lower, merged)
 
 
-def categorize_filenames(filenames):
-    filenames_ = list(filenames.values())
+def categorize_filenames(mapping):
+    filenames = list(mapping.values())
+    volume_directory, leader, *imagery, trailer = filenames
     return {
-        "volume_directory": filenames_[0],
-        "sar_leader": filenames_[1],
-        "sar_imagery": filenames_[2:-1],
-        "sar_trailer": filenames_[-1],
+        "volume_directory": volume_directory,
+        "sar_leader": leader,
+        "sar_imagery": imagery,
+        "sar_trailer": trailer,
     }
 
 
