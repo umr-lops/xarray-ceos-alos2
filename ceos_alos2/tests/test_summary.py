@@ -222,3 +222,75 @@ def test_transform_scene_spec(section, expected):
     actual = summary.transform_scene_spec(section)
 
     assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"ProductID": "WWDR1.1__D"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "observation_mode": "ScanSAR nominal 28MHz mode dual polarization",
+                    "observation_direction": "right looking",
+                    "processing_level": "level 1.1",
+                    "processing_option": "not specified",
+                    "map_projection": "not specified",
+                    "orbit_direction": "descending",
+                },
+            ),
+            id="product_id1",
+        ),
+        pytest.param(
+            {"ProductID": "WWDR1.5RUA"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "observation_mode": "ScanSAR nominal 28MHz mode dual polarization",
+                    "observation_direction": "right looking",
+                    "processing_level": "level 1.5",
+                    "processing_option": "geo-reference",
+                    "map_projection": "UTM",
+                    "orbit_direction": "ascending",
+                },
+            ),
+            id="product_id2",
+        ),
+        pytest.param(
+            {"PixelSpacing": "25.000000"},
+            Group(path=None, url=None, data={}, attrs={"PixelSpacing": 25.0}),
+            id="floats",
+        ),
+        pytest.param(
+            {
+                "ResamplingMethod": "NN",
+                "UTM_ZoneNo": "53",
+                "OrbitDataPrecision": "Precision",
+                "AttitudeDataPrecision": "Onboard",
+                "MapDirection": "MapNorth",
+            },
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "ResamplingMethod": "nearest-neighbor",
+                    "UTM_ZoneNo": 53,
+                    "OrbitDataPrecision": "Precision",
+                    "AttitudeDataPrecision": "Onboard",
+                    "MapDirection": "MapNorth",
+                },
+            ),
+            id="other_metadata",
+        ),
+    ),
+)
+def test_transform_product_spec(section, expected):
+    actual = summary.transform_product_spec(section)
+
+    assert_identical(actual, expected)
