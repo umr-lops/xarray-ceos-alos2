@@ -179,3 +179,46 @@ def test_transform_ordering_info(section, expected):
     actual = summary.transform_ordering_info(section)
 
     assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
+            {"SceneID": "ALOS2290760600-191011", "SceneShift": "0"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "mission_name": "ALOS2",
+                    "orbit_accumulation": 29076,
+                    "scene_frame": 600,
+                    "date": "2019-10-11",
+                    "SceneShift": 0,
+                },
+            ),
+            id="scene1",
+        ),
+        pytest.param(
+            {"SceneID": "ALOS2225333200-180726", "SceneShift": "1"},
+            Group(
+                path=None,
+                url=None,
+                data={},
+                attrs={
+                    "mission_name": "ALOS2",
+                    "orbit_accumulation": 22533,
+                    "scene_frame": 3200,
+                    "date": "2018-07-26",
+                    "SceneShift": 1,
+                },
+            ),
+            id="scene2",
+        ),
+    ),
+)
+def test_transform_scene_spec(section, expected):
+    actual = summary.transform_scene_spec(section)
+
+    assert_identical(actual, expected)

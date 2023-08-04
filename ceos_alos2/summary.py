@@ -108,7 +108,11 @@ def transform_scene_spec(section):
             decoders.decode_scene_id,
             curry(
                 apply_to_items,
-                {"date": lambda d: d.isoformat(), "scene_frame": int, "orbit_accumulation": int},
+                {
+                    "date": lambda d: d.isoformat().split("T")[0],
+                    "scene_frame": int,
+                    "orbit_accumulation": int,
+                },
             ),
         ),
         "SceneShift": int,
