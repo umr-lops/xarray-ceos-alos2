@@ -42,13 +42,16 @@ def diff_mapping_not_equal(left, right):
     for k, (vl, vr) in merged.items():
         if vl == vr:
             continue
-        lines.append(f"L  {vl}")
-        lines.append(f"R  {vr}")
+        lines.append(f"{k}:")
+        lines.append(f" L  {vl}")
+        lines.append(f" R  {vr}")
 
     if not lines:
         return None
 
-    return newline.join(["Differences:"] + lines)
+    formatted_lines = textwrap.indent(newline.join(lines), " ")
+
+    return newline.join(["Differences:", formatted_lines])
 
 
 def diff_mapping(a, b, name):
