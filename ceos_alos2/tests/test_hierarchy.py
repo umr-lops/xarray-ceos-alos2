@@ -485,3 +485,45 @@ class TestGroup:
         assert actual.path == group.path
         assert actual.url == group.url
         assert actual.attrs == group.attrs
+
+    def test_subtree(self):
+        group = Group(
+            "/",
+            None,
+            {
+                "a": Group(
+                    "a",
+                    None,
+                    {
+                        "aa": Group("aa", None, {}, {"n": "aa"}),
+                        "ab": Group("ab", None, {}, {"n": "ab"}),
+                    },
+                    {"n": "a"},
+                ),
+                "b": Group(
+                    "b",
+                    None,
+                    {
+                        "ba": Group("ba", None, {}, {"n": "ba"}),
+                        "bb": Group("bb", None, {}, {"n": "bb"}),
+                    },
+                    {"n": "b"},
+                ),
+                "v": Variable("x", [], {}),
+            },
+            {"n": ""},
+        )
+
+        expected = {
+            "/": Group("/", None, {"v": Variable("x", [], {})}, {"n": ""}),
+            "/a": Group("/a", None, {}, {"n": "a"}),
+            "/a/aa": Group("/a/aa", None, {}, {"n": "aa"}),
+            "/a/ab": Group("/a/ab", None, {}, {"n": "ab"}),
+            "/b": Group("/b", None, {}, {"n": "b"}),
+            "/b/ba": Group("/b/ba", None, {}, {"n": "ba"}),
+            "/b/bb": Group("/b/bb", None, {}, {"n": "bb"}),
+        }
+
+        actual = dict(group.subtree)
+
+        assert actual == expected

@@ -85,6 +85,10 @@ class Group(Mapping):
         if new_value.url is None:
             new_value.url = self.url
 
+        new_value.data = {
+            name: new_value._adjust_item(name, item) for name, item in new_value.data.items()
+        }
+
         return new_value
 
     def __getitem__(self, item):
@@ -150,7 +154,7 @@ class Group(Mapping):
 
     @property
     def subtree(self):
-        yield self.path, self
+        yield self.path, self.decouple()
 
         for item in self.data.values():
             if isinstance(item, Group):
