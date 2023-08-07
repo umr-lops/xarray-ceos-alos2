@@ -4,6 +4,10 @@ from construct import EnumIntegerString
 from construct.lib.containers import ListContainer
 
 
+def unique(seq):
+    return list(dict.fromkeys(seq))
+
+
 def to_dict(container):
     if isinstance(container, EnumIntegerString):
         return str(container)

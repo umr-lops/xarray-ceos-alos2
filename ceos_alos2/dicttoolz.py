@@ -1,5 +1,7 @@
 from tlz.itertoolz import concat, groupby
 
+from ceos_alos2.utils import unique
+
 
 def itemsplit(predicate, d):
     groups = groupby(predicate, d.items())
@@ -16,10 +18,6 @@ def valsplit(predicate, d):
 def keysplit(predicate, d):
     wrapper = lambda item: predicate(item[0])
     return itemsplit(wrapper, d)
-
-
-def unique(seq):
-    return list(dict.fromkeys(seq))
 
 
 def zip_default(*mappings, default=None):
