@@ -362,5 +362,6 @@ class TestGroup:
 
         actual = group[key]
         expected = subgroups[key]
+        expected.path = f"/{key}"
 
         assert actual == expected

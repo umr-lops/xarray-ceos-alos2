@@ -1,3 +1,4 @@
+import copy
 import posixpath
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -72,20 +73,25 @@ class Group(Mapping):
         if self.path is None:
             self.path = "/"  # or raise
 
-        for name, item in self.data.items():
-            if not isinstance(item, Group):
-                continue
+        self.data = {name: self._adjust_item(name, value) for name, value in self.data.items()}
 
-            item.path = posixpath.join(self.path, name)
+    def _adjust_item(self, name, value):
+        new_value = copy.copy(value)
+        if not isinstance(value, Group):
+            return new_value
 
-            if item.url is None:
-                item.url = self.url
+        new_value.path = posixpath.join(self.path, name)
+
+        if new_value.url is None:
+            new_value.url = self.url
+
+        return new_value
 
     def __getitem__(self, item):
         return self.data[item]
 
     def __setitem__(self, item, value):
-        self.data[item] = value
+        self.data[item] = self._adjust_item(item, value)
 
     @property
     def name(self):
