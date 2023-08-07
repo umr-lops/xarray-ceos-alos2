@@ -79,6 +79,7 @@ def parse_bytes(s: float | str) -> int:
     if not any(char.isdigit() for char in s):
         s = "1" + s
 
+    # this will never run until the end
     for i in range(len(s) - 1, -1, -1):
         if not s[i].isalpha():
             break
