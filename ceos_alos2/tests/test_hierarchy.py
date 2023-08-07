@@ -167,7 +167,7 @@ class TestVariable:
             ),
         ),
     )
-    def test_identical(self, a, b, expected):
-        actual = a.identical(b)
+    def test_equal(self, a, b, expected):
+        actual = a == b
 
         assert actual == expected
