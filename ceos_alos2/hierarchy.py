@@ -69,7 +69,7 @@ class Group(Mapping):
     attrs: dict[str, Any]
 
     def __post_init__(self):
-        if self.path is None and self.groups:
+        if self.path is None:
             self.path = "/"  # or raise
 
         for name, item in self.data.items():
