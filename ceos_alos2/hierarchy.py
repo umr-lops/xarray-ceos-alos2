@@ -76,20 +76,7 @@ class Group(Mapping):
             if not isinstance(item, Group):
                 continue
 
-            path = item.path
-            if path is None or path == "":
-                item.path = posixpath.join(self.path, name)
-            elif not isinstance(path, str):
-                raise TypeError("paths should be `str` or `None`")
-            elif not posixpath.isabs(path):
-                if "/" in path:
-                    raise ValueError("relative paths cannot contain slashes")
-                item.path = posixpath.join(self.path, path)
-            elif posixpath.commonpath([self.path, path]) != self.path:
-                raise ValueError(
-                    "group paths need to be either `None`, relative paths,"
-                    " or absolute paths below the parent group"
-                )
+            item.path = posixpath.join(self.path, name)
 
             if item.url is None:
                 item.url = self.url
