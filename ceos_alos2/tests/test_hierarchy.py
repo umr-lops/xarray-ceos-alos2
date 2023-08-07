@@ -381,3 +381,18 @@ class TestGroup:
         if isinstance(item, hierarchy.Group):
             item.path = "/a"
         assert group.data["a"] == item
+
+    @pytest.mark.parametrize(
+        ["group", "expected"],
+        (
+            pytest.param(hierarchy.Group(None, None, {}, {}), "/", id="default"),
+            pytest.param(hierarchy.Group("/", None, {}, {}), "/", id="root"),
+            pytest.param(hierarchy.Group("abc", None, {}, {}), "abc", id="name"),
+            pytest.param(hierarchy.Group("a/b", None, {}, {}), "b", id="relative"),
+            pytest.param(hierarchy.Group("/a/abc", None, {}, {}), "abc", id="absolute"),
+        ),
+    )
+    def test_name(self, group, expected):
+        actual = group.name
+
+        assert actual == expected

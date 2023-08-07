@@ -95,7 +95,7 @@ class Group(Mapping):
 
     @property
     def name(self):
-        if "/" not in self.path:
+        if self.path == "/" or "/" not in self.path:
             return self.path
 
         _, name = self.path.rsplit("/", 1)
