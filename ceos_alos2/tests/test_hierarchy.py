@@ -428,3 +428,41 @@ class TestGroup:
         actual = group.name
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        "group",
+        (
+            pytest.param(Group(None, None, {}, {}), id="default"),
+            pytest.param(Group(None, None, {"a": Variable("x", [], {})}, {}), id="single_variable"),
+            pytest.param(
+                Group(None, None, {"b": Group(None, None, {}, {})}, {}), id="single_group"
+            ),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {}), "b": Group(None, None, {}, {})}, {}),
+                id="mixed",
+            ),
+        ),
+    )
+    def test_groups(self, group):
+        actual = group.groups
+
+        assert all(isinstance(item, Group) for item in actual.values())
+
+    @pytest.mark.parametrize(
+        "group",
+        (
+            pytest.param(Group(None, None, {}, {}), id="default"),
+            pytest.param(Group(None, None, {"a": Variable("x", [], {})}, {}), id="single_variable"),
+            pytest.param(
+                Group(None, None, {"b": Group(None, None, {}, {})}, {}), id="single_group"
+            ),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {}), "b": Group(None, None, {}, {})}, {}),
+                id="mixed",
+            ),
+        ),
+    )
+    def test_variables(self, group):
+        actual = group.variables
+
+        assert all(isinstance(item, Variable) for item in actual.values())
