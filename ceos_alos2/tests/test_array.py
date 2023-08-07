@@ -349,3 +349,123 @@ class TestArray:
         actual = arr == other
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["arr", "expected"],
+        (
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4,),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                1,
+                id="1D",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                2,
+                id="2D",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                3,
+                id="3D",
+            ),
+        ),
+    )
+    def test_ndim(self, arr, expected):
+        assert arr.ndim == expected
+
+    @pytest.mark.parametrize(
+        ["arr", "expected"],
+        (
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4,),
+                    dtype="uint16",
+                    records_per_chunk=4,
+                    parse_bytes=identity,
+                ),
+                (4,),
+                id="1D-4",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=1,
+                    parse_bytes=identity,
+                ),
+                (1, 3),
+                id="2D-1",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                (2, 3),
+                id="2D-2",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=4,
+                    parse_bytes=identity,
+                ),
+                (4, 3),
+                id="2D-4",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3, 3),
+                    dtype="uint16",
+                    records_per_chunk=4,
+                    parse_bytes=identity,
+                ),
+                (4, 3, 3),
+                id="3D-4",
+            ),
+        ),
+    )
+    def test_chunks(self, arr, expected):
+        assert arr.chunks == expected
