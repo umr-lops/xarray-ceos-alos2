@@ -113,7 +113,7 @@ class Group(Mapping):
         if not isinstance(other, Group):
             return False
 
-        if self.name != other.name:
+        if self.path != other.path:
             return False
         if self.url != other.url:
             return False
@@ -126,13 +126,13 @@ class Group(Mapping):
             return False
 
         for name, var in self.variables.items():
-            if var.identical(other.data[name]):
+            if var == other.data[name]:
                 continue
 
             return False
 
         for name, group in self.groups.items():
-            if group.identical(other.data[name]):
+            if group == other.data[name]:
                 continue
 
             return False
