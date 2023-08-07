@@ -466,3 +466,22 @@ class TestGroup:
         actual = group.variables
 
         assert all(isinstance(item, Variable) for item in actual.values())
+
+    def test_decouple(self):
+        subgroups = {
+            "a": Group("a", None, {}, {}),
+            "b": Group("b", None, {}, {}),
+        }
+        variables = {
+            "v1": Variable(["x"], [], {}),
+            "v2": Variable(["y"], [], {}),
+        }
+        group = Group("a", None, data=subgroups | variables, attrs={})
+
+        actual = group.decouple()
+
+        assert actual.groups == {}
+        assert actual.variables == variables
+        assert actual.path == group.path
+        assert actual.url == group.url
+        assert actual.attrs == group.attrs
