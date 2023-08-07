@@ -10,14 +10,12 @@ newline = "\n"
 
 def dict_overlap(a, b):
     def status(k):
-        if k in a and k in b:
-            return "common"
-        elif k not in a:
+        if k not in a:
             return "missing_left"
         elif k not in b:
             return "missing_right"
         else:
-            return "neither"
+            return "common"
 
     all_keys = list(a | b)
     g = groupby(status, all_keys)
@@ -35,23 +33,22 @@ def diff_mapping_missing(keys, side):
     return newline.join(lines)
 
 
-def diff_mapping_not_equal(left, right):
+def diff_mapping_not_equal(left, right, name):
     merged = valfilter(lambda v: len(v) == 2, merge_with(list, left, right))
 
     lines = []
     for k, (vl, vr) in merged.items():
         if vl == vr:
             continue
-        lines.append(f"{k}:")
-        lines.append(f" L  {vl}")
-        lines.append(f" R  {vr}")
+        lines.append(f" L {k}  {vl}")
+        lines.append(f" R {k}  {vr}")
 
     if not lines:
         return None
 
     formatted_lines = textwrap.indent(newline.join(lines), " ")
 
-    return newline.join(["Differences:", formatted_lines])
+    return newline.join([f"Differing {name}:", formatted_lines])
 
 
 def diff_mapping(a, b, name):
@@ -63,11 +60,11 @@ def diff_mapping(a, b, name):
     if missing_right:
         sections.append(diff_mapping_missing(missing_right, "right"))
     if common:
-        sections.append(diff_mapping_not_equal(a, b))
+        sections.append(diff_mapping_not_equal(a, b, name=name.lower()))
 
     formatted_sections = textwrap.indent(newline.join(filter(None, sections)), "  ")
 
-    return newline.join([f"{name}:", formatted_sections])
+    return newline.join([f"{name.title()}:", formatted_sections])
 
 
 def diff_scalar(a, b, name):
