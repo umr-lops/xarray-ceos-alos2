@@ -138,3 +138,14 @@ class Group(Mapping):
             return False
 
         return True
+
+    def decouple(self):
+        return Group(path=self.path, url=self.url, data=self.variables, attrs=self.attrs)
+
+    @property
+    def subtree(self):
+        yield self.path, self
+
+        for item in self.data.values():
+            if isinstance(item, Group):
+                yield from item.subtree
