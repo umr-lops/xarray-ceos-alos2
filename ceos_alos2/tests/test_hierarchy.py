@@ -1,3 +1,5 @@
+import posixpath
+
 import numpy as np
 import pytest
 
@@ -171,3 +173,64 @@ class TestVariable:
         actual = a == b
 
         assert actual == expected
+
+
+class TestGroup:
+    @pytest.mark.parametrize("attrs", [{"a": 1}, {"a": 1, "b": 2}, {"b": 3, "c": 4}])
+    @pytest.mark.parametrize("data", [{"a": hierarchy.Variable("x", [1], {})}])
+    @pytest.mark.parametrize("url", (None, "file:///a", "memory:///a"))
+    @pytest.mark.parametrize("path", (None, "/", "/a/b"))
+    def test_init_flat(self, path, url, data, attrs):
+        group = hierarchy.Group(path=path, url=url, data=data, attrs=attrs)
+
+        if path is None:
+            path = "/"
+
+        assert group.path == path
+        assert group.url == url
+        assert group.data == data
+        assert group.attrs == attrs
+
+    @pytest.mark.parametrize(
+        ["structure"],
+        (
+            pytest.param(
+                {
+                    "a": {"path": "/a", "url": "file:///a", "data": {}, "attrs": {"a": 1}},
+                    "b": {"path": "/b", "url": "file:///b", "data": {}, "attrs": {"b": 1}},
+                }
+            ),
+            pytest.param(
+                {
+                    "a": {"path": None, "url": "file:///a", "data": {}, "attrs": {"a": 1}},
+                    "b": {"path": None, "url": "file:///b", "data": {}, "attrs": {"b": 1}},
+                }
+            ),
+            pytest.param(
+                {
+                    "a": {"path": "/a", "url": None, "data": {}, "attrs": {"a": 1}},
+                    "b": {"path": "/b", "url": None, "data": {}, "attrs": {"b": 1}},
+                }
+            ),
+        ),
+    )
+    @pytest.mark.parametrize("url", [None, "file:///r", "memory:///r"])
+    @pytest.mark.parametrize("path", [None, "/", "/abc"])
+    def test_init_nested(self, path, url, structure):
+        subgroups = {name: hierarchy.Group(**kwargs) for name, kwargs in structure.items()}
+        group = hierarchy.Group(path=path, url=url, data=subgroups, attrs={})
+
+        if path is None:
+            path = "/"
+
+        assert group.path == path
+        assert group.url == url
+
+        assert all(
+            subgroup.path == posixpath.join(group.path, name)
+            for name, subgroup in group.data.items()
+        )
+        assert all(
+            subgroup.url == (structure[name]["url"] or group.url)
+            for name, subgroup in group.data.items()
+        )
