@@ -21,7 +21,7 @@ class Variable:
             # normalize, need the hack
             super().__setattr__("dims", [self.dims])
 
-    def identical(self, other):
+    def __eq__(self, other):
         if not isinstance(other, Variable):
             return False
 
@@ -122,7 +122,7 @@ class Group(Mapping):
     def variables(self):
         return valfilter(lambda el: isinstance(el, Variable), self.data)
 
-    def identical(self, other):
+    def __eq__(self, other):
         if not isinstance(other, Group):
             return False
 
