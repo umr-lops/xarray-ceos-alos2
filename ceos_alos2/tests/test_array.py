@@ -208,3 +208,144 @@ class TestArray:
         assert arr.byte_ranges == byte_ranges_
         assert arr.shape == shape
         assert arr.dtype == dtype
+
+    @pytest.mark.parametrize(
+        ["other", "expected"],
+        (
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                True,
+                id="all_equal",
+            ),
+            pytest.param(1, False, id="mismatching_types"),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("file"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="fs-protocol",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/b"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="fs-path",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file2",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="url",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 20), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="byte_ranges",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 2),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="shape",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint8",
+                    records_per_chunk=2,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="dtype",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=4,
+                    parse_bytes=identity,
+                ),
+                False,
+                id="records_per_chunk",
+            ),
+            pytest.param(
+                array.Array(
+                    fs=DirFileSystem(fs=fsspec.filesystem("memory"), path="/a"),
+                    url="image-file1",
+                    byte_ranges=[(0, 40), (40, 80), (80, 120), (120, 160)],
+                    shape=(4, 3),
+                    dtype="uint16",
+                    records_per_chunk=2,
+                    parse_bytes=lambda x: x,
+                ),
+                False,
+                id="byte_parser",
+            ),
+        ),
+    )
+    def test_eq(self, other, expected):
+        fs = DirFileSystem(fs=fsspec.filesystem("memory"), path="/a")
+
+        byte_ranges = [(0, 40), (40, 80), (80, 120), (120, 160)]
+        arr = array.Array(
+            fs=fs,
+            url="image-file1",
+            byte_ranges=byte_ranges,
+            shape=(4, 3),
+            dtype="uint16",
+            records_per_chunk=2,
+            parse_bytes=identity,
+        )
+
+        actual = arr == other
+
+        assert actual == expected
