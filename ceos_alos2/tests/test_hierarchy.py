@@ -365,3 +365,19 @@ class TestGroup:
         expected.path = f"/{key}"
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        "item",
+        [
+            hierarchy.Variable("x", [], {}),
+            hierarchy.Group(None, "abc", {}, {}),
+        ],
+    )
+    def test_setitem(self, item):
+        group = hierarchy.Group(None, None, {}, {})
+
+        group["a"] = item
+
+        if isinstance(item, hierarchy.Group):
+            item.path = "/a"
+        assert group.data["a"] == item
