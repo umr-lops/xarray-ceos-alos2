@@ -3,7 +3,7 @@ import posixpath
 import numpy as np
 import pytest
 
-from ceos_alos2 import hierarchy
+from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.tests.utils import create_dummy_array
 
 
@@ -24,7 +24,7 @@ class TestVariable:
         ),
     )
     def test_init(self, dims, data, attrs):
-        var = hierarchy.Variable(dims=dims, data=data, attrs=attrs)
+        var = Variable(dims=dims, data=data, attrs=attrs)
 
         if isinstance(dims, str):
             dims = [dims]
@@ -41,7 +41,7 @@ class TestVariable:
         ),
     )
     def test_ndim(self, dims, data, expected):
-        var = hierarchy.Variable(dims=dims, data=data, attrs={})
+        var = Variable(dims=dims, data=data, attrs={})
         actual = var.ndim
 
         assert actual == expected
@@ -54,7 +54,7 @@ class TestVariable:
         ),
     )
     def test_shape(self, dims, data, expected):
-        var = hierarchy.Variable(dims=dims, data=data, attrs={})
+        var = Variable(dims=dims, data=data, attrs={})
         actual = var.shape
 
         assert actual == expected
@@ -68,7 +68,7 @@ class TestVariable:
         ),
     )
     def test_dtype(self, dims, data, expected):
-        var = hierarchy.Variable(dims=dims, data=data, attrs={})
+        var = Variable(dims=dims, data=data, attrs={})
         actual = var.dtype
 
         assert actual == expected
@@ -82,7 +82,7 @@ class TestVariable:
     )
     def test_chunks(self, data, expected):
         dims = ["rows", "cols"]
-        var = hierarchy.Variable(dims=dims, data=data, attrs={})
+        var = Variable(dims=dims, data=data, attrs={})
 
         actual = var.chunks
 
@@ -99,7 +99,7 @@ class TestVariable:
         ),
     )
     def test_sizes(self, dims, data, expected):
-        var = hierarchy.Variable(dims=dims, data=data, attrs={})
+        var = Variable(dims=dims, data=data, attrs={})
         actual = var.sizes
 
         assert actual == expected
@@ -108,62 +108,62 @@ class TestVariable:
         ["a", "b", "expected"],
         (
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
                 [1],
                 False,
                 id="type_mismatch",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
                 True,
                 id="identical-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
-                hierarchy.Variable(dims="y", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="y", data=np.array([1]), attrs={}),
                 False,
                 id="different_dims-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
-                hierarchy.Variable(dims="x", data=np.array([2]), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=np.array([2]), attrs={}),
                 False,
                 id="different_data-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={}),
-                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                Variable(dims="x", data=np.array([1]), attrs={}),
+                Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
                 False,
                 id="different_data-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
-                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
                 True,
                 id="identical_array-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
-                hierarchy.Variable(dims="x", data=create_dummy_array(shape=(2,)), attrs={}),
+                Variable(dims="x", data=create_dummy_array(shape=(1,)), attrs={}),
+                Variable(dims="x", data=create_dummy_array(shape=(2,)), attrs={}),
                 False,
                 id="different_array-without_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
                 True,
                 id="identical-identical_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 2}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 2}),
                 False,
                 id="identical-different_attrs",
             ),
             pytest.param(
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
-                hierarchy.Variable(dims="x", data=np.array([1]), attrs={"a": 1, "b": 1}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 1}),
+                Variable(dims="x", data=np.array([1]), attrs={"a": 1, "b": 1}),
                 False,
                 id="identical-mismatching_attrs",
             ),
@@ -177,11 +177,11 @@ class TestVariable:
 
 class TestGroup:
     @pytest.mark.parametrize("attrs", [{"a": 1}, {"a": 1, "b": 2}, {"b": 3, "c": 4}])
-    @pytest.mark.parametrize("data", [{"a": hierarchy.Variable("x", [1], {})}])
+    @pytest.mark.parametrize("data", [{"a": Variable("x", [1], {})}])
     @pytest.mark.parametrize("url", (None, "file:///a", "memory:///a"))
     @pytest.mark.parametrize("path", (None, "/", "/a/b"))
     def test_init_flat(self, path, url, data, attrs):
-        group = hierarchy.Group(path=path, url=url, data=data, attrs=attrs)
+        group = Group(path=path, url=url, data=data, attrs=attrs)
 
         if path is None:
             path = "/"
@@ -217,8 +217,8 @@ class TestGroup:
     @pytest.mark.parametrize("url", [None, "file:///r", "memory:///r"])
     @pytest.mark.parametrize("path", [None, "/", "/abc"])
     def test_init_nested(self, path, url, structure):
-        subgroups = {name: hierarchy.Group(**kwargs) for name, kwargs in structure.items()}
-        group = hierarchy.Group(path=path, url=url, data=subgroups, attrs={})
+        subgroups = {name: Group(**kwargs) for name, kwargs in structure.items()}
+        group = Group(path=path, url=url, data=subgroups, attrs={})
 
         if path is None:
             path = "/"
@@ -239,98 +239,86 @@ class TestGroup:
         ["first", "second", "expected"],
         (
             pytest.param(
-                hierarchy.Group(path=None, url=None, data={}, attrs={}),
-                hierarchy.Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
                 True,
                 id="all_equal",
             ),
             pytest.param(
-                hierarchy.Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
                 1,
                 False,
                 id="mismatching_types",
             ),
             pytest.param(
-                hierarchy.Group(path="a", url=None, data={}, attrs={}),
-                hierarchy.Group(path="b", url=None, data={}, attrs={}),
+                Group(path="a", url=None, data={}, attrs={}),
+                Group(path="b", url=None, data={}, attrs={}),
                 False,
                 id="path",
             ),
             pytest.param(
-                hierarchy.Group(path=None, url="a", data={}, attrs={}),
-                hierarchy.Group(path=None, url="b", data={}, attrs={}),
+                Group(path=None, url="a", data={}, attrs={}),
+                Group(path=None, url="b", data={}, attrs={}),
                 False,
                 id="url",
             ),
             pytest.param(
-                hierarchy.Group(path=None, url=None, data={}, attrs={"a": 1}),
-                hierarchy.Group(path=None, url=None, data={}, attrs={"a": 2}),
+                Group(path=None, url=None, data={}, attrs={"a": 1}),
+                Group(path=None, url=None, data={}, attrs={"a": 2}),
                 False,
                 id="attrs",
             ),
             pytest.param(
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Variable("x", [], {})}, attrs={}
-                ),
-                hierarchy.Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={"a": Variable("x", [], {})}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
                 False,
                 id="variables_mismatching",
             ),
             pytest.param(
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Group(None, None, {}, {})}, attrs={}
-                ),
-                hierarchy.Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={"a": Group(None, None, {}, {})}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
                 False,
                 id="groups_mismatching",
             ),
             pytest.param(
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Variable("x", [], {})}, attrs={}
-                ),
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Variable("y", [], {})}, attrs={}
-                ),
+                Group(path=None, url=None, data={"a": Variable("x", [], {})}, attrs={}),
+                Group(path=None, url=None, data={"a": Variable("y", [], {})}, attrs={}),
                 False,
                 id="unequal_variables",
             ),
             pytest.param(
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Variable("x", [], {})}, attrs={}
-                ),
-                hierarchy.Group(
-                    path=None, url=None, data={"a": hierarchy.Variable("x", [], {})}, attrs={}
-                ),
+                Group(path=None, url=None, data={"a": Variable("x", [], {})}, attrs={}),
+                Group(path=None, url=None, data={"a": Variable("x", [], {})}, attrs={}),
                 True,
                 id="equal_variables",
             ),
             pytest.param(
-                hierarchy.Group(
+                Group(
                     path=None,
                     url=None,
-                    data={"a": hierarchy.Group(None, None, {}, {"a": 1})},
+                    data={"a": Group(None, None, {}, {"a": 1})},
                     attrs={},
                 ),
-                hierarchy.Group(
+                Group(
                     path=None,
                     url=None,
-                    data={"a": hierarchy.Group(None, None, {}, {"a": 2})},
+                    data={"a": Group(None, None, {}, {"a": 2})},
                     attrs={},
                 ),
                 False,
                 id="unequal_groups",
             ),
             pytest.param(
-                hierarchy.Group(
+                Group(
                     path=None,
                     url=None,
-                    data={"a": hierarchy.Group(None, None, {}, {"a": 1})},
+                    data={"a": Group(None, None, {}, {"a": 1})},
                     attrs={},
                 ),
-                hierarchy.Group(
+                Group(
                     path=None,
                     url=None,
-                    data={"a": hierarchy.Group(None, None, {}, {"a": 1})},
+                    data={"a": Group(None, None, {}, {"a": 1})},
                     attrs={},
                 ),
                 True,
@@ -346,13 +334,13 @@ class TestGroup:
     @pytest.mark.parametrize("key", ["b", "c", "e"])
     def test_getitem(self, key):
         subgroups = {
-            "a": hierarchy.Group(path=None, url=None, data={}, attrs={"a": 1}),
-            "b": hierarchy.Group(path=None, url=None, data={}, attrs={"b": 1}),
-            "c": hierarchy.Group(path=None, url=None, data={}, attrs={"c": 1}),
-            "d": hierarchy.Group(path=None, url=None, data={}, attrs={"d": 1}),
+            "a": Group(path=None, url=None, data={}, attrs={"a": 1}),
+            "b": Group(path=None, url=None, data={}, attrs={"b": 1}),
+            "c": Group(path=None, url=None, data={}, attrs={"c": 1}),
+            "d": Group(path=None, url=None, data={}, attrs={"d": 1}),
         }
 
-        group = hierarchy.Group(path=None, url=None, data=subgroups, attrs={})
+        group = Group(path=None, url=None, data=subgroups, attrs={})
 
         if key not in subgroups:
             with pytest.raises(KeyError):
@@ -369,27 +357,71 @@ class TestGroup:
     @pytest.mark.parametrize(
         "item",
         [
-            hierarchy.Variable("x", [], {}),
-            hierarchy.Group(None, "abc", {}, {}),
+            Variable("x", [], {}),
+            Group(None, "abc", {}, {}),
         ],
     )
     def test_setitem(self, item):
-        group = hierarchy.Group(None, None, {}, {})
+        group = Group(None, None, {}, {})
 
         group["a"] = item
 
-        if isinstance(item, hierarchy.Group):
+        if isinstance(item, Group):
             item.path = "/a"
         assert group.data["a"] == item
 
     @pytest.mark.parametrize(
         ["group", "expected"],
         (
-            pytest.param(hierarchy.Group(None, None, {}, {}), "/", id="default"),
-            pytest.param(hierarchy.Group("/", None, {}, {}), "/", id="root"),
-            pytest.param(hierarchy.Group("abc", None, {}, {}), "abc", id="name"),
-            pytest.param(hierarchy.Group("a/b", None, {}, {}), "b", id="relative"),
-            pytest.param(hierarchy.Group("/a/abc", None, {}, {}), "abc", id="absolute"),
+            pytest.param(Group(None, None, {}, {}), 0, id="default"),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {})}, {}), 1, id="single_variable"
+            ),
+            pytest.param(
+                Group(None, None, {"b": Group(None, None, {}, {})}, {}), 1, id="single_group"
+            ),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {}), "b": Group(None, None, {}, {})}, {}),
+                2,
+                id="mixed",
+            ),
+        ),
+    )
+    def test_len(self, group, expected):
+        actual = len(group)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["group", "expected"],
+        (
+            pytest.param(Group(None, None, {}, {}), [], id="default"),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {})}, {}), ["a"], id="single_variable"
+            ),
+            pytest.param(
+                Group(None, None, {"b": Group(None, None, {}, {})}, {}), ["b"], id="single_group"
+            ),
+            pytest.param(
+                Group(None, None, {"a": Variable("x", [], {}), "b": Group(None, None, {}, {})}, {}),
+                ["a", "b"],
+                id="mixed",
+            ),
+        ),
+    )
+    def test_iter(self, group, expected):
+        actual = list(group)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["group", "expected"],
+        (
+            pytest.param(Group(None, None, {}, {}), "/", id="default"),
+            pytest.param(Group("/", None, {}, {}), "/", id="root"),
+            pytest.param(Group("abc", None, {}, {}), "abc", id="name"),
+            pytest.param(Group("a/b", None, {}, {}), "b", id="relative"),
+            pytest.param(Group("/a/abc", None, {}, {}), "abc", id="absolute"),
         ),
     )
     def test_name(self, group, expected):
