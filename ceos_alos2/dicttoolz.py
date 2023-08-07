@@ -1,4 +1,4 @@
-from tlz.itertoolz import groupby
+from tlz.itertoolz import concat, groupby
 
 
 def itemsplit(predicate, d):
@@ -16,3 +16,13 @@ def valsplit(predicate, d):
 def keysplit(predicate, d):
     wrapper = lambda item: predicate(item[0])
     return itemsplit(wrapper, d)
+
+
+def unique(seq):
+    return list(dict.fromkeys(seq))
+
+
+def zip_default(*mappings, default=None):
+    all_keys = unique(concat(map(list, mappings)))
+
+    return {k: [m.get(k, default) for m in mappings] for k in all_keys}
