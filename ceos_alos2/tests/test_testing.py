@@ -65,3 +65,13 @@ def test_diff_mapping(left, right, missing_left, common_unequal, missing_right, 
     assert not missing_left or "Missing left" in actual
     assert not common_unequal or f"Differing {name.lower()}" in actual
     assert not missing_right or "Missing right" in actual
+
+
+@pytest.mark.parametrize("name", ["name1", "Name2"])
+@pytest.mark.parametrize(["left", "right"], [(1, 2), ("a", "b")])
+def test_diff_scalar(left, right, name):
+    actual = testing.diff_scalar(left, right, name=name)
+
+    assert name.title() in actual
+    assert f"L  {left}" in actual
+    assert f"R  {right}" in actual

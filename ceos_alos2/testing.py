@@ -70,7 +70,7 @@ def diff_mapping(a, b, name):
 def diff_scalar(a, b, name):
     return textwrap.dedent(
         f"""\
-        {name.title()}:
+        Differing {name.title()}:
         L  {a}
         R  {b}
         """.rstrip()
