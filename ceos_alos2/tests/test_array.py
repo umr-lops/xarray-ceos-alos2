@@ -4,8 +4,6 @@ import fsspec
 import numpy as np
 import pytest
 from fsspec.implementations.dirfs import DirFileSystem
-from tlz.functoolz import curry
-from tlz.itertoolz import identity
 
 from ceos_alos2 import array
 
@@ -203,7 +201,7 @@ class TestArray:
             shape=shape,
             dtype=dtype,
             records_per_chunk=chunksize,
-            parse_bytes=identity,
+            type_code="IU2",
         )
 
         assert arr.url == url
@@ -222,7 +220,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 True,
                 id="all_equal",
@@ -236,7 +234,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="fs-protocol",
@@ -249,7 +247,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="fs-path",
@@ -262,7 +260,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="url",
@@ -275,7 +273,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="byte_ranges",
@@ -288,7 +286,7 @@ class TestArray:
                     shape=(4, 2),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="shape",
@@ -301,7 +299,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint8",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="dtype",
@@ -314,7 +312,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=4,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 False,
                 id="records_per_chunk",
@@ -327,10 +325,10 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=lambda x: x,
+                    type_code="C*8",
                 ),
                 False,
-                id="byte_parser",
+                id="type_code",
             ),
         ),
     )
@@ -345,7 +343,7 @@ class TestArray:
             shape=(4, 3),
             dtype="uint16",
             records_per_chunk=2,
-            parse_bytes=identity,
+            type_code="IU2",
         )
 
         actual = arr == other
@@ -363,7 +361,7 @@ class TestArray:
                     shape=(4,),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 1,
                 id="1D",
@@ -376,7 +374,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 2,
                 id="2D",
@@ -389,7 +387,7 @@ class TestArray:
                     shape=(4, 3, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 3,
                 id="3D",
@@ -410,7 +408,7 @@ class TestArray:
                     shape=(4,),
                     dtype="uint16",
                     records_per_chunk=4,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 (4,),
                 id="1D-4",
@@ -423,7 +421,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=1,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 (1, 3),
                 id="2D-1",
@@ -436,7 +434,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=2,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 (2, 3),
                 id="2D-2",
@@ -449,7 +447,7 @@ class TestArray:
                     shape=(4, 3),
                     dtype="uint16",
                     records_per_chunk=4,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 (4, 3),
                 id="2D-4",
@@ -462,7 +460,7 @@ class TestArray:
                     shape=(4, 3, 3),
                     dtype="uint16",
                     records_per_chunk=4,
-                    parse_bytes=identity,
+                    type_code="IU2",
                 ),
                 (4, 3, 3),
                 id="3D-4",
@@ -507,8 +505,9 @@ class TestArray:
         fs = DirFileSystem(fs=fsspec.filesystem("memory"), path="/")
         url = "image-file"
         data = np.arange(100, dtype="uint16").reshape(5, 20)
+        type_code = "IU2"
 
-        encoded_ = data.tobytes(order="C")
+        encoded_ = data.astype(">u2").tobytes(order="C")
         chunksize = data.shape[1] * data.dtype.itemsize
         chunks = [
             encoded_[index * chunksize : (index + 1) * chunksize] for index in range(data.shape[0])
@@ -530,15 +529,13 @@ class TestArray:
         with fs.open(url, mode="wb") as f:
             f.write(encoded)
 
-        parser = curry(np.frombuffer, dtype=dtype)
-
         arr = array.Array(
             fs=fs,
             url=url,
             byte_ranges=byte_ranges,
             shape=shape,
             dtype=dtype,
-            parse_bytes=parser,
+            type_code=type_code,
             records_per_chunk=records_per_chunk,
         )
         indexers = (indexer_0, indexer_1)
