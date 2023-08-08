@@ -367,3 +367,35 @@ class TestEncoders:
         actual = caching.encoders.preprocess(data)
 
         assert actual == expected
+
+
+class TestDecoders:
+    @pytest.mark.parametrize(
+        ["data", "expected"],
+        (
+            pytest.param(
+                {
+                    "__type__": "array",
+                    "data": [0, 3600],
+                    "dtype": "datetime64[s]",
+                    "encoding": {"units": "s", "reference": "2020-01-01T00:00:00"},
+                },
+                np.array(["2020-01-01 00:00:00", "2020-01-01 01:00:00"], dtype="datetime64[s]"),
+                id="datetime-s",
+            ),
+            pytest.param(
+                {
+                    "__type__": "array",
+                    "data": [0, 60000],
+                    "dtype": "datetime64[ms]",
+                    "encoding": {"units": "ms", "reference": "2021-01-01T00:00:00"},
+                },
+                np.array(["2021-01-01 00:00:00", "2021-01-01 00:01:00"], dtype="datetime64[ms]"),
+                id="datetime-ms",
+            ),
+        ),
+    )
+    def test_decode_datetime(self, data, expected):
+        actual = caching.decoders.decode_datetime(data)
+
+        np.testing.assert_equal(actual, expected)
