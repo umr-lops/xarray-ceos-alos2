@@ -22,29 +22,16 @@ def decode_datetime(obj):
     return reference + offsets
 
 
-def decode_objects(obj):
+def decode_array(encoded, records_per_chunk):
     def default_decode(obj):
         return np.array(obj["data"], dtype=obj["dtype"])
 
-    if obj.get("__type__") == "tuple":
-        return tuple(obj["data"])
-    elif obj.get("__type__") != "array":
-        return obj
+    if encoded.get("__type__") == "array":
+        dtype = np.dtype(encoded["dtype"])
+        decoders = {"M": decode_datetime}
+        decoder = decoders.get(dtype.kind, default_decode)
 
-    dtype = np.dtype(obj["dtype"])
-    decoders = {
-        "M": decode_datetime,
-    }
-    decoder = decoders.get(dtype.kind, default_decode)
-
-    return decoder(obj)
-
-
-def decode_array(encoded, records_per_chunk):
-    if not isinstance(encoded, dict):
-        return encoded
-    elif encoded.get("__type__") != "record_array":
-        raise ValueError(f"unknown type: {encoded['__type__']}")
+        return decoder(encoded)
 
     mapper = fsspec.get_mapper(encoded["root"])
     try:
