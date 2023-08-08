@@ -314,3 +314,29 @@ class TestEncoders:
         actual = caching.encoders.encode_group(group)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["obj", "expected"],
+        (
+            pytest.param(
+                Group(path=None, url=None, data={}, attrs={"a": 1}),
+                {"__type__": "group", "path": "/", "url": None, "data": {}, "attrs": {"a": 1}},
+                id="group",
+            ),
+            pytest.param(
+                Variable("x", np.array([1, 2], dtype="int64"), {}),
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int32", "encoding": {}},
+                    "attrs": {},
+                },
+                id="variable",
+            ),
+            pytest.param(1, 1, id="other"),
+        ),
+    )
+    def test_encode_hierarchy(self, obj, expected):
+        actual = caching.encoders.encode_hierarchy(obj)
+
+        assert actual == expected
