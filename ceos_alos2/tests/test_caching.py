@@ -340,3 +340,30 @@ class TestEncoders:
         actual = caching.encoders.encode_hierarchy(obj)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["data", "expected"],
+        (
+            pytest.param(1, 1, id="other"),
+            pytest.param((2, 3), {"__type__": "tuple", "data": [2, 3]}, id="tuple"),
+            pytest.param([2, 3], [2, 3], id="list"),
+            pytest.param({"a": 1, "b": 2}, {"a": 1, "b": 2}, id="dict"),
+            pytest.param(
+                ({"a": 1}, 2), {"__type__": "tuple", "data": [{"a": 1}, 2]}, id="nested_tuple"
+            ),
+            pytest.param(
+                [(2, 3), (3, 4)],
+                [{"__type__": "tuple", "data": [2, 3]}, {"__type__": "tuple", "data": [3, 4]}],
+                id="nested_list",
+            ),
+            pytest.param(
+                {"a": (2, 3), "b": [{"c": 1}]},
+                {"a": {"__type__": "tuple", "data": [2, 3]}, "b": [{"c": 1}]},
+                id="nested_dict",
+            ),
+        ),
+    )
+    def test_preprocess(self, data, expected):
+        actual = caching.encoders.preprocess(data)
+
+        assert actual == expected
