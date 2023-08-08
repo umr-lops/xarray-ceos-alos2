@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from ceos_alos2.hierarchy import Variable
 from ceos_alos2.sar_image import caching
 from ceos_alos2.sar_image.caching.path import project_name
 from ceos_alos2.tests.utils import create_dummy_array
@@ -175,5 +176,68 @@ class TestEncoders:
     )
     def test_encode_array(self, arr, expected):
         actual = caching.encoders.encode_array(arr)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["var", "expected"],
+        (
+            pytest.param(
+                Variable("x", np.array([1, 2], dtype="int32"), {}),
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int32", "encoding": {}},
+                    "attrs": {},
+                },
+                id="1d-array-no_attrs",
+            ),
+            pytest.param(
+                Variable(["x", "y"], np.array([[1, 2], [2, 3], [3, 4]], dtype="int32"), {}),
+                {
+                    "__type__": "variable",
+                    "dims": ["x", "y"],
+                    "data": {
+                        "__type__": "array",
+                        "data": [[1, 2], [2, 3], [3, 4]],
+                        "dtype": "int32",
+                        "encoding": {},
+                    },
+                    "attrs": {},
+                },
+                id="2d-array-no_attrs",
+            ),
+            pytest.param(
+                Variable("x", create_dummy_array(shape=(4,), dtype="int8"), {}),
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {
+                        "__type__": "backend_array",
+                        "root": "/path/to",
+                        "url": "file",
+                        "shape": (4,),
+                        "dtype": "int8",
+                        "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                        "type_code": "IU2",
+                    },
+                    "attrs": {},
+                },
+                id="1d-backend_array-no_attrs",
+            ),
+            pytest.param(
+                Variable("x", np.array([1, 2], dtype="int32"), {"a": "a", "b": 1, "c": 1.5}),
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int32", "encoding": {}},
+                    "attrs": {"a": "a", "b": 1, "c": 1.5},
+                },
+                id="1d-array-attrs",
+            ),
+        ),
+    )
+    def test_encode_variable(self, var, expected):
+        actual = caching.encoders.encode_variable(var)
 
         assert actual == expected
