@@ -1,8 +1,10 @@
 import io
 
 import fsspec
+import numpy as np
 import pytest
 from fsspec.implementations.dirfs import DirFileSystem
+from tlz.functoolz import curry
 from tlz.itertoolz import identity
 
 from ceos_alos2 import array
@@ -469,3 +471,79 @@ class TestArray:
     )
     def test_chunks(self, arr, expected):
         assert arr.chunks == expected
+
+    @pytest.mark.parametrize("records_per_chunk", [1, 2, 3, 4, 5])
+    @pytest.mark.parametrize(
+        "indexer_0",
+        (
+            slice(None),
+            slice(2, None),
+            slice(None, 2),
+            slice(-2, None),
+            slice(None, -2),
+            slice(None, None, 2),
+            slice(None, 4, 2),
+            slice(2, None, 2),
+            slice(2, 4, 2),
+            slice(-1, None, -1),
+        ),
+    )
+    @pytest.mark.parametrize(
+        "indexer_1",
+        (
+            slice(None),
+            slice(2, None),
+            slice(None, 2),
+            slice(-2, None),
+            slice(None, -2),
+            slice(None, None, 2),
+            slice(None, 4, 2),
+            slice(2, None, 2),
+            slice(2, 4, 2),
+            slice(-1, None, -1),
+        ),
+    )
+    def test_getitem(self, indexer_0, indexer_1, records_per_chunk):
+        fs = DirFileSystem(fs=fsspec.filesystem("memory"), path="/")
+        url = "image-file"
+        data = np.arange(100, dtype="uint16").reshape(5, 20)
+
+        encoded_ = data.tobytes(order="C")
+        chunksize = data.shape[1] * data.dtype.itemsize
+        chunks = [
+            encoded_[index * chunksize : (index + 1) * chunksize] for index in range(data.shape[0])
+        ]
+        metadata_size = 20
+        gap = b"\x00" * metadata_size
+        encoded = b"".join(gap + chunk for chunk in chunks)
+        byte_ranges = [
+            (
+                index * chunksize + metadata_size * (index + 1),
+                (index + 1) * chunksize + metadata_size * (index + 1),
+            )
+            for index in range(data.shape[0])
+        ]
+
+        shape = data.shape
+        dtype = data.dtype
+
+        with fs.open(url, mode="wb") as f:
+            f.write(encoded)
+
+        parser = curry(np.frombuffer, dtype=dtype)
+
+        arr = array.Array(
+            fs=fs,
+            url=url,
+            byte_ranges=byte_ranges,
+            shape=shape,
+            dtype=dtype,
+            parse_bytes=parser,
+            records_per_chunk=records_per_chunk,
+        )
+        indexers = (indexer_0, indexer_1)
+
+        actual = arr[indexers]
+        expected = data[indexers]
+
+        np.testing.assert_equal(actual, expected)
