@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from ceos_alos2 import testing
+from ceos_alos2.hierarchy import Variable
 from ceos_alos2.tests.utils import create_dummy_array
 
 
@@ -50,6 +51,25 @@ def test_format_item(item, expected):
 )
 def test_format_array(arr, expected):
     actual = testing.format_array(arr)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["var", "expected"],
+    (
+        (Variable("x", np.array([0, 1]), {}), "(x)  0 1"),
+        (Variable(["x"], np.array([0, 1]), {}), "(x)  0 1"),
+        (Variable(["x", "y"], np.array([[0, 1], [2, 3]]), {}), "(x, y)  0 1 2 3"),
+        (Variable("x", np.array([0, 1]), {"a": 1}), "\n".join(["(x)  0 1", "    a: 1"])),
+        (
+            Variable("x", np.array([0, 1]), {"a": 1, "b": "b"}),
+            "\n".join(["(x)  0 1", "    a: 1", "    b: b"]),
+        ),
+    ),
+)
+def test_format_variable(var, expected):
+    actual = testing.format_variable(var)
 
     assert actual == expected
 
