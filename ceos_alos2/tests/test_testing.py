@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from ceos_alos2 import testing
@@ -14,6 +15,23 @@ def test_dict_overlap(a, b):
     assert all(k in a and k in b for k in common)
     assert all(k not in a and k in b for k in missing_left)
     assert all(k in a and k not in b for k in missing_right)
+
+
+@pytest.mark.parametrize(
+    ["item", "expected"],
+    (
+        (np.int16(1), "1"),
+        (np.float16(3.5), "3.5"),
+        (np.complex64(1.5 + 1.5j), "(1.5+1.5j)"),
+        (np.str_("abc"), "'abc'"),
+        (np.datetime64("2011-04-27 00:00:00.0", "ms"), "2011-04-27T00:00:00.000"),
+        (np.timedelta64(201, "s"), "201 seconds"),
+    ),
+)
+def test_format_item(item, expected):
+    actual = testing.format_item(item)
+
+    assert actual == expected
 
 
 @pytest.mark.parametrize("keys", (["ab"], ["ab", "cd"]))

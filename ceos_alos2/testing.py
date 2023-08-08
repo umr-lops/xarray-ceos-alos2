@@ -34,12 +34,10 @@ def dict_overlap(a, b):
 
 def format_item(x):
     dtype = x.dtype
-    if dtype.kind in {"U", "f", "i"}:
-        return repr(x.item())
-    elif dtype.kind in {"m", "M"}:
+    if dtype.kind in {"m", "M"}:
         return str(x)
 
-    return repr(x)
+    return repr(x.item())
 
 
 def format_array(arr):
