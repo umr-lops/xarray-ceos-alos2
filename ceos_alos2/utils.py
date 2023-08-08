@@ -2,6 +2,7 @@ import datetime
 
 from construct import EnumIntegerString
 from construct.lib.containers import ListContainer
+from tlz.dicttoolz import keymap
 
 
 def unique(seq):
@@ -21,6 +22,22 @@ def to_dict(container):
         return type_(to_dict(elem) for elem in container)
 
     return {name: to_dict(section) for name, section in container.items() if name != "_io"}
+
+
+def rename(mapping, translations):
+    return keymap(lambda k: translations.get(k, k), mapping)
+
+
+def remove_nesting_layer(mapping):
+    def _remove(mapping):
+        for key, value in mapping.items():
+            if not isinstance(value, dict):
+                yield key, value
+                continue
+
+            yield from value.items()
+
+    return dict(_remove(mapping))
 
 
 # vendored from `dask.utils.parse_bytes`

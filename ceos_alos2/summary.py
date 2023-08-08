@@ -1,12 +1,14 @@
 import re
 
-from tlz.dicttoolz import merge, valmap
-from tlz.functoolz import compose_left, curry, juxt
-from tlz.itertoolz import first, groupby
+from tlz.dicttoolz import dissoc, keyfilter, keymap, merge, valmap
+from tlz.functoolz import compose_left, curry, pipe
+from tlz.itertoolz import first, get, groupby
 from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
-from ceos_alos2.dicttoolz import keysplit
+from ceos_alos2 import decoders
+from ceos_alos2.hierarchy import Group
+from ceos_alos2.utils import remove_nesting_layer, rename
 
 try:
     ExceptionGroup
@@ -14,6 +16,17 @@ except NameError:  # pragma: no cover
     from exceptiongroup import ExceptionGroup  # pragma: no cover
 
 entry_re = re.compile(r'(?P<section>[A-Za-z]{3})_(?P<keyword>.*?)="(?P<value>.*?)"')
+
+section_names = {
+    "odi": "ordering_information",
+    "scs": "scene_specification",
+    "pds": "product_specification",
+    "img": "image_information",
+    "pdi": "product_information",
+    "ach": "autocheck",
+    "rad": "result_information",
+    "lbi": "label_information",
+}
 
 
 def parse_line(line):
@@ -48,62 +61,195 @@ def parse_summary(content):
         new_errors = [with_lineno(error, lineno) for lineno, error in errors.items()]
         raise ExceptionGroup("failed to parse the summary", new_errors)
 
-    merge_sections = compose_left(
-        curry(groupby, lambda x: x["section"]),
+    merged = pipe(
+        entries,
+        curry(groupby, curry(get, "section")),
         curry(
             valmap,
             compose_left(curry(map, lambda x: {x["keyword"]: x["value"]}), merge),
         ),
     )
-    merged = merge_sections(entries)
-    return process_sections(merged)
+    return keymap(str.lower, merged)
 
 
-def categorize_filenames(filenames):
-    filenames_ = list(filenames.values())
+def categorize_filenames(mapping):
+    filenames = list(mapping.values())
+    volume_directory, leader, *imagery, trailer = filenames
     return {
-        "volume_directory": filenames_[0],
-        "sar_leader": filenames_[1],
-        "sar_imagery": filenames_[2:-1],
-        "sar_trailer": filenames_[-1],
+        "volume_directory": volume_directory,
+        "sar_leader": leader,
+        "sar_imagery": imagery,
+        "sar_trailer": trailer,
     }
+
+
+def reformat_date(s):
+    return f"{s[:4]}-{s[4:6]}-{s[6:]}"
+
+
+def to_isoformat(s):
+    date, time = s.split()
+    return f"{reformat_date(date)}T{time}"
+
+
+def apply_to_items(funcs, mapping, default=passthrough):
+    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+
+
+def transform_ordering_info(section):
+    # TODO: figure out what this means or what it would be used for
+    return Group(path=None, url=None, data={}, attrs=section)
+
+
+def transform_scene_spec(section):
+    transformers = {
+        "SceneID": compose_left(
+            decoders.decode_scene_id,
+            curry(
+                apply_to_items,
+                {
+                    "date": lambda d: d.isoformat().split("T")[0],
+                    "scene_frame": int,
+                    "orbit_accumulation": int,
+                },
+            ),
+        ),
+        "SceneShift": int,
+    }
+    attrs = remove_nesting_layer(apply_to_items(transformers, section))
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_product_spec(section):
+    transformers = {
+        "ProductID": decoders.decode_product_id,
+        "ResamplingMethod": curry(decoders.lookup, decoders.resampling_methods),
+        "UTM_ZoneNo": int,
+        "MapDirection": passthrough,
+        "OrbitDataPrecision": passthrough,
+        "AttitudeDataPrecision": passthrough,
+    }
+
+    attrs = remove_nesting_layer(apply_to_items(transformers, section, default=float))
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_image_info(section):
+    def determine_type(key):
+        if "DateTime" in key:
+            return "datetime"
+        else:
+            return "float"
+
+    transformers = {
+        "datetime": to_isoformat,
+        "float": float,
+    }
+    attrs = {k: transformers[determine_type(k)](v) for k, v in section.items()}
+    return Group(path=None, url=None, data={}, attrs=attrs)
 
 
 def transform_product_info(section):
-    file_info, remainder = keysplit(lambda x: "ProductFileName" in x, section)
-    # ignore the file count
-    _, filenames = keysplit(lambda x: x.startswith("Cnt"), file_info)
-    categorized = categorize_filenames(filenames)
+    def categorize_key(item):
+        key, _ = item
+        if "ProductFileName" in key:
+            return "data_files"
+        elif key.startswith(("NoOfPixels", "NoOfLines")):
+            return "shapes"
+        else:
+            return "other"
 
-    shape_related, remainder = keysplit(
-        lambda x: x.startswith(("NoOfPixels", "NoOfLines")), remainder
-    )
-    shapes_ = valmap(
-        compose_left(
-            curry(
-                map,
-                juxt(
-                    compose_left(first, lambda x: first(x.split("_"))),
-                    compose_left(second, int),
-                ),
+    def transform_file_info(mapping):
+        filenames = keyfilter(lambda k: not k.startswith("Cnt"), mapping)
+        categorized = categorize_filenames(filenames)
+
+        return Group(path="data_files", url=None, data={}, attrs=categorized)
+
+    def transform_shape(mapping):
+        split_keys = keymap(lambda k: tuple(k.split("_")), mapping)
+        grouped = groupby(lambda it: second(it[0]), split_keys.items())
+        shapes = valmap(
+            compose_left(
+                dict,
+                curry(keymap, first),
+                curry(get, ["NoOfPixels", "NoOfLines"]),
+                curry(map, int),
+                tuple,
             ),
-            dict,
-        ),
-        groupby(lambda it: second(first(it).split("_")), shape_related.items()),
-    )
-    shapes = valmap(lambda x: (x["NoOfLines"], x["NoOfPixels"]), shapes_)
-    metadata = remainder
+            grouped,
+        )
 
-    return {
-        "data_files": categorized,
-        "shapes": shapes,
-        **metadata,
-    }
+        return Group(path="shapes", url=None, data={}, attrs=shapes)
 
+    def transform_other(mapping):
+        transformers = {
+            "ProductFormat": passthrough,
+            "BitPixel": int,
+            "ProductDataSize": float,
+        }
 
-def process_sections(sections):
+        return apply_to_items(transformers, mapping)
+
+    categorized = valmap(dict, groupby(categorize_key, section.items()))
     transformers = {
-        "Pdi": transform_product_info,
+        "data_files": transform_file_info,
+        "shapes": transform_shape,
+        "other": transform_other,
+    }
+    groups = apply_to_items(transformers, categorized)
+    return Group(
+        path="product_info", url=None, data=dissoc(groups, "other"), attrs=groups.get("other", {})
+    )
+
+
+def transform_autocheck(section):
+    attrs = valmap(lambda s: s or "N/A", section)
+
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_result_info(section):
+    return Group(path=None, url=None, data={}, attrs=section)
+
+
+def transform_label_info(section):
+    transformers = {
+        "ObservationDate": reformat_date,
+        "ProcessFacility": curry(decoders.lookup, decoders.processing_facilities),
+    }
+    attrs = apply_to_items(transformers, section)
+    return Group(path=None, url=None, data={}, attrs=attrs)
+
+
+def transform_summary(summary):
+    transformers = {
+        "odi": transform_ordering_info,
+        "scs": transform_scene_spec,
+        "pds": transform_product_spec,
+        "img": transform_image_info,
+        "pdi": transform_product_info,
+        "ach": transform_autocheck,
+        "rad": transform_result_info,
+        "lbi": transform_label_info,
     }
 
-    return {k: transformers.get(k, passthrough)(v) for k, v in sections.items()}
+    return pipe(
+        summary,
+        curry(apply_to_items, transformers),
+        curry(rename, translations=section_names),
+        curry(Group, "summary", None, attrs={}),
+    )
+
+
+def open_summary(mapper, path):
+    try:
+        bytes_ = mapper[path]
+    except KeyError as e:
+        raise OSError(
+            f"Cannot find the summary file (`{path}`)."
+            f" Make sure the dataset at {mapper.root} is complete and in the JAXA CEOS format."
+        ) from e
+
+    raw_summary = parse_summary(bytes_.decode())
+
+    return transform_summary(raw_summary)
