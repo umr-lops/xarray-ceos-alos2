@@ -149,12 +149,15 @@ def diff_array(a, b):
     sections = []
     if a.fs != b.fs:
         lines = ["Differing filesystem:"]
-        if a.fs.protocol != b.fs.protocol:
-            lines.append(f"  L protocol  {a.fs.protocol}")
-            lines.append(f"  R protocol  {b.fs.protocol}")
+        # fs.protocol is always `dir`, so we have to check the wrapped fs
+        if a.fs.fs.protocol != b.fs.fs.protocol:
+            lines.append(f"  L protocol  {a.fs.fs.protocol}")
+            lines.append(f"  R protocol  {b.fs.fs.protocol}")
         if a.fs.path != b.fs.path:
             lines.append(f"  L path  {a.fs.path}")
             lines.append(f"  R path  {b.fs.path}")
+        if len(lines) == 1:
+            lines.append("  (unknown differences)")
         sections.append(newline.join(lines))
     if a.url != b.url:
         lines = [
