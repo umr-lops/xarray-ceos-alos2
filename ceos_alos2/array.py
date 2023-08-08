@@ -6,6 +6,22 @@ from tlz.itertoolz import cons, first, get, groupby, partition_all, second
 
 from ceos_alos2.utils import parse_bytes
 
+raw_dtypes = {
+    "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
+    "IU2": np.dtype(">u2"),
+}
+
+
+def parse_data(content, type_code):
+    dtype = raw_dtypes.get(type_code)
+    if dtype is None:
+        raise ValueError(f"unknown type code: {type_code}")
+
+    raw = np.frombuffer(content, dtype)
+    if type_code == "C*8":
+        return raw["real"] + 1j * raw["imag"]
+    return raw
+
 
 def normalize_chunksize(chunksize, dim_size):
     if chunksize in (None, -1) or chunksize > dim_size:
@@ -96,7 +112,7 @@ class Array:
     dtype: str | np.dtype = field(repr=True)
 
     # convert raw bytes to data
-    parse_bytes: callable = field(repr=False)
+    type_code: str = field(repr=False)
 
     # chunk sizes: chunks in (rows, cols)
     records_per_chunk: int | None = field(repr=True, default=None)
@@ -128,7 +144,7 @@ class Array:
             and self.shape == other.shape
             and self.dtype == other.dtype
             and self.records_per_chunk == other.records_per_chunk
-            and self.parse_bytes == other.parse_bytes
+            and self.type_code == other.type_code
         )
 
     def __getitem__(self, indexers):
@@ -142,7 +158,7 @@ class Array:
             for chunk_info, ranges in tasks:
                 chunk = read_chunk(f, **chunk_info)
                 raw_bytes = extract_ranges(chunk, ranges)
-                chunk_data = [self.parse_bytes(part) for part in raw_bytes]
+                chunk_data = [parse_data(part, type_code=self.type_code) for part in raw_bytes]
                 data_.extend(chunk_data)
 
             data = np.stack(data_, axis=0)

@@ -30,7 +30,7 @@ def encode_array(obj):
             "shape": obj.shape,
             "dtype": str(obj.dtype),
             "byte_ranges": obj.byte_ranges,
-            "type_code": obj.parse_bytes.keywords["type_code"],
+            "type_code": obj.type_code,
         }
 
     def default_encode(obj):

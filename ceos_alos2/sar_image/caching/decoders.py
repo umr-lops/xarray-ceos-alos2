@@ -5,7 +5,6 @@ from tlz.functoolz import curry
 
 from ceos_alos2.array import Array
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_image.io import parse_data
 
 
 def postprocess(obj):
@@ -55,7 +54,7 @@ def decode_array(encoded, records_per_chunk):
 
         fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
-    parser = curry(parse_data, type_code=encoded["type_code"])
+    type_code = encoded["type_code"]
     url = encoded["url"]
     shape = encoded["shape"]
     dtype = encoded["dtype"]
@@ -66,7 +65,7 @@ def decode_array(encoded, records_per_chunk):
         byte_ranges=byte_ranges,
         shape=shape,
         dtype=dtype,
-        parse_bytes=parser,
+        type_code=type_code,
         records_per_chunk=records_per_chunk,
     )
 

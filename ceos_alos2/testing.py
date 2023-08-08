@@ -183,11 +183,11 @@ def diff_array(a, b):
             f"  {a.dtype} != {b.dtype}",
         ]
         sections.append(newline.join(lines))
-    if a.parse_bytes != b.parse_bytes:
+    if a.type_code != b.type_code:
         lines = [
-            "Differing byte parser:",
-            f"  L type_code  {a.parse_bytes.parameters['type_code']}",
-            f"  R type_code  {b.parse_bytes.parameters['type_code']}",
+            "Differing type code:",
+            f"  L type_code  {a.type_code}",
+            f"  R type_code  {b.type_code}",
         ]
         sections.append(newline.join(lines))
     if a.records_per_chunk != b.records_per_chunk:
