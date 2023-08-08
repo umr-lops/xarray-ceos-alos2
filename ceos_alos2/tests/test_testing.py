@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from ceos_alos2 import testing
+from ceos_alos2.tests.utils import create_dummy_array
 
 
 @pytest.mark.parametrize("b", ({"a": 1}, {"c": 1}, {"a": 1, "c": 1}))
@@ -30,6 +31,25 @@ def test_dict_overlap(a, b):
 )
 def test_format_item(item, expected):
     actual = testing.format_item(item)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["arr", "expected"],
+    (
+        (np.array([0, 1]), "0 1"),
+        (np.arange(10), "0 1 2 ... 8 9"),
+        (
+            create_dummy_array(shape=(4, 3)),
+            "\n".join(
+                ["Array(shape=(4, 3), dtype=int16, rpc=2)", "    url: memory:///path/to/file"]
+            ),
+        ),
+    ),
+)
+def test_format_array(arr, expected):
+    actual = testing.format_array(arr)
 
     assert actual == expected
 

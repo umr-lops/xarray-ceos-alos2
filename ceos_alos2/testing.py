@@ -42,9 +42,9 @@ def format_item(x):
 
 def format_array(arr):
     if isinstance(arr, Array):
-        url = arr.fs.sep.join([arr.fs.path, arr.url])
+        url = f"{arr.fs.fs.protocol}://" + arr.fs.sep.join([arr.fs.path, arr.url])
         lines = [
-            f"Array(shape={arr.shape}, dtype={arr.dtype}, rpc={arr.records_per_chunk})"
+            f"Array(shape={arr.shape}, dtype={arr.dtype}, rpc={arr.records_per_chunk})",
             f"    url: {url}",
         ]
 
