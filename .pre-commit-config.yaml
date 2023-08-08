@@ -36,7 +36,7 @@ repos:
       - id: nbstripout
         args: [--extra-keys=metadata.kernelspec metadata.language_info.version]
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0
+    rev: v3.0.1
     hooks:
       - id: prettier
   - repo: https://github.com/MarcoGorelli/absolufy-imports
