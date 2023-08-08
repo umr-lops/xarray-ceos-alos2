@@ -8,6 +8,13 @@ from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image.io import parse_data
 
 
+def postprocess(obj):
+    if obj.get("__type__") == "tuple":
+        return tuple(obj["data"])
+
+    return obj
+
+
 def decode_datetime(obj):
     encoding = obj["encoding"]
     reference = np.array(encoding["reference"], dtype=obj["dtype"])

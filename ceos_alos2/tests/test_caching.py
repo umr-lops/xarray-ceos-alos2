@@ -373,6 +373,24 @@ class TestDecoders:
     @pytest.mark.parametrize(
         ["data", "expected"],
         (
+            pytest.param({}, {}, id="empty"),
+            pytest.param({"a": 1}, {"a": 1}, id="default"),
+            pytest.param({"__type__": "tuple", "data": [2, 3]}, (2, 3), id="tuple"),
+            pytest.param(
+                {"__type__": "array", "data": [1, 2], "dtype": "int8", "encoding": {}},
+                {"__type__": "array", "data": [1, 2], "dtype": "int8", "encoding": {}},
+                id="array",
+            ),
+        ),
+    )
+    def test_postprocess(self, data, expected):
+        actual = caching.decoders.postprocess(data)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["data", "expected"],
+        (
             pytest.param(
                 {
                     "__type__": "array",
