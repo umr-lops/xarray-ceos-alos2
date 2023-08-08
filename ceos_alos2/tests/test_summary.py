@@ -513,3 +513,164 @@ def test_transform_label_info(section, expected):
     actual = summary.transform_label_info(section)
 
     assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["sections", "expected"],
+    (
+        pytest.param(
+            {"odi": {"SceneId": "abc", "SiteDateTime": "def"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "ordering_information": Group(
+                        None, None, {}, {"SceneId": "abc", "SiteDateTime": "def"}
+                    )
+                },
+                attrs={},
+            ),
+            id="ordering_info",
+        ),
+        pytest.param(
+            {"scs": {"SceneID": "ALOS2290760600-191011", "SceneShift": "0"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "scene_specification": Group(
+                        path=None,
+                        url=None,
+                        data={},
+                        attrs={
+                            "mission_name": "ALOS2",
+                            "orbit_accumulation": 29076,
+                            "scene_frame": 600,
+                            "date": "2019-10-11",
+                            "SceneShift": 0,
+                        },
+                    )
+                },
+                attrs={},
+            ),
+            id="scene_spec",
+        ),
+        pytest.param(
+            {"pds": {"PixelSpacing": "25.000000"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "product_specification": Group(
+                        path=None, url=None, data={}, attrs={"PixelSpacing": 25.0}
+                    )
+                },
+                attrs={},
+            ),
+            id="product_spec",
+        ),
+        pytest.param(
+            {"img": {"OffNadirAngle": "21.3"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "image_information": Group(
+                        path=None, url=None, data={}, attrs={"OffNadirAngle": 21.3}
+                    )
+                },
+                attrs={},
+            ),
+            id="image_info",
+        ),
+        pytest.param(
+            {"pdi": {"BitPixel": "16"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "product_information": Group(
+                        path=None, url=None, data={}, attrs={"BitPixel": 16}
+                    )
+                },
+                attrs={},
+            ),
+            id="product_info",
+        ),
+        pytest.param(
+            {"ach": {"AbsoluteNavigationTime": "", "PRF_Check": ""}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "autocheck": Group(
+                        path=None,
+                        url=None,
+                        data={},
+                        attrs={"AbsoluteNavigationTime": "N/A", "PRF_Check": "N/A"},
+                    )
+                },
+                attrs={},
+            ),
+            id="autocheck",
+        ),
+        pytest.param(
+            {"rad": {"PracticeResultCode": "FAIR"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "result_information": Group(
+                        path=None, url=None, data={}, attrs={"PracticeResultCode": "FAIR"}
+                    )
+                },
+                attrs={},
+            ),
+            id="result_info",
+        ),
+        pytest.param(
+            {"lbi": {"Satellite": "ALOS2", "Sensor": "SAR", "ProcessLevel": "1.1"}},
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "label_information": Group(
+                        path=None,
+                        url=None,
+                        data={},
+                        attrs={"Satellite": "ALOS2", "Sensor": "SAR", "ProcessLevel": "1.1"},
+                    )
+                },
+                attrs={},
+            ),
+            id="label_info",
+        ),
+        pytest.param(
+            {
+                "ach": {"AbsoluteNavigationTime": "", "PRF_Check": ""},
+                "rad": {"PracticeResultCode": "FAIR"},
+            },
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "autocheck": Group(
+                        path=None,
+                        url=None,
+                        data={},
+                        attrs={"AbsoluteNavigationTime": "N/A", "PRF_Check": "N/A"},
+                    ),
+                    "result_information": Group(
+                        path=None, url=None, data={}, attrs={"PracticeResultCode": "FAIR"}
+                    ),
+                },
+                attrs={},
+            ),
+            id="multiple",
+        ),
+    ),
+)
+def test_transform_summary(sections, expected):
+    actual = summary.transform_summary(sections)
+
+    assert_identical(actual, expected)
