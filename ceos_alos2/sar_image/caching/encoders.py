@@ -66,10 +66,8 @@ def encode_group(group):
     def encode_entry(obj):
         if isinstance(obj, Group):
             return encode_group(obj)
-        elif isinstance(obj, Variable):
-            return encode_variable(obj)
         else:
-            return ValueError(f"unknown type: {type(obj)}")
+            return encode_variable(obj)
 
     encoded_data = valmap(encode_entry, group.data)
 

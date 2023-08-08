@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from ceos_alos2.hierarchy import Variable
+from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import caching
 from ceos_alos2.sar_image.caching.path import project_name
 from ceos_alos2.tests.utils import create_dummy_array
@@ -239,5 +239,78 @@ class TestEncoders:
     )
     def test_encode_variable(self, var, expected):
         actual = caching.encoders.encode_variable(var)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["group", "expected"],
+        (
+            pytest.param(
+                Group(path="path", url="abc", data={}, attrs={"abc": "def"}),
+                {
+                    "__type__": "group",
+                    "path": "path",
+                    "url": "abc",
+                    "data": {},
+                    "attrs": {"abc": "def"},
+                },
+                id="no_variables-no_subgroups",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={"v": Variable("x", np.array([1, 2], dtype="int8"), {})},
+                    attrs={},
+                ),
+                {
+                    "__type__": "group",
+                    "path": "/",
+                    "url": None,
+                    "data": {
+                        "v": {
+                            "__type__": "variable",
+                            "dims": ["x"],
+                            "data": {
+                                "__type__": "array",
+                                "data": [1, 2],
+                                "dtype": "int8",
+                                "encoding": {},
+                            },
+                            "attrs": {},
+                        }
+                    },
+                    "attrs": {},
+                },
+                id="variables-no_subgroups",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={"g": Group(path=None, url=None, data={}, attrs={"n": "g"})},
+                    attrs={},
+                ),
+                {
+                    "__type__": "group",
+                    "path": "/",
+                    "url": None,
+                    "data": {
+                        "g": {
+                            "__type__": "group",
+                            "path": "/g",
+                            "url": None,
+                            "data": {},
+                            "attrs": {"n": "g"},
+                        }
+                    },
+                    "attrs": {},
+                },
+                id="no_variables-subgroups",
+            ),
+        ),
+    )
+    def test_encode_group(self, group, expected):
+        actual = caching.encoders.encode_group(group)
 
         assert actual == expected
