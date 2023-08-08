@@ -21,7 +21,18 @@ def encode_datetime(obj):
     return encoded, encoding
 
 
-def encode_arraylike(obj):
+def encode_array(obj):
+    if isinstance(obj, Array):
+        return {
+            "__type__": "backend_array",
+            "root": obj.fs.path,
+            "url": obj.url,
+            "shape": obj.shape,
+            "dtype": str(obj.dtype),
+            "byte_ranges": obj.byte_ranges,
+            "type_code": obj.parse_bytes.keywords["type_code"],
+        }
+
     def default_encode(obj):
         return obj.tolist(), {}
 
@@ -37,21 +48,6 @@ def encode_arraylike(obj):
         "dtype": str(obj.dtype),
         "data": encoded,
         "encoding": encoding,
-    }
-
-
-def encode_array(obj):
-    if not isinstance(obj, Array):
-        return encode_arraylike(obj)
-
-    return {
-        "__type__": "record_array",
-        "root": obj.fs.path,
-        "url": obj.url,
-        "shape": obj.shape,
-        "dtype": str(obj.dtype),
-        "byte_ranges": obj.byte_ranges,
-        "type_code": obj.parse_bytes.keywords["type_code"],
     }
 
 

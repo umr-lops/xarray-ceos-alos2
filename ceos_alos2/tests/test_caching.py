@@ -1,9 +1,11 @@
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from ceos_alos2.sar_image import caching
 from ceos_alos2.sar_image.caching.path import project_name
+from ceos_alos2.tests.utils import create_dummy_array
 
 
 def test_hashsum():
@@ -71,3 +73,107 @@ def test_remote_cache_location(remote_root, path, expected):
     actual = caching.path.remote_cache_location(remote_root, path)
 
     assert actual == expected
+
+
+class TestEncoders:
+    @pytest.mark.parametrize(
+        ["arr", "expected_data", "expected_attrs"],
+        (
+            pytest.param(
+                np.array([0, 10, 20, 30], dtype="timedelta64[ms]"),
+                np.array([0, 10, 20, 30]),
+                {"units": "ms"},
+            ),
+            pytest.param(
+                np.array([0, 1, 7, 12, 13], dtype="timedelta64[s]"),
+                np.array([0, 1, 7, 12, 13]),
+                {"units": "s"},
+            ),
+        ),
+    )
+    def test_encode_timedelta(self, arr, expected_data, expected_attrs):
+        actual_data, actual_attrs = caching.encoders.encode_timedelta(arr)
+
+        np.testing.assert_equal(actual_data, expected_data)
+        assert actual_attrs == expected_attrs
+
+    @pytest.mark.parametrize(
+        ["arr", "expected_data", "expected_attrs"],
+        (
+            pytest.param(
+                np.array(["2019-01-01 00:01:00", "2019-01-02 00:02:00"], dtype="datetime64[ms]"),
+                [0, 86460000],
+                {"units": "ms", "reference": "2019-01-01T00:01:00.000"},
+            ),
+            pytest.param(
+                np.array(["2019-01-01 00:00:00"], dtype="datetime64[ns]"),
+                np.array([0]),
+                {"units": "ns", "reference": "2019-01-01T00:00:00.000000000"},
+            ),
+            pytest.param(
+                np.array(["2019-01-01 00:00:00", "2020-01-01 00:00:00"], dtype="datetime64[s]"),
+                [0, 31536000],
+                {"units": "s", "reference": "2019-01-01T00:00:00"},
+            ),
+        ),
+    )
+    def test_encode_datetime(self, arr, expected_data, expected_attrs):
+        actual_data, actual_attrs = caching.encoders.encode_datetime(arr)
+
+        assert actual_data == expected_data
+        assert actual_attrs == expected_attrs
+
+    @pytest.mark.parametrize(
+        ["arr", "expected"],
+        (
+            pytest.param(
+                np.array([0, 1, 2], dtype="int32"),
+                {"__type__": "array", "dtype": "int32", "data": [0, 1, 2], "encoding": {}},
+                id="int32-array",
+            ),
+            pytest.param(
+                np.array([0.0, 1.0, 2.0], dtype="float16"),
+                {"__type__": "array", "dtype": "float16", "data": [0.0, 1.0, 2.0], "encoding": {}},
+                id="float16-array",
+            ),
+            pytest.param(
+                np.array([0, 1, 2], dtype="timedelta64[s]"),
+                {
+                    "__type__": "array",
+                    "dtype": "timedelta64[s]",
+                    "data": [0, 1, 2],
+                    "encoding": {"units": "s"},
+                },
+                id="timedelta64-array",
+            ),
+            pytest.param(
+                np.array(
+                    ["2019-01-01", "2020-01-01", "2021-01-01", "2022-01-01"], dtype="datetime64[ns]"
+                ),
+                {
+                    "__type__": "array",
+                    "dtype": "datetime64[ns]",
+                    "data": [0, 31536000000000000, 63158400000000000, 94694400000000000],
+                    "encoding": {"units": "ns", "reference": "2019-01-01T00:00:00.000000000"},
+                },
+                id="datetime64-array",
+            ),
+            pytest.param(
+                create_dummy_array(shape=(4, 3), dtype="int16"),
+                {
+                    "__type__": "backend_array",
+                    "root": "/path/to",
+                    "url": "file",
+                    "shape": (4, 3),
+                    "dtype": "int16",
+                    "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                    "type_code": "IU2",
+                },
+                id="int16-backend_array",
+            ),
+        ),
+    )
+    def test_encode_array(self, arr, expected):
+        actual = caching.encoders.encode_array(arr)
+
+        assert actual == expected
