@@ -32,6 +32,46 @@ def dict_overlap(a, b):
     return missing_left, common, missing_right
 
 
+def format_item(x):
+    dtype = x.dtype
+    if dtype.kind in {"U", "f", "i"}:
+        return repr(x.item())
+    elif dtype.kind in {"m", "M"}:
+        return str(x)
+
+    return repr(x)
+
+
+def format_array(arr):
+    if isinstance(arr, Array):
+        url = arr.fs.sep.join([arr.fs.path, arr.url])
+        lines = [
+            f"Array(shape={arr.shape}, dtype={arr.dtype}, rpc={arr.records_per_chunk})"
+            f"    url: {url}",
+        ]
+
+        return newline.join(lines)
+
+    flattened = np.reshape(arr, (-1,))
+    if flattened.size < 8:
+        return " ".join(format_item(x) for x in flattened)
+    else:
+        head = arr[:3]
+        tail = arr[-2:]
+
+        return (
+            " ".join(format_item(x) for x in head)
+            + " ... "
+            + " ".join(format_item(x) for x in tail)
+        )
+
+
+def format_variable(var):
+    base_string = f"({', '.join(var.dims)})  {format_array(var.data)}"
+    attrs = [f"    {k}: {v}" for k, v in var.attrs.items()]
+    return newline.join(cons(base_string, attrs))
+
+
 def format_inline(value):
     if isinstance(value, Variable):
         return format_variable(value)
@@ -99,50 +139,11 @@ def compare_data(a, b):
         return np.all(a == b)
 
 
-def format_item(x):
-    dtype = x.dtype
-    if dtype.kind in {"U", "f", "i"}:
-        return repr(x.item())
-    elif dtype.kind in {"m", "M"}:
-        return str(x)
-
-    return repr(x)
-
-
-def format_arraylike(arr):
-    flattened = np.reshape(arr, (-1,))
-    if flattened.size < 8:
-        return " ".join(format_item(x) for x in flattened)
-    else:
-        head = arr[:3]
-        tail = arr[-2:]
-
-        return (
-            " ".join(format_item(x) for x in head)
-            + " ... "
-            + " ".join(format_item(x) for x in tail)
-        )
-
-
-def format_data(arr):
-    if isinstance(arr, Array):
-        url = arr.fs.sep.join([arr.fs.path, arr.url])
-        return f"[url={url}, shape={arr.shape}, dtype={arr.dtype}, rpc={arr.records_per_chunk}]"
-    else:
-        return format_arraylike(arr)
-
-
-def format_variable(var):
-    base_string = f"({', '.join(var.dims)})  {format_data(var.data)}"
-    attrs = [f"    {k}: {v}" for k, v in var.attrs.items()]
-    return "\n".join(cons(base_string, attrs))
-
-
 def diff_array(a, b):
     if not isinstance(a, Array):
         lines = [
-            f"  L {format_arraylike(a)}",
-            f"  R {format_arraylike(b)}",
+            f"  L {format_array(a)}",
+            f"  R {format_array(b)}",
         ]
 
         return newline.join(lines)
