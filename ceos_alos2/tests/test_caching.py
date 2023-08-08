@@ -3,9 +3,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from ceos_alos2.array import Array
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import caching
 from ceos_alos2.sar_image.caching.path import project_name
+from ceos_alos2.testing import assert_identical
 from ceos_alos2.tests.utils import create_dummy_array
 
 
@@ -417,3 +419,57 @@ class TestDecoders:
         actual = caching.decoders.decode_datetime(data)
 
         np.testing.assert_equal(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["data", "records_per_chunk", "expected"],
+        (
+            pytest.param(
+                {"__type__": "array", "dtype": "int8", "data": [1, 2], "encoding": {}},
+                2,
+                np.array([1, 2], dtype="int8"),
+                id="array-int8",
+            ),
+            pytest.param(
+                {
+                    "__type__": "array",
+                    "dtype": "timedelta64[s]",
+                    "data": [1, 2],
+                    "encoding": {"units": "s"},
+                },
+                2,
+                np.array([1, 2], dtype="timedelta64[s]"),
+                id="array-timedelta64",
+            ),
+            pytest.param(
+                {
+                    "__type__": "array",
+                    "dtype": "datetime64[s]",
+                    "data": [0, 120000],
+                    "encoding": {"units": "ms", "reference": "1997-05-27T00:00:00.000"},
+                },
+                2,
+                np.array(["1997-05-27 00:00:00", "1997-05-27 00:02:00"], dtype="datetime64[s]"),
+                id="array-datetime64",
+            ),
+            pytest.param(
+                {
+                    "__type__": "backend_array",
+                    "root": "memory:///path/to",
+                    "url": "file",
+                    "shape": (4, 3),
+                    "dtype": "int16",
+                    "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                    "type_code": "IU2",
+                },
+                1,
+                create_dummy_array(shape=(4, 3), dtype="int16", records_per_chunk=1),
+                id="backend_array-int16",
+            ),
+        ),
+    )
+    def test_decode_array(self, data, records_per_chunk, expected):
+        actual = caching.decoders.decode_array(data, records_per_chunk)
+        if isinstance(expected, Array):
+            assert_identical(actual, expected)
+        else:
+            np.testing.assert_equal(actual, expected)
