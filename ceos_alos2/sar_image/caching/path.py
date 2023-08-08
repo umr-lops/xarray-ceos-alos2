@@ -1,9 +1,9 @@
 import hashlib
-import pathlib
 
 import platformdirs
 
 project_name = "xarray-ceos-alos2"
+cache_root = platformdirs.user_cache_path(project_name)
 
 
 def hashsum(data, algorithm="sha256"):
@@ -13,11 +13,10 @@ def hashsum(data, algorithm="sha256"):
 
 
 def local_cache_location(remote_root, path):
-    subdirs, fname = f"/{path}".rsplit("/", 1)
+    _, fname = f"/{path}".rsplit("/", 1)
     cache_name = f"{fname}.index"
 
-    local_root = pathlib.Path(platformdirs.user_cache_dir(project_name))
-    return local_root / hashsum(remote_root) / cache_name
+    return cache_root / hashsum(remote_root) / cache_name
 
 
 def remote_cache_location(remote_root, path):
