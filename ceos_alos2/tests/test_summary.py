@@ -347,6 +347,78 @@ def test_transform_image_info(section, expected):
     ["section", "expected"],
     (
         pytest.param(
+            {
+                "CntOfL15ProductFileName": "5",
+                "L15ProductFileName01": "a",
+                "L15ProductFileName02": "b",
+                "L15ProductFileName03": "c",
+                "L15ProductFileName04": "d",
+                "L15ProductFileName05": "e",
+            },
+            Group(
+                path="product_info",
+                url=None,
+                data={
+                    "data_files": Group(
+                        path="data_files",
+                        url=None,
+                        data={},
+                        attrs={
+                            "volume_directory": "a",
+                            "sar_leader": "b",
+                            "sar_imagery": ["c", "d"],
+                            "sar_trailer": "e",
+                        },
+                    )
+                },
+                attrs={},
+            ),
+            id="data_files",
+        ),
+        pytest.param(
+            {
+                "NoOfPixels_1": " 9196",
+                "NoOfPixels_2": " 8722",
+                "NoOfLines_1": "60568",
+                "NoOfLines_2": "75710",
+            },
+            Group(
+                path="product_info",
+                url=None,
+                data={
+                    "shapes": Group(
+                        path="shapes",
+                        url=None,
+                        data={},
+                        attrs={"1": (9196, 60568), "2": (8722, 75710)},
+                    )
+                },
+                attrs={},
+            ),
+            id="shapes",
+        ),
+        pytest.param(
+            {"ProductDataSize": "798.2", "ProductFormat": "CEOS", "BitPixel": "16"},
+            Group(
+                path="product_info",
+                url=None,
+                data={},
+                attrs={"ProductDataSize": 798.2, "ProductFormat": "CEOS", "BitPixel": 16},
+            ),
+            id="other_metadata",
+        ),
+    ),
+)
+def test_transform_product_info(section, expected):
+    actual = summary.transform_product_info(section)
+
+    assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["section", "expected"],
+    (
+        pytest.param(
             {"TimeCheck": "GOOD", "AttitudeCheck": "POOR"},
             Group(
                 path=None, url=None, data={}, attrs={"TimeCheck": "GOOD", "AttitudeCheck": "POOR"}

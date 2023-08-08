@@ -1,13 +1,12 @@
 import re
 
-from tlz.dicttoolz import dissoc, keymap, merge, valmap
-from tlz.functoolz import compose_left, curry, juxt, pipe
+from tlz.dicttoolz import dissoc, keyfilter, keymap, merge, valmap
+from tlz.functoolz import compose_left, curry, pipe
 from tlz.itertoolz import first, get, groupby
 from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
 from ceos_alos2 import decoders
-from ceos_alos2.dicttoolz import keysplit
 from ceos_alos2.hierarchy import Group
 from ceos_alos2.utils import remove_nesting_layer, rename
 
@@ -151,39 +150,55 @@ def transform_image_info(section):
 
 
 def transform_product_info(section):
-    file_info, remainder = keysplit(lambda x: "ProductFileName" in x, section)
+    def categorize_key(item):
+        key, _ = item
+        if "ProductFileName" in key:
+            return "data_files"
+        elif key.startswith(("NoOfPixels", "NoOfLines")):
+            return "shapes"
+        else:
+            return "other"
 
-    count_fields = [name for name in file_info if name.startswith("Cnt")]
-    filenames = dissoc(file_info, *count_fields)
-    categorized = categorize_filenames(filenames)
+    def transform_file_info(mapping):
+        filenames = keyfilter(lambda k: not k.startswith("Cnt"), mapping)
+        categorized = categorize_filenames(filenames)
 
-    shape_related, remainder = keysplit(
-        lambda x: x.startswith(("NoOfPixels", "NoOfLines")), remainder
-    )
-    shapes_ = valmap(
-        compose_left(
-            curry(
-                map,
-                juxt(
-                    compose_left(first, lambda x: first(x.split("_"))),
-                    compose_left(second, int),
-                ),
+        return Group(path="data_files", url=None, data={}, attrs=categorized)
+
+    def transform_shape(mapping):
+        split_keys = keymap(lambda k: tuple(k.split("_")), mapping)
+        grouped = groupby(lambda it: second(it[0]), split_keys.items())
+        shapes = valmap(
+            compose_left(
+                dict,
+                curry(keymap, first),
+                curry(get, ["NoOfPixels", "NoOfLines"]),
+                curry(map, int),
+                tuple,
             ),
-            dict,
-        ),
-        groupby(lambda it: second(first(it).split("_")), shape_related.items()),
-    )
-    shapes = Group(
-        path="shapes",
-        url=None,
-        data={},
-        attrs=valmap(lambda x: (x["NoOfLines"], x["NoOfPixels"]), shapes_),
-    )
+            grouped,
+        )
 
-    filenames = Group(path="data_files", url=None, data={}, attrs=categorized)
-    # TODO: ignore shapes?
+        return Group(path="shapes", url=None, data={}, attrs=shapes)
+
+    def transform_other(mapping):
+        transformers = {
+            "ProductFormat": passthrough,
+            "BitPixel": int,
+            "ProductDataSize": float,
+        }
+
+        return apply_to_items(transformers, mapping)
+
+    categorized = valmap(dict, groupby(categorize_key, section.items()))
+    transformers = {
+        "data_files": transform_file_info,
+        "shapes": transform_shape,
+        "other": transform_other,
+    }
+    groups = apply_to_items(transformers, categorized)
     return Group(
-        path="", url=None, data={"data_files": filenames, "shapes": shapes}, attrs=remainder
+        path="product_info", url=None, data=dissoc(groups, "other"), attrs=groups.get("other", {})
     )
 
 
