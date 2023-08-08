@@ -1,3 +1,4 @@
+import fsspec
 import pytest
 
 from ceos_alos2 import summary
@@ -672,5 +673,73 @@ def test_transform_label_info(section, expected):
 )
 def test_transform_summary(sections, expected):
     actual = summary.transform_summary(sections)
+
+    assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["path", "expected"],
+    (
+        pytest.param("something.txt", OSError("Cannot find the summary file (.+)")),
+        pytest.param(
+            "summary.txt",
+            Group(
+                path="summary",
+                url=None,
+                data={
+                    "ordering_information": Group(
+                        path=None,
+                        url=None,
+                        data={},
+                        attrs={"SceneId": "SARD000000276461-00043-005-000"},
+                    ),
+                    "scene_specification": Group(
+                        path=None, url=None, data={}, attrs={"SceneShift": 0}
+                    ),
+                    "product_specification": Group(
+                        path=None, url=None, data={}, attrs={"ResamplingMethod": "nearest-neighbor"}
+                    ),
+                    "image_information": Group(
+                        path=None, url=None, data={}, attrs={"OffNadirAngle": 21.3}
+                    ),
+                    "product_information": Group(
+                        path=None, url=None, data={}, attrs={"ProductDataSize": 798.2}
+                    ),
+                    "autocheck": Group(path=None, url=None, data={}, attrs={"PRF_Check": "N/A"}),
+                    "result_information": Group(
+                        path=None, url=None, data={}, attrs={"PracticeResultCode": "GOOD"}
+                    ),
+                    "label_information": Group(
+                        path=None, url=None, data={}, attrs={"Sensor": "SAR"}
+                    ),
+                },
+                attrs={},
+            ),
+        ),
+    ),
+)
+def test_open_summary(path, expected):
+    data = "\n".join(
+        [
+            'Odi_SceneId="SARD000000276461-00043-005-000"',
+            'Scs_SceneShift="0"',
+            'Pds_ResamplingMethod="NN"',
+            'Img_OffNadirAngle="21.3"',
+            'Pdi_ProductDataSize="798.2"',
+            'Ach_PRF_Check=""',
+            'Rad_PracticeResultCode="GOOD"',
+            'Lbi_Sensor="SAR"',
+        ]
+    )
+    mapper = fsspec.get_mapper("memory://")
+    mapper["summary.txt"] = data.encode()
+
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            summary.open_summary(mapper, path)
+
+        return
+
+    actual = summary.open_summary(mapper, path)
 
     assert_identical(actual, expected)

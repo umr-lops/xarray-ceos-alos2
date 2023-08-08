@@ -244,7 +244,7 @@ def transform_summary(summary):
 def open_summary(mapper, path):
     try:
         bytes_ = mapper[path]
-    except FileNotFoundError as e:
+    except KeyError as e:
         raise OSError(
             f"Cannot find the summary file (`{path}`)."
             f" Make sure the dataset at {mapper.root} is complete and in the JAXA CEOS format."
