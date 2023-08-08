@@ -328,7 +328,7 @@ class TestEncoders:
                 {
                     "__type__": "variable",
                     "dims": ["x"],
-                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int32", "encoding": {}},
+                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int64", "encoding": {}},
                     "attrs": {},
                 },
                 id="variable",
