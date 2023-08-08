@@ -117,6 +117,20 @@ class Array:
             self.records_per_chunk = normalize_chunksize(self.records_per_chunk, self.shape[0])
         self.chunk_offsets = compute_chunk_offsets(self.byte_ranges, self.records_per_chunk)
 
+    def __eq__(self, other):
+        if type(self) is not type(other):
+            return False
+
+        return (
+            self.url == other.url
+            and self.fs == other.fs
+            and self.byte_ranges == other.byte_ranges
+            and self.shape == other.shape
+            and self.dtype == other.dtype
+            and self.records_per_chunk == other.records_per_chunk
+            and self.parse_bytes == other.parse_bytes
+        )
+
     def __getitem__(self, indexers):
         selected_ranges = compute_selected_ranges(self.byte_ranges, indexers[0])
         grouped = groupby_chunks(selected_ranges, chunksize=self.records_per_chunk)

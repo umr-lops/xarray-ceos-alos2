@@ -119,6 +119,7 @@ def test_decode_product_id(product_id, expected):
             id="valid_code",
         ),
         pytest.param("Ac", ValueError("invalid scan info"), id="invalid_code"),
+        pytest.param(None, {}, id="empty"),
     ),
 )
 def test_decode_scan_info(scan_info, expected):
