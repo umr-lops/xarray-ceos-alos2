@@ -7,6 +7,7 @@ from tlz.itertoolz import identity as passthrough
 from tlz.itertoolz import second
 
 from ceos_alos2 import decoders
+from ceos_alos2.dicttoolz import apply_to_items
 from ceos_alos2.hierarchy import Group
 from ceos_alos2.utils import remove_nesting_layer, rename
 
@@ -90,10 +91,6 @@ def reformat_date(s):
 def to_isoformat(s):
     date, time = s.split()
     return f"{reformat_date(date)}T{time}"
-
-
-def apply_to_items(funcs, mapping, default=passthrough):
-    return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
 
 
 def transform_ordering_info(section):

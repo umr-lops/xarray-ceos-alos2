@@ -1,4 +1,5 @@
 import pytest
+from tlz.itertoolz import identity
 
 from ceos_alos2 import dicttoolz
 
@@ -59,3 +60,19 @@ def test_zip_default(mappings, default):
         for index, value in enumerate(seq)
         if value is default
     )
+
+
+@pytest.mark.parametrize(
+    ["funcs", "default", "expected"],
+    (
+        pytest.param({"a": int, "b": str, "c": float}, identity, {"a": 1, "b": "6.4", "c": 4.0}),
+        pytest.param({"a": int, "c": float}, identity, {"a": 1, "b": 6.4, "c": 4.0}),
+        pytest.param({"b": str}, lambda x: x * 2, {"a": "11", "b": "6.4", "c": 8}),
+    ),
+)
+def test_apply_to_items(funcs, default, expected):
+    mapping = {"a": "1", "b": 6.4, "c": 4}
+
+    actual = dicttoolz.apply_to_items(funcs, mapping, default=default)
+
+    assert actual == expected
