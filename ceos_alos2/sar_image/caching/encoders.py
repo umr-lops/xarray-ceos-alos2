@@ -8,7 +8,7 @@ from ceos_alos2.hierarchy import Group, Variable
 def encode_timedelta(obj):
     units, _ = np.datetime_data(obj.dtype)
 
-    return obj.astype(int).tolist(), {"units": units}
+    return obj.astype("int64").tolist(), {"units": units}
 
 
 def encode_datetime(obj):
@@ -16,7 +16,7 @@ def encode_datetime(obj):
     reference = obj[0]
 
     encoding = {"reference": str(reference), "units": units}
-    encoded = (obj - reference).astype(int).tolist()
+    encoded = (obj - reference).astype("int64").tolist()
 
     return encoded, encoding
 
