@@ -21,8 +21,7 @@ volume_descriptor = Struct(
     "file_number_in_the_logical_volume" / AsciiInteger(4),
     "logical_volume_within_a_volume_set" / AsciiInteger(4),
     "logical_volume_number_within_physical_volume" / AsciiInteger(4),
-    "logical_volume_creation_date" / PaddedString(8),
-    "logical_volume_creation_time" / PaddedString(8),
+    "logical_volume_creation_datetime" / PaddedString(16),  # merged two entries
     "logical_volume_generation_country" / PaddedString(12),
     "logical_volume_generating_agency" / PaddedString(8),
     "logical_volume_generating_facility" / PaddedString(12),
