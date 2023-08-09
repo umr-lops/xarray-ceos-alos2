@@ -548,7 +548,7 @@ class TestDecoders:
         assert_identical(actual, expected)
 
     @pytest.mark.parametrize(
-        ["data", "expected"],
+        ["data", "rpc", "expected"],
         (
             pytest.param(
                 {
@@ -558,6 +558,7 @@ class TestDecoders:
                     "data": {},
                     "attrs": {"abc": "def"},
                 },
+                2,
                 Group(path="path", url="abc", data={}, attrs={"abc": "def"}),
                 id="no_variables-no_subgroups",
             ),
@@ -581,6 +582,7 @@ class TestDecoders:
                     },
                     "attrs": {},
                 },
+                2,
                 Group(
                     path=None,
                     url=None,
@@ -588,6 +590,49 @@ class TestDecoders:
                     attrs={},
                 ),
                 id="variables-no_subgroups",
+            ),
+            pytest.param(
+                {
+                    "__type__": "group",
+                    "path": "/",
+                    "url": None,
+                    "data": {
+                        "v": {
+                            "__type__": "variable",
+                            "dims": ["x"],
+                            "data": {
+                                "__type__": "backend_array",
+                                "root": "memory:///path/to",
+                                "url": "file",
+                                "shape": (4, 3),
+                                "dtype": "complex64",
+                                "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                                "type_code": "C*8",
+                            },
+                            "attrs": {},
+                        }
+                    },
+                    "attrs": {},
+                },
+                4,
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "v": Variable(
+                            "x",
+                            create_dummy_array(
+                                shape=(4, 3),
+                                dtype="complex64",
+                                type_code="C*8",
+                                records_per_chunk=4,
+                            ),
+                            {},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="variables-backend_array-no_subgroups",
             ),
             pytest.param(
                 {
@@ -605,6 +650,7 @@ class TestDecoders:
                     },
                     "attrs": {},
                 },
+                2,
                 Group(
                     path=None,
                     url=None,
@@ -615,16 +661,17 @@ class TestDecoders:
             ),
         ),
     )
-    def test_decode_group(self, data, expected):
-        actual = caching.decoders.decode_group(data, records_per_chunk=2)
+    def test_decode_group(self, data, rpc, expected):
+        actual = caching.decoders.decode_group(data, records_per_chunk=rpc)
 
         assert_identical(actual, expected)
 
     @pytest.mark.parametrize(
-        ["obj", "expected"],
+        ["obj", "rpc", "expected"],
         (
             pytest.param(
                 {"__type__": "group", "path": "/", "url": None, "data": {}, "attrs": {"a": 1}},
+                2,
                 Group(path=None, url=None, data={}, attrs={"a": 1}),
                 id="group",
             ),
@@ -635,14 +682,40 @@ class TestDecoders:
                     "data": {"__type__": "array", "data": [1, 2], "dtype": "int64", "encoding": {}},
                     "attrs": {},
                 },
+                3,
                 Variable("x", np.array([1, 2], dtype="int64"), {}),
                 id="variable",
             ),
-            pytest.param({"a": 1}, {"a": 1}, id="other"),
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x", "y"],
+                    "data": {
+                        "__type__": "backend_array",
+                        "root": "memory:///path/to",
+                        "url": "file",
+                        "shape": (4, 3),
+                        "dtype": "complex64",
+                        "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                        "type_code": "C*8",
+                    },
+                    "attrs": {},
+                },
+                4,
+                Variable(
+                    ["x", "y"],
+                    create_dummy_array(
+                        shape=(4, 3), dtype="complex64", records_per_chunk=4, type_code="C*8"
+                    ),
+                    attrs={},
+                ),
+                id="variable-backend_array",
+            ),
+            pytest.param({"a": 1}, 1, {"a": 1}, id="other"),
         ),
     )
-    def test_decode_hierarchy(self, obj, expected):
-        actual = caching.decoders.decode_hierarchy(obj, records_per_chunk=2)
+    def test_decode_hierarchy(self, obj, rpc, expected):
+        actual = caching.decoders.decode_hierarchy(obj, records_per_chunk=rpc)
 
         if not isinstance(expected, (Variable, Group)):
             assert actual == expected
