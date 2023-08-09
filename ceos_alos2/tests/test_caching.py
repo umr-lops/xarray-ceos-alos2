@@ -768,3 +768,50 @@ class TestHighLevel:
         actual = caching.encode(obj)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["data", "rpc", "expected"],
+        (
+            pytest.param(
+                " ".join(
+                    [
+                        '{"__type__": "group", "url": null, "data": {"v":',
+                        '{"__type__": "variable", "dims": ["x"], "data":',
+                        '{"__type__": "array", "dtype": "int16", "data": [1, 2], "encoding": {}},',
+                        '"attrs": {}}}, "path": "/",',
+                        '"attrs": {"a": {"__type__": "tuple", "data": [1, 2]}}}',
+                    ]
+                ),
+                2,
+                Group(
+                    path=None,
+                    url=None,
+                    data={"v": Variable("x", np.array([1, 2], dtype="int16"), attrs={})},
+                    attrs={"a": (1, 2)},
+                ),
+                id="variable",
+            ),
+            pytest.param(
+                " ".join(
+                    [
+                        '{"__type__": "group", "url": "s3://bucket/data", "data": {"g":',
+                        '{"__type__": "group", "url": "s3://bucket/data", "data": {},',
+                        '"path": "/g", "attrs": {"g": 1}}},',
+                        '"path": "/", "attrs": {}}',
+                    ]
+                ),
+                1,
+                Group(
+                    path=None,
+                    url="s3://bucket/data",
+                    data={"g": Group(path=None, url=None, data={}, attrs={"g": 1})},
+                    attrs={},
+                ),
+                id="subgroup",
+            ),
+        ),
+    )
+    def test_decode(self, data, rpc, expected):
+        actual = caching.decode(data, records_per_chunk=rpc)
+
+        assert_identical(actual, expected)
