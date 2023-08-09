@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import fsspec
@@ -814,6 +815,113 @@ class TestHighLevel:
     )
     def test_decode(self, data, rpc, expected):
         actual = caching.decode(data, records_per_chunk=rpc)
+
+        assert_identical(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["path", "rpc", "expected"],
+        (
+            pytest.param(
+                "not-a-cache", 2, caching.CachingError("no cache found for .+"), id="not-a-cache"
+            ),
+            pytest.param(
+                "image1",
+                3,
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "v": Variable(
+                            ["x", "y"],
+                            create_dummy_array(
+                                shape=(4, 3),
+                                dtype="complex64",
+                                type_code="C*8",
+                                records_per_chunk=3,
+                            ),
+                            {},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="remote_cache",
+            ),
+            pytest.param(
+                "image2",
+                4,
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "v": Variable(
+                            ["x", "y"],
+                            create_dummy_array(
+                                shape=(4, 3),
+                                dtype="complex64",
+                                type_code="C*8",
+                                records_per_chunk=4,
+                            ),
+                            {},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="local_cache",
+            ),
+        ),
+    )
+    def test_read_cache(self, monkeypatch, path, rpc, expected):
+        mapper = fsspec.get_mapper("memory://cache")
+        data = json.dumps(
+            {
+                "__type__": "group",
+                "url": None,
+                "data": {
+                    "v": {
+                        "__type__": "variable",
+                        "dims": ["x", "y"],
+                        "data": {
+                            "__type__": "backend_array",
+                            "root": "memory:///path/to",
+                            "url": "file",
+                            "shape": {"__type__": "tuple", "data": [4, 3]},
+                            "dtype": "complex64",
+                            "byte_ranges": [
+                                {"__type__": "tuple", "data": [5, 10]},
+                                {"__type__": "tuple", "data": [15, 20]},
+                                {"__type__": "tuple", "data": [25, 30]},
+                                {"__type__": "tuple", "data": [35, 40]},
+                            ],
+                            "type_code": "C*8",
+                        },
+                        "attrs": {},
+                    }
+                },
+                "path": "/",
+                "attrs": {},
+            }
+        )
+        mapper["image1.index"] = data.encode()
+
+        def fake_is_file(self):
+            return self.name == "image2.index"
+
+        def fake_read_text(self):
+            if self.name == "image2.index":
+                return data
+            else:
+                raise IOError
+
+        monkeypatch.setattr(Path, "is_file", fake_is_file)
+        monkeypatch.setattr(Path, "read_text", fake_read_text)
+
+        if isinstance(expected, Exception):
+            with pytest.raises(type(expected), match=expected.args[0]):
+                caching.read_cache(mapper, path, records_per_chunk=rpc)
+
+            return
+
+        actual = caching.read_cache(mapper, path, records_per_chunk=rpc)
 
         assert_identical(actual, expected)
 
