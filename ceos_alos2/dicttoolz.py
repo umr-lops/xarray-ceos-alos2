@@ -1,3 +1,4 @@
+from tlz.dicttoolz import dissoc as dissoc_
 from tlz.itertoolz import concat, groupby
 from tlz.itertoolz import identity as passthrough
 
@@ -19,6 +20,10 @@ def valsplit(predicate, d):
 def keysplit(predicate, d):
     wrapper = lambda item: predicate(item[0])
     return itemsplit(wrapper, d)
+
+
+def dissoc(keys, d):
+    return dissoc_(d, *keys)
 
 
 def zip_default(*mappings, default=None):
