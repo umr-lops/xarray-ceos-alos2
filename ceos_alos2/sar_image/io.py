@@ -1,14 +1,11 @@
 import itertools
 import math
 
-import numpy as np
-from tlz.functoolz import curry
 from tlz.itertoolz import concat
 
 from ceos_alos2.array import Array
 from ceos_alos2.common import record_preamble
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
-from ceos_alos2.sar_image.metadata import raw_dtypes
 from ceos_alos2.sar_image.processed_data import processed_data_record
 from ceos_alos2.sar_image.signal_data import signal_data_record
 from ceos_alos2.utils import to_dict
@@ -19,27 +16,14 @@ record_types = {
 }
 
 
-def parse_data(content, type_code):
-    dtype = raw_dtypes.get(type_code)
-    if dtype is None:
-        raise ValueError(f"unknown type code: {type_code}")
-
-    raw = np.frombuffer(content, dtype)
-    if type_code == "C*8":
-        return raw["real"] + 1j * raw["imag"]
-    return raw
-
-
 def create_array(fs, path, byte_ranges, shape, dtype, type_code, records_per_chunk):
-    parser = curry(parse_data, type_code=type_code)
-
     return Array(
         fs=fs,
         url=path,
         byte_ranges=byte_ranges,
         shape=shape,
         dtype=dtype,
-        parse_bytes=parser,
+        type_code=type_code,
         records_per_chunk=records_per_chunk,
     )
 

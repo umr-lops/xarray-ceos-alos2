@@ -5,7 +5,13 @@ from tlz.functoolz import curry
 
 from ceos_alos2.array import Array
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_image.io import parse_data
+
+
+def postprocess(obj):
+    if obj.get("__type__") == "tuple":
+        return tuple(obj["data"])
+
+    return obj
 
 
 def decode_datetime(obj):
@@ -16,29 +22,16 @@ def decode_datetime(obj):
     return reference + offsets
 
 
-def decode_objects(obj):
+def decode_array(encoded, records_per_chunk):
     def default_decode(obj):
         return np.array(obj["data"], dtype=obj["dtype"])
 
-    if obj.get("__type__") == "tuple":
-        return tuple(obj["data"])
-    elif obj.get("__type__") != "array":
-        return obj
+    if encoded.get("__type__") == "array":
+        dtype = np.dtype(encoded["dtype"])
+        decoders = {"M": decode_datetime}
+        decoder = decoders.get(dtype.kind, default_decode)
 
-    dtype = np.dtype(obj["dtype"])
-    decoders = {
-        "M": decode_datetime,
-    }
-    decoder = decoders.get(dtype.kind, default_decode)
-
-    return decoder(obj)
-
-
-def decode_array(encoded, records_per_chunk):
-    if not isinstance(encoded, dict):
-        return encoded
-    elif encoded.get("__type__") != "record_array":
-        raise ValueError(f"unknown type: {encoded['__type__']}")
+        return decoder(encoded)
 
     mapper = fsspec.get_mapper(encoded["root"])
     try:
@@ -48,7 +41,7 @@ def decode_array(encoded, records_per_chunk):
 
         fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
 
-    parser = curry(parse_data, type_code=encoded["type_code"])
+    type_code = encoded["type_code"]
     url = encoded["url"]
     shape = encoded["shape"]
     dtype = encoded["dtype"]
@@ -59,9 +52,21 @@ def decode_array(encoded, records_per_chunk):
         byte_ranges=byte_ranges,
         shape=shape,
         dtype=dtype,
-        parse_bytes=parser,
+        type_code=type_code,
         records_per_chunk=records_per_chunk,
     )
+
+
+def decode_variable(encoded, records_per_chunk):
+    data = decode_array(encoded["data"], records_per_chunk=records_per_chunk)
+
+    return Variable(dims=encoded["dims"], data=data, attrs=encoded["attrs"])
+
+
+def decode_group(encoded, records_per_chunk):
+    data = valmap(curry(decode_hierarchy, records_per_chunk=records_per_chunk), encoded["data"])
+
+    return Group(path=encoded["path"], url=encoded["url"], data=data, attrs=encoded["attrs"])
 
 
 def decode_hierarchy(encoded, records_per_chunk):
@@ -76,21 +81,3 @@ def decode_hierarchy(encoded, records_per_chunk):
         return encoded
 
     return decoder(encoded, records_per_chunk=records_per_chunk)
-
-
-def decode_group(encoded, records_per_chunk):
-    if encoded.get("__type__") != "group":
-        raise ValueError("not a group")
-
-    data = valmap(curry(decode_hierarchy, records_per_chunk=records_per_chunk), encoded["data"])
-
-    return Group(path=encoded["path"], url=encoded["url"], data=data, attrs=encoded["attrs"])
-
-
-def decode_variable(encoded, records_per_chunk):
-    if encoded.get("__type__") != "variable":
-        raise ValueError("not a variable")
-
-    data = decode_array(encoded["data"], records_per_chunk=records_per_chunk)
-
-    return Variable(dims=encoded["dims"], data=data, attrs=encoded["attrs"])

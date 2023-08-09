@@ -8,7 +8,7 @@ from ceos_alos2.hierarchy import Group, Variable
 def encode_timedelta(obj):
     units, _ = np.datetime_data(obj.dtype)
 
-    return obj.astype(int).tolist(), {"units": units}
+    return obj.astype("int64").tolist(), {"units": units}
 
 
 def encode_datetime(obj):
@@ -16,12 +16,23 @@ def encode_datetime(obj):
     reference = obj[0]
 
     encoding = {"reference": str(reference), "units": units}
-    encoded = (obj - reference).astype(int).tolist()
+    encoded = (obj - reference).astype("int64").tolist()
 
     return encoded, encoding
 
 
-def encode_arraylike(obj):
+def encode_array(obj):
+    if isinstance(obj, Array):
+        return {
+            "__type__": "backend_array",
+            "root": obj.fs.path,
+            "url": obj.url,
+            "shape": obj.shape,
+            "dtype": str(obj.dtype),
+            "byte_ranges": obj.byte_ranges,
+            "type_code": obj.type_code,
+        }
+
     def default_encode(obj):
         return obj.tolist(), {}
 
@@ -40,21 +51,6 @@ def encode_arraylike(obj):
     }
 
 
-def encode_array(obj):
-    if not isinstance(obj, Array):
-        return encode_arraylike(obj)
-
-    return {
-        "__type__": "record_array",
-        "root": obj.fs.path,
-        "url": obj.url,
-        "shape": obj.shape,
-        "dtype": str(obj.dtype),
-        "byte_ranges": obj.byte_ranges,
-        "type_code": obj.parse_bytes.keywords["type_code"],
-    }
-
-
 def encode_variable(var):
     encoded_data = encode_array(var.data)
 
@@ -70,10 +66,8 @@ def encode_group(group):
     def encode_entry(obj):
         if isinstance(obj, Group):
             return encode_group(obj)
-        elif isinstance(obj, Variable):
-            return encode_variable(obj)
         else:
-            return ValueError(f"unknown type: {type(obj)}")
+            return encode_variable(obj)
 
     encoded_data = valmap(encode_entry, group.data)
 

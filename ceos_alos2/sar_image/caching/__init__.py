@@ -1,6 +1,6 @@
 import json
 
-from ceos_alos2.sar_image.caching.decoders import decode_hierarchy, decode_objects
+from ceos_alos2.sar_image.caching.decoders import decode_hierarchy, postprocess
 from ceos_alos2.sar_image.caching.encoders import encode_hierarchy, preprocess
 from ceos_alos2.sar_image.caching.path import (
     local_cache_location,
@@ -19,7 +19,7 @@ def encode(obj):
 
 
 def decode(cache, records_per_chunk):
-    partially_decoded = json.loads(cache, object_hook=decode_objects)
+    partially_decoded = json.loads(cache, object_hook=postprocess)
 
     return decode_hierarchy(partially_decoded, records_per_chunk=records_per_chunk)
 

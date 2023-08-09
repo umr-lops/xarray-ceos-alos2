@@ -172,11 +172,6 @@ def metadata_to_groups(metadata):
     return Group(path="", url=None, data=processed, attrs=attrs)
 
 
-raw_dtypes = {
-    "C*8": np.dtype([("real", ">f4"), ("imag", ">f4")]),
-    "IU2": np.dtype(">u2"),
-}
-
 dtypes = {
     "C*8": np.dtype("complex64"),
     "IU2": np.dtype("uint16"),
