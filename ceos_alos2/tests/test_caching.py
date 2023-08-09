@@ -721,3 +721,50 @@ class TestDecoders:
             assert actual == expected
         else:
             assert_identical(actual, expected)
+
+
+class TestHighLevel:
+    @pytest.mark.parametrize(
+        ["obj", "expected"],
+        (
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={"v": Variable("x", np.array([1, 2], dtype="int16"), attrs={})},
+                    attrs={"a": (1, 2)},
+                ),
+                " ".join(
+                    [
+                        '{"__type__": "group", "url": null, "data": {"v":',
+                        '{"__type__": "variable", "dims": ["x"], "data":',
+                        '{"__type__": "array", "dtype": "int16", "data": [1, 2], "encoding": {}},',
+                        '"attrs": {}}}, "path": "/",',
+                        '"attrs": {"a": {"__type__": "tuple", "data": [1, 2]}}}',
+                    ]
+                ),
+                id="variables",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url="s3://bucket/data",
+                    data={"g": Group(path=None, url=None, data={}, attrs={"g": 1})},
+                    attrs={},
+                ),
+                " ".join(
+                    [
+                        '{"__type__": "group", "url": "s3://bucket/data", "data": {"g":',
+                        '{"__type__": "group", "url": "s3://bucket/data", "data": {},',
+                        '"path": "/g", "attrs": {"g": 1}}},',
+                        '"path": "/", "attrs": {}}',
+                    ]
+                ),
+                id="subgroups",
+            ),
+        ),
+    )
+    def test_encode(self, obj, expected):
+        actual = caching.encode(obj)
+
+        assert actual == expected
