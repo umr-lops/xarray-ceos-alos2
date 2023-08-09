@@ -62,6 +62,16 @@ def test_zip_default(mappings, default):
     )
 
 
+@pytest.mark.parametrize("keys", (list("ce"), list("af")))
+def test_dissoc(keys):
+    mapping = {"a": 1, "b": 2, "c": 3, "e": 4, "f": 5}
+
+    actual = dicttoolz.dissoc(keys, mapping)
+    expected = {k: v for k, v in mapping.items() if k not in keys}
+
+    assert actual == expected
+
+
 @pytest.mark.parametrize(
     ["funcs", "default", "expected"],
     (
