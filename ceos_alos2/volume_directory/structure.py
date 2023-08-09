@@ -28,7 +28,7 @@ volume_descriptor = Struct(
     "logical_volume_generating_facility" / PaddedString(12),
     "number_of_file_pointer_records" / AsciiInteger(4),
     "number_of_text_records_in_volume_directory" / AsciiInteger(4),
-    "volume_descriptor_spare" / PaddedString(92),
+    "spare" / PaddedString(92),
     "local_use_segment" / PaddedString(100),
 )
 
