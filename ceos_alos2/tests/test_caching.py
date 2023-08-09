@@ -473,3 +473,82 @@ class TestDecoders:
             assert_identical(actual, expected)
         else:
             np.testing.assert_equal(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["data", "rpc", "expected"],
+        (
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "dtype": "int8", "data": [1, 2], "encoding": {}},
+                    "attrs": {},
+                },
+                2,
+                Variable("x", np.array([1, 2], dtype="int8"), attrs={}),
+                id="array2-no_attrs",
+            ),
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {
+                        "__type__": "array",
+                        "dtype": "float16",
+                        "data": [1.5, 2.5],
+                        "encoding": {},
+                    },
+                    "attrs": {},
+                },
+                3,
+                Variable("x", np.array([1.5, 2.5], dtype="float16"), attrs={}),
+                id="array2-no_attrs",
+            ),
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "dtype": "int8", "data": [1, 2], "encoding": {}},
+                    "attrs": {"a": 1},
+                },
+                1,
+                Variable("x", np.array([1, 2], dtype="int8"), attrs={"a": 1}),
+                id="array1-attrs",
+            ),
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x", "y"],
+                    "data": {
+                        "__type__": "backend_array",
+                        "root": "memory:///path/to",
+                        "url": "file",
+                        "shape": (4, 3),
+                        "dtype": "complex64",
+                        "byte_ranges": [(5, 10), (15, 20), (25, 30), (35, 40)],
+                        "type_code": "C*8",
+                    },
+                    "attrs": {},
+                },
+                2,
+                Variable(
+                    ["x", "y"],
+                    create_dummy_array(
+                        shape=(4, 3), dtype="complex64", records_per_chunk=2, type_code="C*8"
+                    ),
+                    attrs={},
+                ),
+                id="backend_array1-no_attrs",
+            ),
+        ),
+    )
+    def test_decode_variable(self, data, rpc, expected):
+        actual = caching.decoders.decode_variable(data, records_per_chunk=rpc)
+
+        assert_identical(actual, expected)
+
+    def test_decode_group(self):
+        pass
+
+    def test_decode_hierarchy(self):
+        pass

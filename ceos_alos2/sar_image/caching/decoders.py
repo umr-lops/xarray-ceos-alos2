@@ -57,6 +57,18 @@ def decode_array(encoded, records_per_chunk):
     )
 
 
+def decode_variable(encoded, records_per_chunk):
+    data = decode_array(encoded["data"], records_per_chunk=records_per_chunk)
+
+    return Variable(dims=encoded["dims"], data=data, attrs=encoded["attrs"])
+
+
+def decode_group(encoded, records_per_chunk):
+    data = valmap(curry(decode_hierarchy, records_per_chunk=records_per_chunk), encoded["data"])
+
+    return Group(path=encoded["path"], url=encoded["url"], data=data, attrs=encoded["attrs"])
+
+
 def decode_hierarchy(encoded, records_per_chunk):
     type_ = encoded.get("__type__")
 
@@ -69,21 +81,3 @@ def decode_hierarchy(encoded, records_per_chunk):
         return encoded
 
     return decoder(encoded, records_per_chunk=records_per_chunk)
-
-
-def decode_group(encoded, records_per_chunk):
-    if encoded.get("__type__") != "group":
-        raise ValueError("not a group")
-
-    data = valmap(curry(decode_hierarchy, records_per_chunk=records_per_chunk), encoded["data"])
-
-    return Group(path=encoded["path"], url=encoded["url"], data=data, attrs=encoded["attrs"])
-
-
-def decode_variable(encoded, records_per_chunk):
-    if encoded.get("__type__") != "variable":
-        raise ValueError("not a variable")
-
-    data = decode_array(encoded["data"], records_per_chunk=records_per_chunk)
-
-    return Variable(dims=encoded["dims"], data=data, attrs=encoded["attrs"])
