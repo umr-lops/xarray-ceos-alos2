@@ -547,8 +547,78 @@ class TestDecoders:
 
         assert_identical(actual, expected)
 
-    def test_decode_group(self):
-        pass
+    @pytest.mark.parametrize(
+        ["data", "expected"],
+        (
+            pytest.param(
+                {
+                    "__type__": "group",
+                    "path": "path",
+                    "url": "abc",
+                    "data": {},
+                    "attrs": {"abc": "def"},
+                },
+                Group(path="path", url="abc", data={}, attrs={"abc": "def"}),
+                id="no_variables-no_subgroups",
+            ),
+            pytest.param(
+                {
+                    "__type__": "group",
+                    "path": "/",
+                    "url": None,
+                    "data": {
+                        "v": {
+                            "__type__": "variable",
+                            "dims": ["x"],
+                            "data": {
+                                "__type__": "array",
+                                "data": [1, 2],
+                                "dtype": "int8",
+                                "encoding": {},
+                            },
+                            "attrs": {},
+                        }
+                    },
+                    "attrs": {},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={"v": Variable("x", np.array([1, 2], dtype="int8"), {})},
+                    attrs={},
+                ),
+                id="variables-no_subgroups",
+            ),
+            pytest.param(
+                {
+                    "__type__": "group",
+                    "path": "/",
+                    "url": None,
+                    "data": {
+                        "g": {
+                            "__type__": "group",
+                            "path": "/g",
+                            "url": None,
+                            "data": {},
+                            "attrs": {"n": "g"},
+                        }
+                    },
+                    "attrs": {},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={"g": Group(path=None, url=None, data={}, attrs={"n": "g"})},
+                    attrs={},
+                ),
+                id="no_variables-subgroups",
+            ),
+        ),
+    )
+    def test_decode_group(self, data, expected):
+        actual = caching.decoders.decode_group(data, records_per_chunk=2)
+
+        assert_identical(actual, expected)
 
     def test_decode_hierarchy(self):
         pass
