@@ -620,5 +620,31 @@ class TestDecoders:
 
         assert_identical(actual, expected)
 
-    def test_decode_hierarchy(self):
-        pass
+    @pytest.mark.parametrize(
+        ["obj", "expected"],
+        (
+            pytest.param(
+                {"__type__": "group", "path": "/", "url": None, "data": {}, "attrs": {"a": 1}},
+                Group(path=None, url=None, data={}, attrs={"a": 1}),
+                id="group",
+            ),
+            pytest.param(
+                {
+                    "__type__": "variable",
+                    "dims": ["x"],
+                    "data": {"__type__": "array", "data": [1, 2], "dtype": "int64", "encoding": {}},
+                    "attrs": {},
+                },
+                Variable("x", np.array([1, 2], dtype="int64"), {}),
+                id="variable",
+            ),
+            pytest.param({"a": 1}, {"a": 1}, id="other"),
+        ),
+    )
+    def test_decode_hierarchy(self, obj, expected):
+        actual = caching.decoders.decode_hierarchy(obj, records_per_chunk=2)
+
+        if not isinstance(expected, (Variable, Group)):
+            assert actual == expected
+        else:
+            assert_identical(actual, expected)
