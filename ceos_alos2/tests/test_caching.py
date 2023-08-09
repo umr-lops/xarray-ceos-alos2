@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import fsspec
 import numpy as np
 import pytest
 
@@ -815,3 +816,30 @@ class TestHighLevel:
         actual = caching.decode(data, records_per_chunk=rpc)
 
         assert_identical(actual, expected)
+
+    def test_create_cache(self, monkeypatch):
+        monkeypatch.setattr(Path, "mkdir", lambda *args, **kwargs: None)
+
+        parameters = []
+
+        def recorder(*args):
+            nonlocal parameters
+            parameters.append(args)
+
+        monkeypatch.setattr(Path, "write_text", recorder)
+
+        mapper = fsspec.get_mapper("memory://")
+        path = "image"
+        data = Group(path="/", url="s3://bucket/data", data={}, attrs={})
+
+        expected = (
+            '{"__type__": "group", "url": "s3://bucket/data",'
+            ' "data": {}, "path": "/", "attrs": {}}'
+        )
+
+        caching.create_cache(mapper, path, data)
+
+        actual_path, actual_data = parameters[0]
+
+        assert actual_path.name == f"{path}.index"
+        assert actual_data == expected
