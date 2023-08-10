@@ -1,5 +1,7 @@
 import pytest
 
+from ceos_alos2.hierarchy import Group
+from ceos_alos2.testing import assert_identical
 from ceos_alos2.volume_directory import metadata
 
 
@@ -106,3 +108,43 @@ class TestMetadata:
         actual = metadata.transform_text(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "volume_descriptor": {"a": 1},
+                    "file_descriptors": [{"b": 2}, {"c": 3}],
+                    "text_record": {"d": 4},
+                },
+                Group(path=None, url=None, data={}, attrs={"a": 1, "d": 4}),
+                id="ignored",
+            ),
+            pytest.param(
+                {
+                    "volume_descriptor": {
+                        "preamble": "a",
+                        "logical_volume_generation_country": "a",
+                    },
+                    "text_record": {"blanks": "", "location_and_datetime_of_product_creation": "b"},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={},
+                    attrs={"creation_country": "a", "product_creation": "b"},
+                ),
+                id="transformers",
+            ),
+            pytest.param(
+                {"volume_descriptor": {"a": 1, "b": 2}, "text_record": {"c": 3, "d": 4}},
+                Group(path=None, url=None, data={}, attrs={"a": 1, "b": 2, "c": 3, "d": 4}),
+                id="flattened",
+            ),
+        ),
+    )
+    def test_transform_record(self, mapping, expected):
+        actual = metadata.transform_record(mapping)
+
+        assert_identical(actual, expected)
