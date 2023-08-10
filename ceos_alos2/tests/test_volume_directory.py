@@ -152,6 +152,16 @@ class TestMetadata:
 
 
 class TestHighLevel:
+    @pytest.mark.skip(reason="need actual data")
+    def test_parse_data(self):
+        data = b""
+
+        actual = io.parse_data(data)
+
+        # no need to verify the result, just make sure we get something usable
+        assert isinstance(actual, dict)
+        assert list(actual) == ["volume_descriptor", "file_descriptors", "text_record"]
+
     @pytest.mark.parametrize(
         ["path", "expected"],
         (
