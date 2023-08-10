@@ -1,3 +1,5 @@
+import datetime as dt
+
 from tlz.functoolz import curry, pipe
 
 from ceos_alos2.dicttoolz import apply_to_items, dissoc
@@ -5,9 +7,7 @@ from ceos_alos2.hierarchy import Group
 from ceos_alos2.utils import remove_nesting_layer, rename
 
 
-def parse_datetime(string):
-    import datetime as dt
-
+def normalize_datetime(string):
     return dt.datetime.strptime(string, "%Y%m%d%H%M%S%f").isoformat()
 
 
@@ -41,7 +41,7 @@ def transform_volume_descriptor(mapping):
     }
 
     postprocessors = {
-        "creation_datetime": parse_datetime,
+        "creation_datetime": normalize_datetime,
     }
 
     return pipe(
