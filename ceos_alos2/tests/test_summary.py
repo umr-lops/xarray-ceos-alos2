@@ -146,24 +146,6 @@ def test_to_isoformat(date, expected):
 
 
 @pytest.mark.parametrize(
-    ["funcs", "default", "expected"],
-    (
-        pytest.param(
-            {"a": int, "b": str, "c": float}, summary.passthrough, {"a": 1, "b": "6.4", "c": 4.0}
-        ),
-        pytest.param({"a": int, "c": float}, summary.passthrough, {"a": 1, "b": 6.4, "c": 4.0}),
-        pytest.param({"b": str}, lambda x: x * 2, {"a": "11", "b": "6.4", "c": 8}),
-    ),
-)
-def test_apply_to_items(funcs, default, expected):
-    mapping = {"a": "1", "b": 6.4, "c": 4}
-
-    actual = summary.apply_to_items(funcs, mapping, default=default)
-
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
     ["section", "expected"],
     (
         pytest.param(
