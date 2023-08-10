@@ -4,7 +4,7 @@ from ceos_alos2.volume_directory.structure import volume_directory_record
 
 
 def parse_data(data):
-    return volume_directory_record.parse(data)
+    return to_dict(volume_directory_record.parse(data))
 
 
 def open_volume_directory(mapper, path):
@@ -15,4 +15,4 @@ def open_volume_directory(mapper, path):
 
     metadata = parse_data(data)
 
-    return transform_record(to_dict(metadata))
+    return transform_record(metadata)

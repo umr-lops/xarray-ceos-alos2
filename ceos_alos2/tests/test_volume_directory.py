@@ -1,8 +1,9 @@
+import fsspec
 import pytest
 
 from ceos_alos2.hierarchy import Group
 from ceos_alos2.testing import assert_identical
-from ceos_alos2.volume_directory import metadata
+from ceos_alos2.volume_directory import io, metadata
 
 
 class TestMetadata:
@@ -146,5 +147,55 @@ class TestMetadata:
     )
     def test_transform_record(self, mapping, expected):
         actual = metadata.transform_record(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestHighLevel:
+    @pytest.mark.parametrize(
+        ["path", "expected"],
+        (
+            pytest.param("vol1", FileNotFoundError("Cannot open .+"), id="not-existing"),
+            pytest.param(
+                "vol2",
+                Group(
+                    path=None,
+                    url=None,
+                    data={},
+                    attrs={"creation_agency": "b", "product_creation": "c"},
+                ),
+                id="existing",
+            ),
+        ),
+    )
+    def test_open_volume_directory(self, monkeypatch, path, expected):
+        binary = b"\x01\x02"
+        recorded_binary = []
+        mapping = {
+            "volume_descriptor": {"preamble": "a", "logical_volume_generating_agency": "b"},
+            "file_descriptors": [],
+            "text_record": {
+                "physical_tape_id": 2,
+                "location_and_datetime_of_product_creation": "c",
+            },
+        }
+
+        def fake_parse_data(data):
+            recorded_binary.append(data)
+
+            return mapping
+
+        monkeypatch.setattr(io, "parse_data", fake_parse_data)
+
+        mapper = fsspec.get_mapper("memory://")
+        mapper["vol2"] = binary
+
+        if isinstance(expected, Exception):
+            with pytest.raises(type(expected), match=expected.args[0]):
+                io.open_volume_directory(mapper, path)
+
+            return
+
+        actual = io.open_volume_directory(mapper, path)
 
         assert_identical(actual, expected)
