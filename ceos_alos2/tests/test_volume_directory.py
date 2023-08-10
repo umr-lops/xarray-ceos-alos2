@@ -81,3 +81,28 @@ class TestMetadata:
         actual = metadata.transform_volume_descriptor(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"preamble": {}, "ascii_ebcdic_flag": "a", "blanks": "", "physical_tape_id": 1},
+                {},
+                id="ignored1",
+            ),
+            pytest.param(
+                {"blanks": "", "product_id": "PRODUCT:WWDR1.5RUA"},
+                {"product_id": "PRODUCT:WWDR1.5RUA"},
+                id="ignored2",
+            ),
+            pytest.param(
+                {"product_id": "b", "location_and_datetime_of_product_creation": "a"},
+                {"product_id": "b", "product_creation": "a"},
+                id="translations",
+            ),
+        ),
+    )
+    def test_transform_text(self, mapping, expected):
+        actual = metadata.transform_text(mapping)
+
+        assert actual == expected
