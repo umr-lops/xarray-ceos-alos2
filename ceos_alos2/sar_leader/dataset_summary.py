@@ -197,13 +197,18 @@ dataset_summary_record = Struct(
     "antenna_beam_number" / AsciiInteger(4),
     "spare12" / PaddedString(28),
     "incidence_angle"
-    / Struct(
-        "constant_term" / Metadata(AsciiFloat(20), units="rad"),
-        "linear_term" / Metadata(AsciiFloat(20), units="rad/km"),
-        "quadratic_term" / Metadata(AsciiFloat(20), units="rad/km^2"),
-        "cubic_term" / Metadata(AsciiFloat(20), units="rad/km^3"),
-        "fourth_term" / Metadata(AsciiFloat(20), units="rad/km^4"),
-        "fifth_term" / Metadata(AsciiFloat(20), units="rad/km^5"),
+    / Metadata(
+        Struct(
+            "constant_term" / Metadata(AsciiFloat(20), units="rad"),
+            "linear_term" / Metadata(AsciiFloat(20), units="rad/km"),
+            "quadratic_term" / Metadata(AsciiFloat(20), units="rad/km^2"),
+            "cubic_term" / Metadata(AsciiFloat(20), units="rad/km^3"),
+            "fourth_term" / Metadata(AsciiFloat(20), units="rad/km^4"),
+            "fifth_term" / Metadata(AsciiFloat(20), units="rad/km^5"),
+        ),
+        formula="θ = a0 + a1*R + a2*R^2 + a3*R^3 + a4*R^4 + a5*R^5",
+        theta="incidence angle",
+        r="slant range",
     ),
     "image_annotation_segment"
     / Struct(
@@ -222,9 +227,9 @@ dataset_summary_record = Struct(
 
 def item_type(item):
     value = second(item)
-    if isinstance(value, tuple):
+    if isinstance(value, tuple) and not isinstance(value[0], dict):
         return "variable"
-    elif isinstance(value, dict):
+    elif isinstance(value, dict) or (isinstance(value, tuple) and isinstance(value[0], dict)):
         return "group"
     else:
         return "attribute"
@@ -237,13 +242,18 @@ def as_variable(value):
 
 
 def as_group(mapping):
+    if isinstance(mapping, tuple):
+        mapping, additional_attrs = mapping
+    else:
+        additional_attrs = {}
+
     grouped = valmap(dict, dict(groupby(item_type, mapping.items())))
 
     attrs = grouped.get("attribute", {})
     variables = valmap(as_variable, grouped.get("variable", {}))
     groups = valmap(as_group, grouped.get("group", {}))
 
-    return Group(path=None, url=None, data=variables | groups, attrs=attrs)
+    return Group(path=None, url=None, data=variables | groups, attrs=attrs | additional_attrs)
 
 
 def remove_spares(mapping):
