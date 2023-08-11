@@ -1,4 +1,4 @@
-from construct import Struct
+from construct import Enum, Struct
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import (
@@ -8,6 +8,16 @@ from ceos_alos2.datatypes import (
     Metadata,
     PaddedString,
 )
+
+motion_compensation = Enum(
+    AsciiInteger(2),
+    no_compensation=0,
+    on_board_compensation=1,
+    in_processor_compensation=10,
+    both=11,
+)
+chirp_extraction_index = Enum(AsciiInteger(8), linear_up=0, linear_down=1, linear_up_and_down=2)
+flag = Enum(PaddedString(4), yes="YES", no="NO", on="ON", off="OFF")
 
 dataset_summary_record = Struct(
     "preamble" / record_preamble,
@@ -51,7 +61,7 @@ dataset_summary_record = Struct(
     "incidence_angle_at_scene_center" / Metadata(AsciiFloat(8), units="deg"),
     "spare5" / PaddedString(8),
     "nominal_radar_wavelength" / Metadata(AsciiFloat(16), units="m"),
-    "motion_compensation_indicator" / PaddedString(2),
+    "motion_compensation_indicator" / motion_compensation,
     "range_pulse_code" / PaddedString(16),
     "range_pulse_amplitude_coefficients"
     / Struct(
@@ -74,8 +84,8 @@ dataset_summary_record = Struct(
     "sampling_rate" / Metadata(AsciiFloat(16), units="MHz"),
     "range_gate" / Metadata(AsciiFloat(16), units="µs"),
     "range_pulse_width" / Metadata(AsciiFloat(16), units="µs"),
-    "base_band_conversion_flag" / PaddedString(4),
-    "range_compression_flag" / PaddedString(4),
+    "base_band_conversion_flag" / flag,
+    "range_compression_flag" / flag,
     "receiver_gain_for_like_polarized_at_early_edge_at_the_start_of_the_image" / AsciiFloat(16),
     "receiver_gain_for_cross_polarized_at_early_edge_at_the_start_of_the_image" / AsciiFloat(16),
     "quantization_in_bits_per_channel" / AsciiInteger(8),
@@ -87,7 +97,7 @@ dataset_summary_record = Struct(
     "spare8" / AsciiFloat(16),
     "electronic_boresight" / AsciiFloat(16),
     "mechanical_boresight" / AsciiFloat(16),
-    "echo_tracker_status" / PaddedString(4),
+    "echo_tracker_status" / flag,
     "prf" / Metadata(AsciiFloat(16), units="mHz"),
     "two_way_antenna_beam_width_elevation" / Metadata(AsciiFloat(16), units="deg"),
     "two_way_antenna_beam_width_azimuth" / Metadata(AsciiFloat(16), units="deg"),
@@ -150,8 +160,8 @@ dataset_summary_record = Struct(
     ),
     "spare11" / PaddedString(16),
     "line_content_indicator" / PaddedString(8),
-    "clutter_lock_applied_flag" / PaddedString(4),
-    "auto_focusing_applied_flag" / PaddedString(4),
+    "clutter_lock_applied_flag" / flag,
+    "auto_focusing_applied_flag" / flag,
     "line_spacing" / Metadata(AsciiFloat(16), units="m"),
     "pixel_spacing" / Metadata(AsciiFloat(16), units="m"),
     "processor_range_compression_designator" / PaddedString(16),
