@@ -1,7 +1,5 @@
 from construct import Enum, Struct
-from tlz.dicttoolz import valmap
 from tlz.functoolz import curry, pipe
-from tlz.itertoolz import groupby, second
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import (
@@ -12,8 +10,7 @@ from ceos_alos2.datatypes import (
     PaddedString,
 )
 from ceos_alos2.dicttoolz import apply_to_items, dissoc
-from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.transformers import normalize_datetime, remove_spares
+from ceos_alos2.transformers import as_group, normalize_datetime, remove_spares
 from ceos_alos2.utils import rename
 
 motion_compensation = Enum(
@@ -223,37 +220,6 @@ dataset_summary_record = Struct(
         "system_reserve" / PaddedString(26),
     ),
 )
-
-
-def item_type(item):
-    value = second(item)
-    if isinstance(value, tuple) and not isinstance(value[0], dict):
-        return "variable"
-    elif isinstance(value, dict) or (isinstance(value, tuple) and isinstance(value[0], dict)):
-        return "group"
-    else:
-        return "attribute"
-
-
-def as_variable(value):
-    data, attrs = value
-
-    return Variable((), data, attrs)
-
-
-def as_group(mapping):
-    if isinstance(mapping, tuple):
-        mapping, additional_attrs = mapping
-    else:
-        additional_attrs = {}
-
-    grouped = valmap(dict, dict(groupby(item_type, mapping.items())))
-
-    attrs = grouped.get("attribute", {})
-    variables = valmap(as_variable, grouped.get("variable", {}))
-    groups = valmap(as_group, grouped.get("group", {}))
-
-    return Group(path=None, url=None, data=variables | groups, attrs=attrs | additional_attrs)
 
 
 def transform_dataset_summary(mapping):
