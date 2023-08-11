@@ -1,4 +1,4 @@
-from tlz.dicttoolz import dissoc as dissoc_
+from tlz.dicttoolz import keyfilter
 from tlz.itertoolz import concat, groupby
 from tlz.itertoolz import identity as passthrough
 
@@ -23,7 +23,7 @@ def keysplit(predicate, d):
 
 
 def dissoc(keys, d):
-    return dissoc_(d, *keys)
+    return keyfilter(lambda k: k not in keys, d)
 
 
 def zip_default(*mappings, default=None):
