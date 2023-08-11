@@ -1,5 +1,5 @@
 from construct import Enum, Struct
-from tlz.dicttoolz import keyfilter, valmap
+from tlz.dicttoolz import valmap
 from tlz.functoolz import curry, pipe
 from tlz.itertoolz import groupby, second
 
@@ -13,7 +13,7 @@ from ceos_alos2.datatypes import (
 )
 from ceos_alos2.dicttoolz import apply_to_items, dissoc
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.transformers import normalize_datetime
+from ceos_alos2.transformers import normalize_datetime, remove_spares
 from ceos_alos2.utils import rename
 
 motion_compensation = Enum(
@@ -254,10 +254,6 @@ def as_group(mapping):
     groups = valmap(as_group, grouped.get("group", {}))
 
     return Group(path=None, url=None, data=variables | groups, attrs=attrs | additional_attrs)
-
-
-def remove_spares(mapping):
-    return keyfilter(lambda k: not k.startswith("spare") or not k[5:].isdigit(), mapping)
 
 
 def transform_dataset_summary(mapping):
