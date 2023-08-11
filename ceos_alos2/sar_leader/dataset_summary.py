@@ -18,6 +18,7 @@ motion_compensation = Enum(
 )
 chirp_extraction_index = Enum(AsciiInteger(8), linear_up=0, linear_down=1, linear_up_and_down=2)
 flag = Enum(PaddedString(4), yes="YES", no="NO", on="ON", off="OFF")
+weighting_functions = Enum(PaddedString(32), rectangle="1")
 
 dataset_summary_record = Struct(
     "preamble" / record_preamble,
@@ -117,8 +118,8 @@ dataset_summary_record = Struct(
     "bandwidth_per_look_in_range" / Metadata(AsciiFloat(16), units="Hz"),
     "bandwidth_in_azimuth" / Metadata(AsciiFloat(16), units="Hz"),
     "bandwidth_in_range" / Metadata(AsciiFloat(16), units="kHz"),
-    "weighting_function_in_azimuth" / PaddedString(32),
-    "weighting_function_in_range" / PaddedString(32),
+    "weighting_function_in_azimuth" / weighting_functions,
+    "weighting_function_in_range" / weighting_functions,
     "data_input_source" / PaddedString(16),
     "resolution_in_ground_range" / Metadata(AsciiFloat(16), units="m"),
     "resolution_in_azimuth" / Metadata(AsciiFloat(16), units="m"),
