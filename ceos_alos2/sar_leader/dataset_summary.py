@@ -169,39 +169,33 @@ dataset_summary_record = Struct(
     / Metadata(AsciiFloat(16), units="Hz"),
     "doppler_frequency_approximately_linear_coefficient_term"
     / Metadata(AsciiFloat(16), units="Hz/km"),
-    "sensor_specific_local_use_segment"
+    "calibration_mode_data_location_flag" / AsciiInteger(4),
+    "calibration_at_the_side_of_start"
     / Struct(
-        "calibration_mode_data_location_flag" / AsciiInteger(4),
-        "calibration_at_the_side_of_start"
-        / Struct(
-            "start_line_number" / AsciiInteger(8),
-            "end_line_number" / AsciiInteger(8),
-        ),
-        "calibration_at_the_side_of_end"
-        / Struct(
-            "start_line_number" / AsciiInteger(8),
-            "end_line_number" / AsciiInteger(8),
-        ),
-        "prf_switching_indicator" / AsciiInteger(4),
-        "line_number_of_prf_switching" / AsciiInteger(8),
-        "direction_of_a_beam_center_in_a_scene_center" / Metadata(AsciiFloat(16), units="deg"),
-        "yaw_steering_mode_flag" / AsciiInteger(4),
-        "parameter_table_of_automatically_setting" / AsciiInteger(4),
-        "nominal_off_nadir_angle" / AsciiFloat(16),
-        "antenna_beam_number" / AsciiInteger(4),
-        "spare" / PaddedString(28),
+        "start_line_number" / AsciiInteger(8),
+        "end_line_number" / AsciiInteger(8),
     ),
-    "processing_specific_local_use_segment"
+    "calibration_at_the_side_of_end"
     / Struct(
-        "incidence_angle"
-        / Struct(
-            "constant_term" / Metadata(AsciiFloat(20), units="rad"),
-            "linear_term" / Metadata(AsciiFloat(20), units="rad/km"),
-            "quadratic_term" / Metadata(AsciiFloat(20), units="rad/km^2"),
-            "cubic_term" / Metadata(AsciiFloat(20), units="rad/km^3"),
-            "fourth_term" / Metadata(AsciiFloat(20), units="rad/km^4"),
-            "fifth_term" / Metadata(AsciiFloat(20), units="rad/km^5"),
-        ),
+        "start_line_number" / AsciiInteger(8),
+        "end_line_number" / AsciiInteger(8),
+    ),
+    "prf_switching_indicator" / AsciiInteger(4),
+    "line_number_of_prf_switching" / AsciiInteger(8),
+    "direction_of_a_beam_center_in_a_scene_center" / Metadata(AsciiFloat(16), units="deg"),
+    "yaw_steering_mode_flag" / AsciiInteger(4),
+    "parameter_table_number_of_automatically_setting" / AsciiInteger(4),
+    "nominal_off_nadir_angle" / AsciiFloat(16),
+    "antenna_beam_number" / AsciiInteger(4),
+    "spare12" / PaddedString(28),
+    "incidence_angle"
+    / Struct(
+        "constant_term" / Metadata(AsciiFloat(20), units="rad"),
+        "linear_term" / Metadata(AsciiFloat(20), units="rad/km"),
+        "quadratic_term" / Metadata(AsciiFloat(20), units="rad/km^2"),
+        "cubic_term" / Metadata(AsciiFloat(20), units="rad/km^3"),
+        "fourth_term" / Metadata(AsciiFloat(20), units="rad/km^4"),
+        "fifth_term" / Metadata(AsciiFloat(20), units="rad/km^5"),
     ),
     "image_annotation_segment"
     / Struct(
