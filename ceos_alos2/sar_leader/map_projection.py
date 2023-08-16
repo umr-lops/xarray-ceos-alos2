@@ -1,7 +1,15 @@
+import operator
+
 from construct import Struct
+from tlz.dicttoolz import merge_with, valmap
+from tlz.functoolz import curry, pipe
+from tlz.itertoolz import cons, get, remove
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
+from ceos_alos2.dicttoolz import apply_to_items, dissoc
+from ceos_alos2.transformers import as_group, remove_spares
+from ceos_alos2.utils import rename
 
 projected_map_point = Struct(
     "northing" / Metadata(AsciiFloat(16), units="km"),
@@ -177,3 +185,116 @@ map_projection_record = Struct(
     ),
     "blanks" / PaddedString(36),
 )
+
+
+def filter_map_projection(mapping):
+    all_projections = ["utm_projection", "ups_projection", "national_system_projection"]
+    designator, _ = mapping.get("map_projection_designator", "").lower().split("-", 1)
+
+    sections = {
+        "utm": "utm_projection",
+        "ups": "ups_projection",
+        "lcc": "national_system_projection",
+        "mer": "national_system_projection",
+    }
+    to_keep = sections.get(designator)
+    to_drop = list(
+        cons("map_projection_designator", remove(lambda k: k == to_keep, all_projections))
+    )
+
+    return pipe(
+        mapping,
+        curry(dissoc, to_drop),
+        curry(rename, translations={to_keep: "projection"}),
+    )
+
+
+def transform_general_info(mapping):
+    translations = {
+        "number_of_pixels_per_line": "n_columns",
+        "number_of_lines": "n_rows",
+    }
+
+    return pipe(
+        mapping,
+        curry(rename, translations=translations),
+    )
+
+
+def transform_corner_points(mapping):
+    coordinate = ["top_left", "top_right", "bottom_right", "bottom_left"]
+    keys = [f"{v}_corner" for v in coordinate]
+
+    def separate_attrs(data):
+        if isinstance(data[0], tuple):
+            values, metadata_ = zip(*data)
+            metadata = metadata_[0]
+        else:
+            values = data
+            metadata = {}
+        return ["corner"], list(values), metadata
+
+    def combine_corners(mapping):
+        items = get(keys, mapping)
+        sample = items[0]
+        if isinstance(sample, dict):
+            merged = merge_with(list, *items)
+            processed = valmap(separate_attrs, merged)
+        else:
+            merged = list(items)
+            processed = separate_attrs(merged)
+
+        return processed
+
+    def transform_terrain_heights(heights):
+        return {"corner": ("corner", coordinate, {}), "height": heights}
+
+    transformers = {
+        "projected": curry(operator.or_, {"corner": ("corner", coordinate, {})}),
+        "geographic": curry(operator.or_, {"corner": ("corner", coordinate, {})}),
+        "terrain_heights_relative_to_ellipsoid": transform_terrain_heights,
+    }
+
+    result = pipe(
+        mapping,
+        curry(valmap, combine_corners),
+        curry(apply_to_items, transformers),
+    )
+    return result
+
+
+def transform_conversion_coefficients(mapping):
+    def transform_coeffs(entry):
+        raw_data, attrs = entry
+
+        names, coeffs = zip(*raw_data.items())
+
+        data = {"names": ("names", list(names), {}), "coefficients": ("names", list(coeffs), {})}
+        return data, attrs
+
+    return valmap(transform_coeffs, mapping)
+
+
+def transform_map_projection(mapping):
+    ignored = ["preamble"]
+    transformers = {
+        "map_projection_general_information": transform_general_info,
+        "corner_points": transform_corner_points,
+        "conversion_coefficients": transform_conversion_coefficients,
+    }
+    translations = {
+        "map_projection_general_information": "general_information",
+        "map_projection_ellipsoid_parameters": "ellipsoid_parameters",
+    }
+
+    result = pipe(
+        mapping,
+        curry(remove_spares),
+        curry(dissoc, ignored),
+        curry(filter_map_projection),
+        curry(apply_to_items, transformers),
+        curry(rename, translations=translations),
+        curry(as_group),
+    )
+
+    return result
