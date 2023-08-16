@@ -145,9 +145,13 @@ map_projection_record = Struct(
                 "A24" / AsciiFloat(20),
             ),
             formula=(
-                "E = A11 + A12 * L + A13 * P + A14 * L * P;"
-                " N = A21 + A22 * L + A23 * P + A24 * L * P"
+                "E = A11 + A12 * R + A13 * C + A14 * R * C;"
+                " N = A21 + A22 * R + A23 * C + A24 * R * C"
             ),
+            E="easting",
+            N="northing",
+            R="row (1-based)",
+            C="column (1-based)",
         ),
         "pixels_to_map_projection"
         / Metadata(
@@ -162,9 +166,13 @@ map_projection_record = Struct(
                 "B24" / AsciiFloat(20),
             ),
             formula=(
-                "L = B11 + B12 * E + B13 * N + B14 * E * N;"
-                " P = B21 + B22 * E + B23 * N + B24 * E * N",
+                "R = B11 + B12 * E + B13 * N + B14 * E * N;"
+                " C = B21 + B22 * E + B23 * N + B24 * E * N"
             ),
+            E="easting",
+            N="northing",
+            R="row (1-based)",
+            C="column (1-based)",
         ),
     ),
     "blanks" / PaddedString(36),
