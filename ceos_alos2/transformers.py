@@ -11,7 +11,25 @@ def normalize_datetime(string):
 
 
 def remove_spares(mapping):
-    return keyfilter(lambda k: not k.startswith("spare") or not k[5:].isdigit(), mapping)
+    def predicate(k):
+        if not k.startswith(("spare", "blanks")):
+            return True
+
+        k_ = k.removeprefix("spare").removeprefix("blanks")
+
+        return k_ and not k_.isdigit()
+
+    def _recursive(value):
+        if isinstance(value, list):
+            return list(map(remove_spares, value))
+        elif isinstance(value, dict):
+            filtered = keyfilter(predicate, value)
+
+            return valmap(_recursive, filtered)
+        else:
+            return value
+
+    return _recursive(mapping)
 
 
 def item_type(item):
