@@ -49,7 +49,7 @@ map_projection_record = Struct(
         ),
         "scale_factor" / AsciiFloat(16),
     ),
-    "map_projection_description" / PaddedString(32),
+    "map_projection_designator" / PaddedString(32),
     "utm_projection"
     / Struct(
         "type" / PaddedString(32),
@@ -110,14 +110,14 @@ map_projection_record = Struct(
     / Struct(
         "projected"
         / Struct(
-            "top_left_corder" / projected_map_point,
+            "top_left_corner" / projected_map_point,
             "top_right_corner" / projected_map_point,
             "bottom_right_corner" / projected_map_point,
             "bottom_left_corner" / projected_map_point,
         ),
         "geographic"
         / Struct(
-            "top_left_corder" / geographic_map_point,
+            "top_left_corner" / geographic_map_point,
             "top_right_corner" / geographic_map_point,
             "bottom_right_corner" / geographic_map_point,
             "bottom_left_corner" / geographic_map_point,
