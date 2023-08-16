@@ -43,9 +43,13 @@ def item_type(item):
 
 
 def as_variable(value):
-    data, attrs = value
+    if len(value) == 2:
+        data, attrs = value
+        dims = ()
+    else:
+        dims, data, attrs = value
 
-    return Variable((), data, attrs)
+    return Variable(dims, data, attrs)
 
 
 def as_group(mapping):
