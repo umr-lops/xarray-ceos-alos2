@@ -1,7 +1,7 @@
 import pytest
 
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_leader import dataset_summary, map_projection
+from ceos_alos2.sar_leader import dataset_summary, map_projection, platform_position
 from ceos_alos2.testing import assert_identical
 
 
@@ -409,3 +409,17 @@ class TestMapProjection:
         actual = map_projection.transform_map_projection(mapping)
 
         assert_identical(actual, expected)
+
+
+class TestPlatformPositions:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param({"date": "2011  07  16", "seconds_of_day": 0}, "2011-07-16T00:00:00"),
+            pytest.param({"date": "2021  12  31", "seconds_of_day": 81431}, "2021-12-31T22:37:11"),
+        ),
+    )
+    def test_composite_datetime(self, mapping, expected):
+        actual = platform_position.transform_composite_datetime(mapping)
+
+        assert actual == expected
