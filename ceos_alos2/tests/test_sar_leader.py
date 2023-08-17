@@ -294,3 +294,91 @@ class TestMapProjection:
         actual = map_projection.transform_conversion_coefficients(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"spare1": "", "blanks10": "", "a": {}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={"a": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                id="spares",
+            ),
+            pytest.param(
+                {"preamble": {}}, Group(path=None, url=None, data={}, attrs={}), id="ignored"
+            ),
+            pytest.param(
+                {
+                    "map_projection_designator": "UTM-PROJECTION",
+                    "utm_projection": {"type": "UNIVERSAL TRANSVERSE MERCATOR"},
+                    "ups_projection": {"type": ""},
+                    "national_system_projection": {"map_projection_description": ""},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "projection": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"type": "UNIVERSAL TRANSVERSE MERCATOR"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="filtered",
+            ),
+            pytest.param(
+                {"conversion_coefficients": {"a": ({"a1": 1, "a2": 2}, {"abc": "def"})}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "conversion_coefficients": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "names": Variable("names", ["a1", "a2"], {}),
+                                        "coefficients": Variable("names", [1, 2], {}),
+                                    },
+                                    attrs={"abc": "def"},
+                                )
+                            },
+                            attrs={},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed",
+            ),
+            pytest.param(
+                {
+                    "map_projection_general_information": {},
+                    "map_projection_ellipsoid_parameters": {},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "general_information": Group(path=None, url=None, data={}, attrs={}),
+                        "ellipsoid_parameters": Group(path=None, url=None, data={}, attrs={}),
+                    },
+                    attrs={},
+                ),
+                id="renamed",
+            ),
+        ),
+    )
+    def test_transform_map_projection(self, mapping, expected):
+        actual = map_projection.transform_map_projection(mapping)
+
+        assert_identical(actual, expected)
