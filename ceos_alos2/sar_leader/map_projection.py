@@ -103,6 +103,9 @@ map_projection_record = Struct(
         / Struct(
             "phi1" / Metadata(AsciiFloat(16), units="deg"),
             "phi2" / Metadata(AsciiFloat(16), units="deg"),
+        ),
+        "standard_parallel2"
+        / Struct(
             "param1" / Metadata(AsciiFloat(16), units="deg"),
             "param2" / Metadata(AsciiFloat(16), units="deg"),
         ),
@@ -232,6 +235,12 @@ def transform_ellipsoid_parameters(mapping):
     return dissoc(ignored, mapping)
 
 
+def transform_projection(mapping):
+    ignored = ["map_origin", "standard_parallel2", "central_meridian"]
+
+    return dissoc(ignored, mapping)
+
+
 def transform_corner_points(mapping):
     coordinate = ["top_left", "top_right", "bottom_right", "bottom_left"]
     keys = [f"{v}_corner" for v in coordinate]
@@ -297,6 +306,7 @@ def transform_map_projection(mapping):
     transformers = {
         "map_projection_general_information": transform_general_info,
         "map_projection_ellipsoid_parameters": transform_ellipsoid_parameters,
+        "projection": transform_projection,
         "corner_points": transform_corner_points,
         "conversion_coefficients": transform_conversion_coefficients,
     }

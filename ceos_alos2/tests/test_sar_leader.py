@@ -177,6 +177,26 @@ class TestMapProjection:
         (
             pytest.param(
                 {
+                    "map_origin": {"a": 1, "b": 2},
+                    "standard_parallel": {"phi1": 1, "phi2": 2},
+                    "standard_parallel2": {"param1": 1, "param2": 2},
+                    "central_meridian": {"param1": 0, "param2": 1, "param3": 2},
+                },
+                {"standard_parallel": {"phi1": 1, "phi2": 2}},
+                id="ignored",
+            ),
+        ),
+    )
+    def test_transform_projection(self, mapping, expected):
+        actual = map_projection.transform_projection(mapping)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
                     "projected": {
                         "top_left_corner": {
                             "northing": (7.5, {"units": "m"}),
