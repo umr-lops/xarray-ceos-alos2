@@ -253,27 +253,21 @@ def transform_corner_points(mapping):
 
     def combine_corners(mapping):
         items = get(keys, mapping)
-        sample = items[0]
-        if isinstance(sample, dict):
-            merged = merge_with(list, *items)
-            processed = valmap(separate_attrs, merged)
-        else:
-            merged = list(items)
-            processed = separate_attrs(merged)
+        merged = merge_with(list, *items)
+        processed = valmap(separate_attrs, merged)
 
         return processed
 
-    def transform_terrain_heights(heights):
-        return {"corner": (["corner"], coordinate, {}), "height": heights}
+    ignored = ["terrain_heights_relative_to_ellipsoid"]
 
     transformers = {
         "projected": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
         "geographic": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
-        "terrain_heights_relative_to_ellipsoid": transform_terrain_heights,
     }
 
     result = pipe(
         mapping,
+        curry(dissoc, ignored),
         curry(valmap, combine_corners),
         curry(apply_to_items, transformers),
     )

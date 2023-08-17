@@ -272,17 +272,8 @@ class TestMapProjection:
                         "bottom_left_corner": (1.0, {"units": "m"}),
                     }
                 },
-                {
-                    "terrain_heights_relative_to_ellipsoid": {
-                        "corner": (
-                            ["corner"],
-                            ["top_left", "top_right", "bottom_right", "bottom_left"],
-                            {},
-                        ),
-                        "height": (["corner"], [1.2, 1.3, 1.1, 1.0], {"units": "m"}),
-                    }
-                },
-                id="heights",
+                {},
+                id="ignored",
             ),
         ),
     )
