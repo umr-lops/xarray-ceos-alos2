@@ -39,6 +39,9 @@ def apply_to_items(funcs, mapping, default=passthrough):
 def move_items(instructions, mapping):
     new = mapping
     for source, dest in instructions.items():
+        if source not in mapping:
+            continue
+
         new = assoc_in(new, dest, mapping[source])
 
     return dissoc(list(instructions), new)

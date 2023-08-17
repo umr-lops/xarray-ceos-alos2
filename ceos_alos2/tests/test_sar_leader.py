@@ -499,3 +499,118 @@ class TestPlatformPositions:
         actual = platform_position.transform_positions(elements)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"preamble": {}, "number_of_data_points": 28, "greenwich_mean_hour_angle": 0},
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {"spare10": ""}, Group(path=None, url=None, data={}, attrs={}), id="spares"
+            ),
+            pytest.param(
+                {
+                    "datetime_of_first_point": {
+                        "date": "2011  07  16",
+                        "day_of_year": "197",
+                        "seconds_of_day": 0,
+                    },
+                    "occurrence_flag_of_a_leap_second": 0,
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={},
+                    attrs={"datetime_of_first_point": "2011-07-16T00:00:00", "leap_second": False},
+                ),
+                id="transformed1",
+            ),
+            pytest.param(
+                {
+                    "positions": [
+                        {
+                            "position": {
+                                "x": (1, {"units": "m"}),
+                                "y": (1, {"units": "m"}),
+                                "z": (1, {"units": "m"}),
+                            },
+                            "velocity": {
+                                "x": (4, {"units": "m/s"}),
+                                "y": (3, {"units": "m/s"}),
+                                "z": (6, {"units": "m/s"}),
+                            },
+                        }
+                    ]
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "positions": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "position": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "x": Variable(["positions"], [1], {"units": "m"}),
+                                        "y": Variable(["positions"], [1], {"units": "m"}),
+                                        "z": Variable(["positions"], [1], {"units": "m"}),
+                                    },
+                                    attrs={},
+                                ),
+                                "velocity": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "x": Variable(["positions"], [4], {"units": "m/s"}),
+                                        "y": Variable(["positions"], [3], {"units": "m/s"}),
+                                        "z": Variable(["positions"], [6], {"units": "m/s"}),
+                                    },
+                                    attrs={},
+                                ),
+                            },
+                            attrs={},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed2",
+            ),
+            pytest.param(
+                {
+                    "occurrence_flag_of_a_leap_second": 1,
+                    "time_interval_between_data_points": (60.0, {"units": "s"}),
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={"sampling_frequency": Variable((), 60.0, {"units": "s"})},
+                    attrs={"leap_second": True},
+                ),
+                id="renamed",
+            ),
+            pytest.param(
+                {"orbital_elements_designator": "high_precision"},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "orbital_elements": Group(
+                            path=None, url=None, data={}, attrs={"type": "high_precision"}
+                        )
+                    },
+                    attrs={},
+                ),
+                id="moved",
+            ),
+        ),
+    )
+    def test_transform_platform_position(self, mapping, expected):
+        actual = platform_position.transform_platform_position(mapping)
+
+        assert_identical(actual, expected)
