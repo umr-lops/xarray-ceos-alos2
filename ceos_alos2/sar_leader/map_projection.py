@@ -189,7 +189,11 @@ map_projection_record = Struct(
 
 def filter_map_projection(mapping):
     all_projections = ["utm_projection", "ups_projection", "national_system_projection"]
-    designator, _ = mapping.get("map_projection_designator", "").lower().split("-", 1)
+    raw_designator = mapping.get("map_projection_designator")
+    if raw_designator is None:
+        return mapping
+
+    designator, _ = raw_designator.lower().split("-", 1)
 
     sections = {
         "utm": "utm_projection",

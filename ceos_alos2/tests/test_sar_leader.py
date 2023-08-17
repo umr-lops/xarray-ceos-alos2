@@ -86,6 +86,7 @@ class TestMapProjection:
     @pytest.mark.parametrize(
         ["mapping", "expected"],
         (
+            pytest.param({"a": 1}, {"a": 1}, id="no_projection"),
             pytest.param(
                 {
                     "map_projection_designator": "UTM-PROJECTION",
