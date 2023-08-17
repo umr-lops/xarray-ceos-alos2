@@ -34,7 +34,7 @@ def remove_spares(mapping):
 
 def item_type(item):
     value = second(item)
-    if isinstance(value, tuple) and not isinstance(value[0], dict):
+    if (isinstance(value, tuple) and not isinstance(value[0], dict)) or isinstance(value, list):
         return "variable"
     elif isinstance(value, dict) or (isinstance(value, tuple) and isinstance(value[0], dict)):
         return "group"

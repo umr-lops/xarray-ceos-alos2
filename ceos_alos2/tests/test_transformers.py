@@ -34,3 +34,19 @@ def test_remove_spares(mapping, expected):
     actual = transformers.remove_spares(mapping)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["value", "expected"],
+    (
+        pytest.param(("", ((), [])), "variable", id="variable"),
+        pytest.param(("", ["abc"]), "variable", id="variable-array"),
+        pytest.param(("", {}), "group", id="group"),
+        pytest.param(("", ({}, {})), "group", id="group_with_attrs"),
+        pytest.param(("", "abc"), "attribute", id="attribute"),
+    ),
+)
+def test_item_type(value, expected):
+    actual = transformers.item_type(value)
+
+    assert actual == expected
