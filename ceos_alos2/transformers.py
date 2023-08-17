@@ -42,6 +42,13 @@ def item_type(item):
         return "attribute"
 
 
+def separate_attrs(data):
+    values, metadata_ = zip(*data)
+    metadata = metadata_[0]
+
+    return list(values), metadata
+
+
 def as_variable(value):
     if len(value) == 2:
         data, attrs = value
