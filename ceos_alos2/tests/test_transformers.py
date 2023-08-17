@@ -50,3 +50,22 @@ def test_item_type(value, expected):
     actual = transformers.item_type(value)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["value", "expected"],
+    (
+        pytest.param(
+            [(1, {"abc": "def"}), (2, {"abc": "def"}), (3, {"abc": "def"})],
+            ([1, 2, 3], {"abc": "def"}),
+        ),
+        pytest.param(
+            [(6, {"cba": "fed"}), (2, {"cba": "fed"}), (3, {"cba": "fed"})],
+            ([6, 2, 3], {"cba": "fed"}),
+        ),
+    ),
+)
+def test_separate_attrs(value, expected):
+    actual = transformers.separate_attrs(value)
+
+    assert actual == expected
