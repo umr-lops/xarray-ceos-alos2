@@ -7,7 +7,7 @@ from tlz.itertoolz import cons, first, get, identity
 
 from ceos_alos2.dicttoolz import itemsplit
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.utils import remove_nesting_layer, rename
+from ceos_alos2.utils import remove_nesting_layer, rename, starcall
 
 
 def extract_format_type(header):
@@ -19,10 +19,6 @@ def extract_shape(header):
         header["sar_related_data_in_the_record"]["number_of_lines_per_dataset"],
         header["sar_related_data_in_the_record"]["number_of_data_groups_per_line"],
     )
-
-
-def starcall(func, args, **kwargs):
-    return func(*args, **kwargs)
 
 
 def extract_attrs(header):
