@@ -159,6 +159,22 @@ class TestMapProjection:
     @pytest.mark.parametrize(
         ["mapping", "expected"],
         (
+            pytest.param({"datum_shift_parameters": {"a": 1, "b": 2}}, {}, id="ignored1"),
+            pytest.param(
+                {"reference_ellipsoid": "GRS80", "scale_factor": 1.1},
+                {"reference_ellipsoid": "GRS80"},
+                id="ignored2",
+            ),
+        ),
+    )
+    def test_transform_ellipsoid_parameters(self, mapping, expected):
+        actual = map_projection.transform_ellipsoid_parameters(mapping)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
             pytest.param(
                 {
                     "projected": {

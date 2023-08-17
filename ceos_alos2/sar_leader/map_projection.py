@@ -43,7 +43,7 @@ map_projection_record = Struct(
     ),
     "map_projection_ellipsoid_parameters"
     / Struct(
-        "reference_ellipsoid_name" / PaddedString(32),
+        "reference_ellipsoid" / PaddedString(32),
         "semimajor_axis" / Metadata(AsciiFloat(16), units="m"),
         "semiminor_axis" / Metadata(AsciiFloat(16), units="m"),
         "datum_shift_parameters"
@@ -225,6 +225,13 @@ def transform_general_info(mapping):
     )
 
 
+def transform_ellipsoid_parameters(mapping):
+    # fixed to 0.0
+    ignored = ["datum_shift_parameters", "scale_factor"]
+
+    return dissoc(ignored, mapping)
+
+
 def transform_corner_points(mapping):
     coordinate = ["top_left", "top_right", "bottom_right", "bottom_left"]
     keys = [f"{v}_corner" for v in coordinate]
@@ -292,6 +299,7 @@ def transform_map_projection(mapping):
     ignored = ["preamble"]
     transformers = {
         "map_projection_general_information": transform_general_info,
+        "map_projection_ellipsoid_parameters": transform_ellipsoid_parameters,
         "corner_points": transform_corner_points,
         "conversion_coefficients": transform_conversion_coefficients,
     }
