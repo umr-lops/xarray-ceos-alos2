@@ -237,12 +237,9 @@ def transform_corner_points(mapping):
     keys = [f"{v}_corner" for v in coordinate]
 
     def separate_attrs(data):
-        if isinstance(data[0], tuple):
-            values, metadata_ = zip(*data)
-            metadata = metadata_[0]
-        else:
-            values = data
-            metadata = {}
+        values, metadata_ = zip(*data)
+        metadata = metadata_[0]
+
         return ["corner"], list(values), metadata
 
     def combine_corners(mapping):
