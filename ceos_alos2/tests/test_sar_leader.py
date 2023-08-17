@@ -134,3 +134,23 @@ class TestMapProjection:
         actual = map_projection.filter_map_projection(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"map_projection_type": "GEOREFERENCE"},
+                {"map_projection_type": "GEOREFERENCE"},
+                id="no_rename",
+            ),
+            pytest.param(
+                {"number_of_pixels_per_line": 2, "number_of_lines": 4},
+                {"n_columns": 2, "n_rows": 4},
+                id="renames",
+            ),
+        ),
+    )
+    def test_transform_general_info(self, mapping, expected):
+        actual = map_projection.transform_general_info(mapping)
+
+        assert actual == expected
