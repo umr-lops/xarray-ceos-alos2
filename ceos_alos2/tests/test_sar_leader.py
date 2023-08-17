@@ -1,7 +1,7 @@
 import pytest
 
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_leader import dataset_summary
+from ceos_alos2.sar_leader import dataset_summary, map_projection
 from ceos_alos2.testing import assert_identical
 
 
@@ -80,3 +80,57 @@ def test_transform_dataset_summary(mapping, expected):
     actual = dataset_summary.transform_dataset_summary(mapping)
 
     assert_identical(actual, expected)
+
+
+class TestMapProjection:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "map_projection_designator": "UTM-PROJECTION",
+                    "utm_projection": {"type": "UNIVERSAL TRANSVERSE MERCATOR"},
+                    "ups_projection": {"type": ""},
+                    "national_system_projection": {"projection_descriptor": ""},
+                },
+                {"projection": {"type": "UNIVERSAL TRANSVERSE MERCATOR"}},
+                id="utm",
+            ),
+            pytest.param(
+                {
+                    "map_projection_designator": "UPS-PROJECTION",
+                    "utm_projection": {"zone": ""},
+                    "ups_projection": {"type": "UNIVERSAL POLAR STEREOGRAPHIC"},
+                    "national_system_projection": {"projection_descriptor": ""},
+                },
+                {"projection": {"type": "UNIVERSAL POLAR STEREOGRAPHIC"}},
+                id="ups",
+            ),
+            pytest.param(
+                {
+                    "map_projection_designator": "LCC-PROJECTION",
+                    "utm_projection": {"zone": ""},
+                    "ups_projection": {"type": ""},
+                    "national_system_projection": {
+                        "projection_descriptor": "LAMBERT-CONFORMAL CONIC"
+                    },
+                },
+                {"projection": {"projection_descriptor": "LAMBERT-CONFORMAL CONIC"}},
+                id="lcc",
+            ),
+            pytest.param(
+                {
+                    "map_projection_designator": "MER-PROJECTION",
+                    "utm_projection": {"zone": ""},
+                    "ups_projection": {"type": ""},
+                    "national_system_projection": {"projection_descriptor": "MERCATOR"},
+                },
+                {"projection": {"projection_descriptor": "MERCATOR"}},
+                id="mer",
+            ),
+        ),
+    )
+    def test_filter_map_projection(self, mapping, expected):
+        actual = map_projection.filter_map_projection(mapping)
+
+        assert actual == expected
