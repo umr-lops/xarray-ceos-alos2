@@ -247,11 +247,11 @@ def transform_corner_points(mapping):
         return processed
 
     def transform_terrain_heights(heights):
-        return {"corner": ("corner", coordinate, {}), "height": heights}
+        return {"corner": (["corner"], coordinate, {}), "height": heights}
 
     transformers = {
-        "projected": curry(operator.or_, {"corner": ("corner", coordinate, {})}),
-        "geographic": curry(operator.or_, {"corner": ("corner", coordinate, {})}),
+        "projected": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
+        "geographic": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
         "terrain_heights_relative_to_ellipsoid": transform_terrain_heights,
     }
 

@@ -154,3 +154,102 @@ class TestMapProjection:
         actual = map_projection.transform_general_info(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "projected": {
+                        "top_left_corner": {
+                            "northing": (7.5, {"units": "m"}),
+                            "easting": (10.0, {"units": "m"}),
+                        },
+                        "top_right_corner": {
+                            "northing": (7.5, {"units": "m"}),
+                            "easting": (12.0, {"units": "m"}),
+                        },
+                        "bottom_right_corner": {
+                            "northing": (6.5, {"units": "m"}),
+                            "easting": (12.0, {"units": "m"}),
+                        },
+                        "bottom_left_corner": {
+                            "northing": (6.5, {"units": "m"}),
+                            "easting": (10.0, {"units": "m"}),
+                        },
+                    }
+                },
+                {
+                    "projected": {
+                        "corner": (
+                            ["corner"],
+                            ["top_left", "top_right", "bottom_right", "bottom_left"],
+                            {},
+                        ),
+                        "northing": (["corner"], [7.5, 7.5, 6.5, 6.5], {"units": "m"}),
+                        "easting": (["corner"], [10.0, 12.0, 12.0, 10.0], {"units": "m"}),
+                    }
+                },
+                id="projected",
+            ),
+            pytest.param(
+                {
+                    "geographic": {
+                        "top_left_corner": {
+                            "latitude": (7.5, {"units": "deg"}),
+                            "longitude": (10.0, {"units": "deg"}),
+                        },
+                        "top_right_corner": {
+                            "latitude": (7.5, {"units": "deg"}),
+                            "longitude": (12.0, {"units": "deg"}),
+                        },
+                        "bottom_right_corner": {
+                            "latitude": (6.5, {"units": "deg"}),
+                            "longitude": (12.0, {"units": "deg"}),
+                        },
+                        "bottom_left_corner": {
+                            "latitude": (6.5, {"units": "deg"}),
+                            "longitude": (10.0, {"units": "deg"}),
+                        },
+                    }
+                },
+                {
+                    "geographic": {
+                        "corner": (
+                            ["corner"],
+                            ["top_left", "top_right", "bottom_right", "bottom_left"],
+                            {},
+                        ),
+                        "latitude": (["corner"], [7.5, 7.5, 6.5, 6.5], {"units": "deg"}),
+                        "longitude": (["corner"], [10.0, 12.0, 12.0, 10.0], {"units": "deg"}),
+                    }
+                },
+                id="geographic",
+            ),
+            pytest.param(
+                {
+                    "terrain_heights_relative_to_ellipsoid": {
+                        "top_left_corner": (1.2, {"units": "m"}),
+                        "top_right_corner": (1.3, {"units": "m"}),
+                        "bottom_right_corner": (1.1, {"units": "m"}),
+                        "bottom_left_corner": (1.0, {"units": "m"}),
+                    }
+                },
+                {
+                    "terrain_heights_relative_to_ellipsoid": {
+                        "corner": (
+                            ["corner"],
+                            ["top_left", "top_right", "bottom_right", "bottom_left"],
+                            {},
+                        ),
+                        "height": (["corner"], [1.2, 1.3, 1.1, 1.0], {"units": "m"}),
+                    }
+                },
+                id="heights",
+            ),
+        ),
+    )
+    def test_transform_corner_points(self, mapping, expected):
+        actual = map_projection.transform_corner_points(mapping)
+
+        assert actual == expected
