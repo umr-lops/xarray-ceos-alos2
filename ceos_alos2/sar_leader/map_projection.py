@@ -272,7 +272,16 @@ def transform_conversion_coefficients(mapping):
         data = {"names": ("names", list(names), {}), "coefficients": ("names", list(coeffs), {})}
         return data, attrs
 
-    return valmap(transform_coeffs, mapping)
+    translations = {
+        "map_projection_to_pixels": "projected_to_image_coordinates",
+        "pixels_to_map_projection": "image_coordinates_to_projected",
+    }
+
+    return pipe(
+        mapping,
+        curry(valmap, transform_coeffs),
+        curry(rename, translations=translations),
+    )
 
 
 def transform_map_projection(mapping):
