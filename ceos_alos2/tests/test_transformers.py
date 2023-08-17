@@ -14,3 +14,23 @@ def test_parse_datetime(s, expected):
     actual = transformers.normalize_datetime(s)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["mapping", "expected"],
+    (
+        pytest.param({"spare1": "", "spare2": ""}, {}, id="spares"),
+        pytest.param({"blanks1": "", "blanks20": "", "blanks": ""}, {}, id="blanks"),
+        pytest.param(
+            {"spare_values": "", "blank_page": ""},
+            {"spare_values": "", "blank_page": ""},
+            id="false_positives",
+        ),
+        pytest.param({"a": {"b": {"blanks": ""}}}, {"a": {"b": {}}}, id="nested-dict"),
+        pytest.param({"a": [{"b": {"blanks": ""}}]}, {"a": [{"b": {}}]}, id="nested-list"),
+    ),
+)
+def test_remove_spares(mapping, expected):
+    actual = transformers.remove_spares(mapping)
+
+    assert actual == expected
