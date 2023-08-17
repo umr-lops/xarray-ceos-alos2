@@ -253,3 +253,43 @@ class TestMapProjection:
         actual = map_projection.transform_corner_points(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"a": ({"a1": 1, "a2": 2}, {"abc": "def"})},
+                {
+                    "a": (
+                        {
+                            "names": ("names", ["a1", "a2"], {}),
+                            "coefficients": ("names", [1, 2], {}),
+                        },
+                        {"abc": "def"},
+                    )
+                },
+                id="reordering",
+            ),
+            pytest.param(
+                {
+                    "map_projection_to_pixels": ({"a": 1}, {}),
+                    "pixels_to_map_projection": ({"a": 1}, {}),
+                },
+                {
+                    "projected_to_image": (
+                        {"names": ("names", ["a"], {}), "coefficients": ("names", [1], {})},
+                        {},
+                    ),
+                    "image_to_projected": (
+                        {"names": ("names", ["a"], {}), "coefficients": ("names", [1], {})},
+                        {},
+                    ),
+                },
+                id="renaming",
+            ),
+        ),
+    )
+    def test_transform_conversion_coefficients(self, mapping, expected):
+        actual = map_projection.transform_conversion_coefficients(mapping)
+
+        assert actual == expected

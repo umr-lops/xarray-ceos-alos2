@@ -273,8 +273,8 @@ def transform_conversion_coefficients(mapping):
         return data, attrs
 
     translations = {
-        "map_projection_to_pixels": "projected_to_image_coordinates",
-        "pixels_to_map_projection": "image_coordinates_to_projected",
+        "map_projection_to_pixels": "projected_to_image",
+        "pixels_to_map_projection": "image_to_projected",
     }
 
     return pipe(
