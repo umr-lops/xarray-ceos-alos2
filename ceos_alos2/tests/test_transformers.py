@@ -1,6 +1,8 @@
 import pytest
 
 from ceos_alos2 import transformers
+from ceos_alos2.hierarchy import Variable
+from ceos_alos2.testing import assert_identical
 
 
 @pytest.mark.parametrize(
@@ -69,3 +71,16 @@ def test_separate_attrs(value, expected):
     actual = transformers.separate_attrs(value)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["value", "expected"],
+    (
+        pytest.param((1, {"a": 1}), Variable((), 1, {"a": 1})),
+        pytest.param(("d1", [1, 2], {"b": 3}), Variable("d1", [1, 2], {"b": 3})),
+    ),
+)
+def test_as_variable(value, expected):
+    actual = transformers.as_variable(value)
+
+    assert_identical(actual, expected)
