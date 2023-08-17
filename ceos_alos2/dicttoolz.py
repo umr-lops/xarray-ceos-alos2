@@ -1,4 +1,4 @@
-from tlz.dicttoolz import keyfilter
+from tlz.dicttoolz import assoc_in, keyfilter
 from tlz.itertoolz import concat, groupby
 from tlz.itertoolz import identity as passthrough
 
@@ -34,3 +34,11 @@ def zip_default(*mappings, default=None):
 
 def apply_to_items(funcs, mapping, default=passthrough):
     return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
+
+
+def move_items(instructions, mapping):
+    new = mapping
+    for source, dest in instructions.items():
+        new = assoc_in(new, dest, mapping[source])
+
+    return dissoc(list(instructions), new)

@@ -1,13 +1,13 @@
 import datetime as dt
 
 from construct import Enum, Struct
-from tlz.dicttoolz import assoc_in, merge_with, valmap
+from tlz.dicttoolz import merge_with, valmap
 from tlz.functoolz import compose_left, curry, pipe
 from tlz.itertoolz import cons
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
-from ceos_alos2.dicttoolz import apply_to_items, dissoc
+from ceos_alos2.dicttoolz import apply_to_items, dissoc, move_items
 from ceos_alos2.transformers import as_group, remove_spares, separate_attrs
 from ceos_alos2.utils import rename, starcall
 
@@ -103,14 +103,6 @@ def transform_positions(elements):
     return result
 
 
-def move_items(instructions, mapping):
-    new = mapping
-    for source, dest in instructions.items():
-        new = assoc_in(new, dest + [source], mapping[source])
-
-    return dissoc(list(instructions), new)
-
-
 def transform_platform_position(mapping):
     ignored = ["preamble", "number_of_data_points", "greenwich_mean_hour_angle"]
     transformers = {
@@ -121,7 +113,6 @@ def transform_platform_position(mapping):
     translations = {
         "occurrence_flag_of_a_leap_second": "leap_second",
         "time_interval_between_data_points": "sampling_frequency",
-        "orbital_elements_designator": "type",
     }
 
     result = pipe(
@@ -130,7 +121,7 @@ def transform_platform_position(mapping):
         curry(remove_spares),
         curry(apply_to_items, transformers),
         curry(rename, translations=translations),
-        curry(move_items, {"type": ["orbital_elements"]}),
+        curry(move_items, {"orbital_elements_designator": ["orbital_elements", "type"]}),
         curry(as_group),
     )
 
