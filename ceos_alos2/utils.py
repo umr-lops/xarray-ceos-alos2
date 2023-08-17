@@ -9,6 +9,10 @@ def unique(seq):
     return list(dict.fromkeys(seq))
 
 
+def starcall(f, args, **kwargs):
+    return f(*args, **kwargs)
+
+
 def to_dict(container):
     if isinstance(container, EnumIntegerString):
         return str(container)

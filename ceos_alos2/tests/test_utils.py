@@ -20,6 +20,20 @@ def test_unique(data, expected):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    ["f", "args", "kwargs", "expected"],
+    (
+        pytest.param(lambda x, y: x + y, [1, 2], {}, 3, id="args"),
+        pytest.param(lambda x, y: x + y, (2,), {"y": 2}, 4, id="args+kwargs"),
+        pytest.param(lambda x, y: x + y, (), {"x": 2, "y": 3}, 5, id="kwargs"),
+    ),
+)
+def test_starcall(f, args, kwargs, expected):
+    actual = utils.starcall(f, args, **kwargs)
+
+    assert actual == expected
+
+
 def test_to_dict():
     container = {
         "_io": None,
