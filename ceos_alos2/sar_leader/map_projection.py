@@ -1,7 +1,15 @@
+import operator
+
 from construct import Struct
+from tlz.dicttoolz import merge_with, valmap
+from tlz.functoolz import curry, pipe
+from tlz.itertoolz import cons, get, remove
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
+from ceos_alos2.dicttoolz import apply_to_items, dissoc
+from ceos_alos2.transformers import as_group, remove_spares
+from ceos_alos2.utils import rename
 
 projected_map_point = Struct(
     "northing" / Metadata(AsciiFloat(16), units="km"),
@@ -35,7 +43,7 @@ map_projection_record = Struct(
     ),
     "map_projection_ellipsoid_parameters"
     / Struct(
-        "reference_ellipsoid_name" / PaddedString(32),
+        "reference_ellipsoid" / PaddedString(32),
         "semimajor_axis" / Metadata(AsciiFloat(16), units="m"),
         "semiminor_axis" / Metadata(AsciiFloat(16), units="m"),
         "datum_shift_parameters"
@@ -49,7 +57,7 @@ map_projection_record = Struct(
         ),
         "scale_factor" / AsciiFloat(16),
     ),
-    "map_projection_description" / PaddedString(32),
+    "map_projection_designator" / PaddedString(32),
     "utm_projection"
     / Struct(
         "type" / PaddedString(32),
@@ -95,6 +103,9 @@ map_projection_record = Struct(
         / Struct(
             "phi1" / Metadata(AsciiFloat(16), units="deg"),
             "phi2" / Metadata(AsciiFloat(16), units="deg"),
+        ),
+        "standard_parallel2"
+        / Struct(
             "param1" / Metadata(AsciiFloat(16), units="deg"),
             "param2" / Metadata(AsciiFloat(16), units="deg"),
         ),
@@ -110,14 +121,14 @@ map_projection_record = Struct(
     / Struct(
         "projected"
         / Struct(
-            "top_left_corder" / projected_map_point,
+            "top_left_corner" / projected_map_point,
             "top_right_corner" / projected_map_point,
             "bottom_right_corner" / projected_map_point,
             "bottom_left_corner" / projected_map_point,
         ),
         "geographic"
         / Struct(
-            "top_left_corder" / geographic_map_point,
+            "top_left_corner" / geographic_map_point,
             "top_right_corner" / geographic_map_point,
             "bottom_right_corner" / geographic_map_point,
             "bottom_left_corner" / geographic_map_point,
@@ -145,9 +156,13 @@ map_projection_record = Struct(
                 "A24" / AsciiFloat(20),
             ),
             formula=(
-                "E = A11 + A12 * L + A13 * P + A14 * L * P;"
-                " N = A21 + A22 * L + A23 * P + A24 * L * P"
+                "E = A11 + A12 * R + A13 * C + A14 * R * C;"
+                " N = A21 + A22 * R + A23 * C + A24 * R * C"
             ),
+            E="easting",
+            N="northing",
+            R="row (1-based)",
+            C="column (1-based)",
         ),
         "pixels_to_map_projection"
         / Metadata(
@@ -162,10 +177,146 @@ map_projection_record = Struct(
                 "B24" / AsciiFloat(20),
             ),
             formula=(
-                "L = B11 + B12 * E + B13 * N + B14 * E * N;"
-                " P = B21 + B22 * E + B23 * N + B24 * E * N",
+                "R = B11 + B12 * E + B13 * N + B14 * E * N;"
+                " C = B21 + B22 * E + B23 * N + B24 * E * N"
             ),
+            E="easting",
+            N="northing",
+            R="row (1-based)",
+            C="column (1-based)",
         ),
     ),
     "blanks" / PaddedString(36),
 )
+
+
+def filter_map_projection(mapping):
+    all_projections = ["utm_projection", "ups_projection", "national_system_projection"]
+    raw_designator = mapping.get("map_projection_designator")
+    if raw_designator is None:
+        return mapping
+
+    designator, _ = raw_designator.lower().split("-", 1)
+
+    sections = {
+        "utm": "utm_projection",
+        "ups": "ups_projection",
+        "lcc": "national_system_projection",
+        "mer": "national_system_projection",
+    }
+    to_keep = sections.get(designator)
+    to_drop = list(
+        cons("map_projection_designator", remove(lambda k: k == to_keep, all_projections))
+    )
+
+    return pipe(
+        mapping,
+        curry(dissoc, to_drop),
+        curry(rename, translations={to_keep: "projection"}),
+    )
+
+
+def transform_general_info(mapping):
+    translations = {
+        "number_of_pixels_per_line": "n_columns",
+        "number_of_lines": "n_rows",
+    }
+
+    return pipe(
+        mapping,
+        curry(rename, translations=translations),
+    )
+
+
+def transform_ellipsoid_parameters(mapping):
+    # fixed to 0.0
+    ignored = ["datum_shift_parameters", "scale_factor"]
+
+    return dissoc(ignored, mapping)
+
+
+def transform_projection(mapping):
+    ignored = ["map_origin", "standard_parallel2", "central_meridian"]
+
+    return dissoc(ignored, mapping)
+
+
+def transform_corner_points(mapping):
+    coordinate = ["top_left", "top_right", "bottom_right", "bottom_left"]
+    keys = [f"{v}_corner" for v in coordinate]
+
+    def separate_attrs(data):
+        values, metadata_ = zip(*data)
+        metadata = metadata_[0]
+
+        return ["corner"], list(values), metadata
+
+    def combine_corners(mapping):
+        items = get(keys, mapping)
+        merged = merge_with(list, *items)
+        processed = valmap(separate_attrs, merged)
+
+        return processed
+
+    ignored = ["terrain_heights_relative_to_ellipsoid"]
+
+    transformers = {
+        "projected": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
+        "geographic": curry(operator.or_, {"corner": (["corner"], coordinate, {})}),
+    }
+
+    result = pipe(
+        mapping,
+        curry(dissoc, ignored),
+        curry(valmap, combine_corners),
+        curry(apply_to_items, transformers),
+    )
+    return result
+
+
+def transform_conversion_coefficients(mapping):
+    def transform_coeffs(entry):
+        raw_data, attrs = entry
+
+        names, coeffs = zip(*raw_data.items())
+
+        data = {"names": ("names", list(names), {}), "coefficients": ("names", list(coeffs), {})}
+        return data, attrs
+
+    translations = {
+        "map_projection_to_pixels": "projected_to_image",
+        "pixels_to_map_projection": "image_to_projected",
+    }
+
+    return pipe(
+        mapping,
+        curry(valmap, transform_coeffs),
+        curry(rename, translations=translations),
+    )
+
+
+def transform_map_projection(mapping):
+    ignored = ["preamble"]
+    transformers = {
+        "map_projection_general_information": transform_general_info,
+        "map_projection_ellipsoid_parameters": transform_ellipsoid_parameters,
+        "projection": transform_projection,
+        "corner_points": transform_corner_points,
+        "conversion_coefficients": transform_conversion_coefficients,
+    }
+    translations = {
+        "map_projection_general_information": "general_information",
+        "map_projection_ellipsoid_parameters": "ellipsoid_parameters",
+    }
+
+    result = pipe(
+        mapping,
+        curry(remove_spares),
+        curry(dissoc, ignored),
+        curry(filter_map_projection),
+        curry(apply_to_items, transformers),
+        curry(rename, translations=translations),
+        curry(as_group),
+    )
+
+    return result
