@@ -423,3 +423,79 @@ class TestPlatformPositions:
         actual = platform_position.transform_composite_datetime(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["elements", "expected"],
+        (
+            pytest.param(
+                [
+                    {
+                        "position": {
+                            "x": (1, {"units": "m"}),
+                            "y": (1, {"units": "m"}),
+                            "z": (1, {"units": "m"}),
+                        }
+                    },
+                    {
+                        "position": {
+                            "x": (2, {"units": "m"}),
+                            "y": (2, {"units": "m"}),
+                            "z": (2, {"units": "m"}),
+                        }
+                    },
+                    {
+                        "position": {
+                            "x": (3, {"units": "m"}),
+                            "y": (3, {"units": "m"}),
+                            "z": (3, {"units": "m"}),
+                        }
+                    },
+                ],
+                {
+                    "position": {
+                        "x": (["positions"], [1, 2, 3], {"units": "m"}),
+                        "y": (["positions"], [1, 2, 3], {"units": "m"}),
+                        "z": (["positions"], [1, 2, 3], {"units": "m"}),
+                    }
+                },
+                id="position",
+            ),
+            pytest.param(
+                [
+                    {
+                        "velocity": {
+                            "x": (2, {"units": "m/s"}),
+                            "y": (3, {"units": "m/s"}),
+                            "z": (1, {"units": "m/s"}),
+                        }
+                    },
+                    {
+                        "velocity": {
+                            "x": (3, {"units": "m/s"}),
+                            "y": (2, {"units": "m/s"}),
+                            "z": (2, {"units": "m/s"}),
+                        }
+                    },
+                    {
+                        "velocity": {
+                            "x": (4, {"units": "m/s"}),
+                            "y": (3, {"units": "m/s"}),
+                            "z": (1, {"units": "m/s"}),
+                        }
+                    },
+                ],
+                {
+                    "velocity": {
+                        "x": (["positions"], [2, 3, 4], {"units": "m/s"}),
+                        "y": (["positions"], [3, 2, 3], {"units": "m/s"}),
+                        "z": (["positions"], [1, 2, 1], {"units": "m/s"}),
+                    }
+                },
+                id="velocity",
+            ),
+        ),
+    )
+    def test_transform_positions(self, elements, expected):
+        actual = platform_position.transform_positions(elements)
+
+        assert actual == expected
