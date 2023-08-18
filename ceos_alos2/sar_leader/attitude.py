@@ -53,8 +53,8 @@ def transform_time(mapping):
     )
 
 
-def transpose_nested(mapping):
-    def _transpose(value):
+def transform_nested(mapping):
+    def _transform(value):
         if not isinstance(value, list) or not value or not isinstance(value[0], dict):
             return value
 
@@ -62,8 +62,8 @@ def transpose_nested(mapping):
 
     return pipe(
         mapping,
-        curry(_transpose),
-        curry(valmap, _transpose),
+        curry(_transform),
+        curry(valmap, _transform),
     )
 
 
@@ -108,7 +108,7 @@ def transform_attitude(mapping):
     result = pipe(
         mapping,
         curry(get, "data_points"),
-        curry(transpose_nested),
+        curry(transform_nested),
         curry(apply_to_items, transformers),
         curry(prepend_dim, "points"),
         curry(copy, {("attitude", "time"): ["time"], ("rates", "time"): ["time"]}),
