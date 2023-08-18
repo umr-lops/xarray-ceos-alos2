@@ -663,3 +663,16 @@ class TestAttitude:
         actual = attitude.transform_nested(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["dim", "var", "expected"],
+        (
+            pytest.param("x", 1, ("x", 1, {})),
+            pytest.param("x", (1, {"b": 1}), ("x", 1, {"b": 1})),
+            pytest.param("x", {"a": 1}, {"a": ("x", 1, {})}),
+        ),
+    )
+    def test_prepend_dim(self, dim, var, expected):
+        actual = attitude.prepend_dim(dim, var)
+
+        assert actual == expected
