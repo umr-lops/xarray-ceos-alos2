@@ -18,8 +18,7 @@ sar_leader_record = Struct(
     "map_projection" / map_projection_record[this.file_descriptor.map_projection.number_of_records],
     "platform_position" / platform_position_record,
     "attitude" / attitude_record,
-    "radiometric_data"
-    / radiometric_data_record[this.file_descriptor.radiometric_data.number_of_records],
+    "radiometric_data" / radiometric_data_record,
     "data_quality_summary" / data_quality_summary_record,
     "facility_related_data_1" / facility_related_data_record,
     "facility_related_data_2" / facility_related_data_record,

@@ -7,6 +7,7 @@ from ceos_alos2.sar_leader import (
     dataset_summary,
     map_projection,
     platform_position,
+    radiometric_data,
 )
 from ceos_alos2.testing import assert_identical
 
@@ -792,5 +793,146 @@ class TestAttitude:
         mapping = {"data_points": raw_points}
 
         actual = attitude.transform_attitude(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestRadiometricData:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"a": {"a": 0, "b": 1, "c": 2, "d": 3}},
+                (
+                    {
+                        "a": (["i", "j"], [[0, 1], [2, 3]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {},
+                ),
+            ),
+            pytest.param(
+                ({"a": {"a": 0, "b": 1, "c": 2, "d": 3}}, {"a": "def"}),
+                (
+                    {
+                        "a": (["i", "j"], [[0, 1], [2, 3]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {"a": "def"},
+                ),
+            ),
+            pytest.param(
+                {
+                    "a": {"a": 1j, "b": 2j, "c": 3j, "d": 4j},
+                    "b": {"f": 0j, "e": 1j, "d": 2j, "c": 3j},
+                },
+                (
+                    {
+                        "a": (["i", "j"], [[1j, 2j], [3j, 4j]], {}),
+                        "b": (["i", "j"], [[0j, 1j], [2j, 3j]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {},
+                ),
+            ),
+        ),
+    )
+    def test_transform_matrices(self, mapping, expected):
+        actual = radiometric_data.transform_matrices(mapping)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "preamble": "",
+                    "radiometric_data_records_sequence_number": 0,
+                    "number_of_radiometric_fields": 1,
+                    "blanks": "",
+                },
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {"calibration_factor": (-10.0, {"formula": "abc"})},
+                Group(
+                    path=None,
+                    url=None,
+                    data={"calibration_factor": Variable((), -10.0, {"formula": "abc"})},
+                    attrs={},
+                ),
+                id="calibration_factor",
+            ),
+            pytest.param(
+                {
+                    "distortion_matrix": (
+                        {
+                            "a": {"a": 1, "b": 2, "c": 3, "d": 4},
+                            "b": {"f": 0, "e": 1, "d": 2, "c": 3},
+                        },
+                        {"formula": "def"},
+                    )
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "distortion_matrix": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Variable(["i", "j"], [[1, 2], [3, 4]], {}),
+                                "b": Variable(["i", "j"], [[0, 1], [2, 3]], {}),
+                                "i": Variable(
+                                    ["i"],
+                                    ["horizontal", "vertical"],
+                                    {"long_name": "reception polarization"},
+                                ),
+                                "j": Variable(
+                                    ["j"],
+                                    ["horizontal", "vertical"],
+                                    {"long_name": "transmission polarization"},
+                                ),
+                            },
+                            attrs={"formula": "def"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="distortion_matrix",
+            ),
+        ),
+    )
+    def test_transform_radiometric_data(self, mapping, expected):
+        actual = radiometric_data.transform_radiometric_data(mapping)
 
         assert_identical(actual, expected)
