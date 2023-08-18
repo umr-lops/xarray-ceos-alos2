@@ -22,7 +22,7 @@ radiometric_data_record = Struct(
     / Metadata(
         AsciiFloat(16),
         formula=(
-            "σ⁰=10*log_10(I^2 + Q^2) + CF - 32.0;" " σ⁰(level1.5/level3.1)=10*log_10(DN^2) + CF"
+            "σ⁰=10*log_10<I^2 + Q^2> + CF - 32.0;" " σ⁰(level1.5/level3.1)=10*log_10<DN^2> + CF"
         ),
         I="level 1.1 real pixel value",
         Q="level 1.1 imaginary pixel value",
