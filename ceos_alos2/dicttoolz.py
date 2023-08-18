@@ -1,5 +1,6 @@
 import copy
 
+from tlz.dicttoolz import assoc as assoc_
 from tlz.dicttoolz import assoc_in, get_in, keyfilter
 from tlz.itertoolz import concat, groupby
 from tlz.itertoolz import identity as passthrough
@@ -24,6 +25,10 @@ def valsplit(predicate, d):
 def keysplit(predicate, d):
     wrapper = lambda item: predicate(item[0])
     return itemsplit(wrapper, d)
+
+
+def assoc(key, value, d):
+    return assoc_(d, key, value)
 
 
 def dissoc(keys, d):

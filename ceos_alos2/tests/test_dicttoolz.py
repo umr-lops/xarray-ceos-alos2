@@ -75,6 +75,20 @@ def test_dissoc(keys):
 
 
 @pytest.mark.parametrize(
+    ["key", "value", "expected"],
+    (
+        pytest.param("b", "abc", {"a": 1, "b": "abc"}),
+        pytest.param("c", 2, {"a": 1, "c": 2}),
+    ),
+)
+def test_assoc(key, value, expected):
+    mapping = {"a": 1}
+    actual = dicttoolz.assoc(key, value, mapping)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
     ["funcs", "default", "expected"],
     (
         pytest.param({"a": int, "b": str, "c": float}, identity, {"a": 1, "b": "6.4", "c": 4.0}),
