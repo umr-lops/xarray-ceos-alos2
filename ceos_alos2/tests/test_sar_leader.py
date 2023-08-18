@@ -676,3 +676,33 @@ class TestAttitude:
         actual = attitude.prepend_dim(dim, var)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "roll": [(1, {"units": "deg"}), (2, {"units": "deg"})],
+                    "pitch": [(2, {"units": "deg"}), (3, {"units": "deg"})],
+                    "yaw": [(3, {"units": "deg"}), (4, {"units": "deg"})],
+                },
+                {
+                    "roll": ([1, 2], {"units": "deg"}),
+                    "pitch": ([2, 3], {"units": "deg"}),
+                    "yaw": ([3, 4], {"units": "deg"}),
+                },
+            ),
+            pytest.param(
+                {"roll_error": [0, 1], "pitch_error": [1, 0], "yaw_error": [1, 1]},
+                {
+                    "roll_error": [False, True],
+                    "pitch_error": [True, False],
+                    "yaw_error": [True, True],
+                },
+            ),
+        ),
+    )
+    def test_transform_section(self, mapping, expected):
+        actual = attitude.transform_section(mapping)
+
+        assert actual == expected

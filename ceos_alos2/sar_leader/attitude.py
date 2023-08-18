@@ -82,9 +82,9 @@ def transform_section(mapping):
         "pitch": separate_attrs,
         "roll": separate_attrs,
         "yaw": separate_attrs,
-        "pitch_error": lambda arr: np.asarray(arr, dtype=bool),
-        "roll_error": lambda arr: np.asarray(arr, dtype=bool),
-        "yaw_error": lambda arr: np.asarray(arr, dtype=bool),
+        "pitch_error": lambda data: list(map(bool, data)),
+        "roll_error": lambda data: list(map(bool, data)),
+        "yaw_error": lambda data: list(map(bool, data)),
     }
 
     return apply_to_items(transformers, mapping)
