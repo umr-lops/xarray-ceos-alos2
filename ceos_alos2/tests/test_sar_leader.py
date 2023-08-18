@@ -868,3 +868,71 @@ class TestRadiometricData:
         actual = radiometric_data.transform_matrices(mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "preamble": "",
+                    "radiometric_data_records_sequence_number": 0,
+                    "number_of_radiometric_fields": 1,
+                    "blanks": "",
+                },
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {"calibration_factor": (-10.0, {"formula": "abc"})},
+                Group(
+                    path=None,
+                    url=None,
+                    data={"calibration_factor": Variable((), -10.0, {"formula": "abc"})},
+                    attrs={},
+                ),
+                id="calibration_factor",
+            ),
+            pytest.param(
+                {
+                    "distortion_matrix": (
+                        {
+                            "a": {"a": 1, "b": 2, "c": 3, "d": 4},
+                            "b": {"f": 0, "e": 1, "d": 2, "c": 3},
+                        },
+                        {"formula": "def"},
+                    )
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "distortion_matrix": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Variable(["i", "j"], [[1, 2], [3, 4]], {}),
+                                "b": Variable(["i", "j"], [[0, 1], [2, 3]], {}),
+                                "i": Variable(
+                                    ["i"],
+                                    ["horizontal", "vertical"],
+                                    {"long_name": "reception polarization"},
+                                ),
+                                "j": Variable(
+                                    ["j"],
+                                    ["horizontal", "vertical"],
+                                    {"long_name": "transmission polarization"},
+                                ),
+                            },
+                            attrs={"formula": "def"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="distortion_matrix",
+            ),
+        ),
+    )
+    def test_transform_radiometric_data(self, mapping, expected):
+        actual = radiometric_data.transform_radiometric_data(mapping)
+
+        assert_identical(actual, expected)
