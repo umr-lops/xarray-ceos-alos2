@@ -1,4 +1,7 @@
 from construct import Struct
+from tlz.dicttoolz import valmap
+from tlz.functoolz import curry, pipe
+from tlz.itertoolz import partition
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import (
@@ -8,6 +11,8 @@ from ceos_alos2.datatypes import (
     Metadata,
     PaddedString,
 )
+from ceos_alos2.dicttoolz import apply_to_items, assoc, dissoc
+from ceos_alos2.transformers import as_group, remove_spares
 
 radiometric_data_record = Struct(
     "preamble" / record_preamble,
@@ -52,3 +57,48 @@ radiometric_data_record = Struct(
     ),
     "blanks" / PaddedString(9568),
 )
+
+
+def transform_matrices(mapping):
+    def transform_matrix(mapping):
+        values = mapping.values()
+        matrix = list(map(list, partition(2, values)))
+        dims = ["i", "j"]
+
+        return (dims, matrix, {})
+
+    if isinstance(mapping, tuple):
+        mapping, attrs = mapping
+    else:
+        attrs = {}
+
+    var_i = ("i", ["horizontal", "vertical"], {"long_name": "reception polarization"})
+    var_j = ("j", ["horizontal", "vertical"], {"long_name": "transmission polarization"})
+
+    matrices = pipe(
+        mapping,
+        curry(valmap, transform_matrix),
+        curry(assoc, "i", var_i),
+        curry(assoc, "j", var_j),
+    )
+
+    return matrices, attrs
+
+
+def transform_radiometric_data(mapping):
+    ignored = [
+        "preamble",
+        "radiometric_data_records_sequence_number",
+        "number_of_radiometric_fields",
+    ]
+    transformers = {
+        "distortion_matrix": transform_matrices,
+    }
+
+    return pipe(
+        mapping,
+        curry(dissoc, ignored),
+        curry(remove_spares),
+        curry(apply_to_items, transformers),
+        curry(as_group),
+    )
