@@ -1,7 +1,13 @@
+import numpy as np
 import pytest
 
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_leader import dataset_summary, map_projection, platform_position
+from ceos_alos2.sar_leader import (
+    attitude,
+    dataset_summary,
+    map_projection,
+    platform_position,
+)
 from ceos_alos2.testing import assert_identical
 
 
@@ -614,3 +620,23 @@ class TestPlatformPositions:
         actual = platform_position.transform_platform_position(mapping)
 
         assert_identical(actual, expected)
+
+
+class TestAttitude:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"day_of_year": [0, 1], "millisecond_of_day": [548, 749]},
+                np.array([548000000, 86400749000000], dtype="timedelta64[ns]"),
+            ),
+            pytest.param(
+                {"day_of_year": [9], "millisecond_of_day": [698]},
+                np.array([777600698000000], dtype="timedelta64[ns]"),
+            ),
+        ),
+    )
+    def test_transform_time(self, mapping, expected):
+        actual = attitude.transform_time(mapping)
+
+        np.testing.assert_equal(actual, expected)
