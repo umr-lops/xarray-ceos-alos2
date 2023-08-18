@@ -1,7 +1,13 @@
+import numpy as np
 import pytest
 
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_leader import dataset_summary, map_projection, platform_position
+from ceos_alos2.sar_leader import (
+    attitude,
+    dataset_summary,
+    map_projection,
+    platform_position,
+)
 from ceos_alos2.testing import assert_identical
 
 
@@ -612,5 +618,179 @@ class TestPlatformPositions:
     )
     def test_transform_platform_position(self, mapping, expected):
         actual = platform_position.transform_platform_position(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestAttitude:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"day_of_year": [0, 1], "millisecond_of_day": [548, 749]},
+                np.array([548000000, 86400749000000], dtype="timedelta64[ns]"),
+            ),
+            pytest.param(
+                {"day_of_year": [9], "millisecond_of_day": [698]},
+                np.array([777600698000000], dtype="timedelta64[ns]"),
+            ),
+        ),
+    )
+    def test_transform_time(self, mapping, expected):
+        actual = attitude.transform_time(mapping)
+
+        np.testing.assert_equal(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                [{"a": {"b": 1, "c": 2}}, {"a": {"b": 2, "c": 3}}, {"a": {"b": 3, "c": 4}}],
+                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}},
+            ),
+            pytest.param(
+                [
+                    {"a": {"b": 1, "c": 2}, "d": {"e": 3}},
+                    {"a": {"b": 2, "c": 3}, "d": {"e": 4}},
+                    {"a": {"b": 3, "c": 4}, "d": {"e": 5}},
+                ],
+                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}, "d": {"e": [3, 4, 5]}},
+            ),
+            pytest.param([{"a": 1}, {"a": 2}, {"a": 3}], {"a": [1, 2, 3]}),
+        ),
+    )
+    def test_transform_nested(self, mapping, expected):
+        actual = attitude.transform_nested(mapping)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["dim", "var", "expected"],
+        (
+            pytest.param("x", 1, ("x", 1, {})),
+            pytest.param("x", (1, {"b": 1}), ("x", 1, {"b": 1})),
+            pytest.param("x", {"a": 1}, {"a": ("x", 1, {})}),
+        ),
+    )
+    def test_prepend_dim(self, dim, var, expected):
+        actual = attitude.prepend_dim(dim, var)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "roll": [(1, {"units": "deg"}), (2, {"units": "deg"})],
+                    "pitch": [(2, {"units": "deg"}), (3, {"units": "deg"})],
+                    "yaw": [(3, {"units": "deg"}), (4, {"units": "deg"})],
+                },
+                {
+                    "roll": ([1, 2], {"units": "deg"}),
+                    "pitch": ([2, 3], {"units": "deg"}),
+                    "yaw": ([3, 4], {"units": "deg"}),
+                },
+            ),
+            pytest.param(
+                {"roll_error": [0, 1], "pitch_error": [1, 0], "yaw_error": [1, 1]},
+                {
+                    "roll_error": [False, True],
+                    "pitch_error": [True, False],
+                    "yaw_error": [True, True],
+                },
+            ),
+        ),
+    )
+    def test_transform_section(self, mapping, expected):
+        actual = attitude.transform_section(mapping)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["raw_points", "expected"],
+        (
+            pytest.param(
+                [
+                    {"a": {"b": 1, "c": 2}, "d": {"e": 3}},
+                    {"a": {"b": 2, "c": 3}, "d": {"e": 4}},
+                    {"a": {"b": 3, "c": 4}, "d": {"e": 5}},
+                ],
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "a": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "b": Variable(["points"], [1, 2, 3], {}),
+                                "c": Variable(["points"], [2, 3, 4], {}),
+                            },
+                            attrs={"coordinates": ["time"]},
+                        ),
+                        "d": Group(
+                            path=None,
+                            url=None,
+                            data={"e": Variable(["points"], [3, 4, 5], {})},
+                            attrs={"coordinates": ["time"]},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="transformed",
+            ),
+            pytest.param(
+                [
+                    {"time": {"day_of_year": 0, "millisecond_of_day": 10}},
+                    {"time": {"day_of_year": 0, "millisecond_of_day": 11}},
+                    {"time": {"day_of_year": 0, "millisecond_of_day": 12}},
+                    {"time": {"day_of_year": 0, "millisecond_of_day": 13}},
+                ],
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "time": Variable(
+                                    ["points"],
+                                    np.array(
+                                        [10000000, 11000000, 12000000, 13000000],
+                                        dtype="timedelta64[ns]",
+                                    ),
+                                    {},
+                                )
+                            },
+                            attrs={"coordinates": ["time"]},
+                        ),
+                        "rates": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "time": Variable(
+                                    ["points"],
+                                    np.array(
+                                        [10000000, 11000000, 12000000, 13000000],
+                                        dtype="timedelta64[ns]",
+                                    ),
+                                    {},
+                                )
+                            },
+                            attrs={"coordinates": ["time"]},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="time",
+            ),
+        ),
+    )
+    def test_transform_attitude(self, raw_points, expected):
+        mapping = {"data_points": raw_points}
+
+        actual = attitude.transform_attitude(mapping)
 
         assert_identical(actual, expected)

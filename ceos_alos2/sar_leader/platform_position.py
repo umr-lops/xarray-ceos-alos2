@@ -121,7 +121,7 @@ def transform_platform_position(mapping):
         curry(remove_spares),
         curry(apply_to_items, transformers),
         curry(rename, translations=translations),
-        curry(move_items, {"orbital_elements_designator": ["orbital_elements", "type"]}),
+        curry(move_items, {("orbital_elements", "type"): ["orbital_elements_designator"]}),
         curry(as_group),
     )
 

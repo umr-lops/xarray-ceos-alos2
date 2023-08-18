@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 from tlz.itertoolz import identity
 
@@ -85,4 +87,42 @@ def test_apply_to_items(funcs, default, expected):
 
     actual = dicttoolz.apply_to_items(funcs, mapping, default=default)
 
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["instructions", "expected"],
+    (
+        pytest.param({("b", "d"): ["a"]}, {"a": 1, "b": {"c": 2, "d": 1}}, id="multiple_dest"),
+        pytest.param({("d",): ["b", "c"]}, {"a": 1, "b": {"c": 2}, "d": 2}, id="multiple_src"),
+        pytest.param({("d",): ["e"]}, {"a": 1, "b": {"c": 2}}, id="missing"),
+        pytest.param({("d",): ["e", "f"]}, {"a": 1, "b": {"c": 2}}, id="missing_multiple"),
+    ),
+)
+def test_copy_items(instructions, expected):
+    mapping = {"a": 1, "b": {"c": 2}}
+    copied = copy.deepcopy(mapping)
+
+    actual = dicttoolz.copy_items(instructions, mapping)
+
+    assert mapping == copied
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["instructions", "expected"],
+    (
+        pytest.param({("b", "d"): ["a"]}, {"b": {"c": 2, "d": 1}}, id="multiple_dest"),
+        pytest.param({("d",): ["b", "c"]}, {"a": 1, "b": {}, "d": 2}, id="multiple_src"),
+        pytest.param({("d",): ["e"]}, {"a": 1, "b": {"c": 2}}, id="missing"),
+        pytest.param({("d",): ["e", "f"]}, {"a": 1, "b": {"c": 2}}, id="missing_multiple"),
+    ),
+)
+def test_move_items(instructions, expected):
+    mapping = {"a": 1, "b": {"c": 2}}
+    copied = copy.deepcopy(mapping)
+
+    actual = dicttoolz.move_items(instructions, mapping)
+
+    assert mapping == copied
     assert actual == expected

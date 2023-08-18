@@ -1,8 +1,12 @@
-from tlz.dicttoolz import assoc_in, keyfilter
+import copy
+
+from tlz.dicttoolz import assoc_in, get_in, keyfilter
 from tlz.itertoolz import concat, groupby
 from tlz.itertoolz import identity as passthrough
 
 from ceos_alos2.utils import unique
+
+sentinel = object()
 
 
 def itemsplit(predicate, d):
@@ -36,12 +40,25 @@ def apply_to_items(funcs, mapping, default=passthrough):
     return {k: funcs.get(k, default)(v) for k, v in mapping.items()}
 
 
-def move_items(instructions, mapping):
+def copy_items(instructions, mapping):
     new = mapping
-    for source, dest in instructions.items():
-        if source not in mapping:
+    for dest, source in instructions.items():
+        value = get_in(source, mapping, default=sentinel)
+        if value is sentinel:
             continue
 
-        new = assoc_in(new, dest, mapping[source])
+        new = assoc_in(new, list(dest), value)
 
-    return dissoc(list(instructions), new)
+    return new
+
+
+def move_items(instructions, mapping):
+    copied = copy.deepcopy(copy_items(instructions, mapping))
+
+    for *head, tail in instructions.values():
+        subset = get_in(list(head), copied, default=sentinel)
+        if subset is sentinel:
+            continue
+        subset.pop(tail, None)
+
+    return copied
