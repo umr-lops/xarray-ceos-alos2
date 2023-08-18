@@ -1,12 +1,12 @@
 import numpy as np
 from construct import Struct, this
-from tlz.dicttoolz import assoc_in, get_in, merge_with, valmap
+from tlz.dicttoolz import merge_with, valmap
 from tlz.functoolz import curry, pipe
 from tlz.itertoolz import cons, get
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
-from ceos_alos2.dicttoolz import apply_to_items, dissoc
+from ceos_alos2.dicttoolz import apply_to_items, copy_items, dissoc
 from ceos_alos2.transformers import as_group, separate_attrs
 
 attitude_point = Struct(
@@ -77,14 +77,6 @@ def prepend_dim(dim, var):
     return tuple(cons(dim, var))
 
 
-def copy(instructions, mapping):
-    new = mapping
-    for dest, source in instructions.items():
-        new = assoc_in(new, list(dest), get_in(source, mapping))
-
-    return new
-
-
 def transform_section(mapping):
     transformers = {
         "pitch": separate_attrs,
@@ -111,7 +103,7 @@ def transform_attitude(mapping):
         curry(transform_nested),
         curry(apply_to_items, transformers),
         curry(prepend_dim, "points"),
-        curry(copy, {("attitude", "time"): ["time"], ("rates", "time"): ["time"]}),
+        curry(copy_items, {("attitude", "time"): ["time"], ("rates", "time"): ["time"]}),
         curry(dissoc, ["time"]),
         curry(valmap, lambda x: (x, {"coordinates": ["time"]})),
         curry(as_group),
