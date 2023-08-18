@@ -7,6 +7,7 @@ from ceos_alos2.sar_leader import (
     dataset_summary,
     map_projection,
     platform_position,
+    radiometric_data,
 )
 from ceos_alos2.testing import assert_identical
 
@@ -794,3 +795,76 @@ class TestAttitude:
         actual = attitude.transform_attitude(mapping)
 
         assert_identical(actual, expected)
+
+
+class TestRadiometricData:
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"a": {"a": 0, "b": 1, "c": 2, "d": 3}},
+                (
+                    {
+                        "a": (["i", "j"], [[0, 1], [2, 3]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {},
+                ),
+            ),
+            pytest.param(
+                ({"a": {"a": 0, "b": 1, "c": 2, "d": 3}}, {"a": "def"}),
+                (
+                    {
+                        "a": (["i", "j"], [[0, 1], [2, 3]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {"a": "def"},
+                ),
+            ),
+            pytest.param(
+                {
+                    "a": {"a": 1j, "b": 2j, "c": 3j, "d": 4j},
+                    "b": {"f": 0j, "e": 1j, "d": 2j, "c": 3j},
+                },
+                (
+                    {
+                        "a": (["i", "j"], [[1j, 2j], [3j, 4j]], {}),
+                        "b": (["i", "j"], [[0j, 1j], [2j, 3j]], {}),
+                        "i": (
+                            "i",
+                            ["horizontal", "vertical"],
+                            {"long_name": "reception polarization"},
+                        ),
+                        "j": (
+                            "j",
+                            ["horizontal", "vertical"],
+                            {"long_name": "transmission polarization"},
+                        ),
+                    },
+                    {},
+                ),
+            ),
+        ),
+    )
+    def test_transform_matrices(self, mapping, expected):
+        actual = radiometric_data.transform_matrices(mapping)
+
+        assert actual == expected
