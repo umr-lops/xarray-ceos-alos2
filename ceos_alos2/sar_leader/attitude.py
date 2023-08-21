@@ -1,13 +1,13 @@
 import numpy as np
 from construct import Struct, this
-from tlz.dicttoolz import merge_with, valmap
+from tlz.dicttoolz import valmap
 from tlz.functoolz import curry, pipe
 from tlz.itertoolz import cons, get
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
 from ceos_alos2.dicttoolz import apply_to_items, copy_items, dissoc
-from ceos_alos2.transformers import as_group, separate_attrs
+from ceos_alos2.transformers import as_group, separate_attrs, transform_nested
 
 attitude_point = Struct(
     "time"
@@ -50,20 +50,6 @@ def transform_time(mapping):
 
     return (transformed["day_of_year"] + transformed["millisecond_of_day"]).astype(
         "timedelta64[ns]"
-    )
-
-
-def transform_nested(mapping):
-    def _transform(value):
-        if not isinstance(value, list) or not value or not isinstance(value[0], dict):
-            return value
-
-        return merge_with(list, *value)
-
-    return pipe(
-        mapping,
-        curry(_transform),
-        curry(valmap, _transform),
     )
 
 

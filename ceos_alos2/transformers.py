@@ -1,6 +1,7 @@
 import datetime as dt
 
-from tlz.dicttoolz import keyfilter, valmap
+from tlz.dicttoolz import keyfilter, merge_with, valmap
+from tlz.functoolz import curry, pipe
 from tlz.itertoolz import groupby, second
 
 from ceos_alos2.hierarchy import Group, Variable
@@ -40,6 +41,20 @@ def item_type(item):
         return "group"
     else:
         return "attribute"
+
+
+def transform_nested(mapping):
+    def _transform(value):
+        if not isinstance(value, list) or not value or not isinstance(value[0], dict):
+            return value
+
+        return merge_with(list, *value)
+
+    return pipe(
+        mapping,
+        curry(_transform),
+        curry(valmap, _transform),
+    )
 
 
 def separate_attrs(data):
