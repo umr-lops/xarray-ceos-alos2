@@ -996,7 +996,7 @@ class TestDataQualitySummary:
             ),
         ),
     )
-    def test_transform_summary(self, mapping, expected):
-        actual = data_quality_summary.transform_summary(mapping)
+    def test_transform_data_quality_summary(self, mapping, expected):
+        actual = data_quality_summary.transform_data_quality_summary(mapping)
 
         assert_identical(actual, expected)

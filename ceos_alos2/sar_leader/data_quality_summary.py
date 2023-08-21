@@ -82,7 +82,7 @@ def transform_relative(mapping, key):
     )
 
 
-def transform_summary(mapping):
+def transform_data_quality_summary(mapping):
     ignored = ["preamble", "record_number"]
     transformers = {
         "relative_radiometric_quality": curry(
