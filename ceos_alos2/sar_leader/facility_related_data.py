@@ -1,4 +1,4 @@
-from construct import Bytes, Enum, Struct, this
+from construct import Enum, Struct, this
 from tlz.dicttoolz import valmap
 from tlz.functoolz import curry, pipe
 
@@ -12,7 +12,7 @@ facility_related_data_record = Struct(
     "preamble" / record_preamble,
     "record_sequence_number" / AsciiInteger(4),
     "blanks" / PaddedString(50),
-    "raw_file_data" / Bytes(this.preamble.record_length - 12 - 4 - 50),
+    "raw_file_data" / PaddedString(this.preamble.record_length - 12 - 4 - 50),
 )
 facility_related_data_5_record = Struct(
     "preamble" / record_preamble,
