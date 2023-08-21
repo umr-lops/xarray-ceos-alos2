@@ -1,3 +1,4 @@
+import fsspec
 import numpy as np
 import pytest
 
@@ -7,6 +8,7 @@ from ceos_alos2.sar_leader import (
     data_quality_summary,
     dataset_summary,
     facility_related_data,
+    io,
     map_projection,
     metadata,
     platform_position,
@@ -1617,3 +1619,48 @@ class TestMetadata:
         actual = metadata.transform_metadata(mapping)
 
         assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["path", "expected"],
+    (
+        pytest.param("led1", FileNotFoundError("Cannot open .+"), id="not-existing"),
+        pytest.param(
+            "led2",
+            Group(
+                path=None,
+                url=None,
+                data={
+                    "transformations": Group(
+                        path=None, url=None, data={}, attrs={"prf_switching": False}
+                    )
+                },
+                attrs={},
+            ),
+            id="existing",
+        ),
+    ),
+)
+def test_open_sar_leader(monkeypatch, path, expected):
+    binary = b"\x01\x03"
+    mapping = {"facility_related_data_5": {"prf_switching_flag": 0}}
+    recorded_binary = []
+
+    def fake_parse_data(data):
+        recorded_binary.append(data)
+
+        return mapping
+
+    monkeypatch.setattr(io, "parse_data", fake_parse_data)
+
+    mapper = fsspec.get_mapper("memory://")
+    mapper["led2"] = binary
+
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            io.open_sar_leader(mapper, path)
+
+        return
+
+    actual = io.open_sar_leader(mapper, path)
+    assert_identical(actual, expected)
