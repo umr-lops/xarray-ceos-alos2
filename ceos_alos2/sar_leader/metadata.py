@@ -1,5 +1,5 @@
 import numpy as np
-from tlz.dicttoolz import keyfilter, valfilter
+from tlz.dicttoolz import valfilter
 from tlz.functoolz import compose_left, curry, pipe
 
 from ceos_alos2.dicttoolz import apply_to_items, dissoc
@@ -57,7 +57,6 @@ def transform_metadata(mapping):
         curry(dissoc, ignored),
         curry(valfilter, bool),
         curry(apply_to_items, transformers),
-        curry(keyfilter, lambda k: k in transformers),
         curry(rename, translations=translations),
         compose_left(*postprocessors),
     )

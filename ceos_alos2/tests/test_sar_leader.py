@@ -1344,3 +1344,276 @@ class TestMetadata:
         actual = metadata.fix_attitude_time(group)
 
         assert_identical(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "file_descriptor": {"a": ""},
+                    "facility_related_data_1": {},
+                    "facility_related_data_2": {},
+                    "facility_related_data_3": {},
+                    "facility_related_data_4": {},
+                },
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {"map_projection": []},
+                Group(path=None, url=None, data={}, attrs={}),
+                id="empty-items",
+            ),
+            pytest.param(
+                {"dataset_summary": {"scene_center_time": "2020101117213774"}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "dataset_summary": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"scene_center_time": "2020-10-11T17:21:37.740000"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-dataset_summary",
+            ),
+            pytest.param(
+                {"map_projection": {"map_projection_general_information": {}}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "map_projection": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "general_information": Group(path=None, url=None, data={}, attrs={})
+                            },
+                            attrs={},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-map_projection",
+            ),
+            pytest.param(
+                {"platform_position": {"occurrence_flag_of_a_leap_second": True}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "platform_position": Group(
+                            path=None, url=None, data={}, attrs={"leap_second": True}
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-platform_position",
+            ),
+            pytest.param(
+                {
+                    "attitude": {
+                        "data_points": [
+                            {"a": {"b": 1, "c": 2}},
+                            {"a": {"b": 2, "c": 3}},
+                            {"a": {"b": 3, "c": 4}},
+                        ]
+                    }
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "b": Variable(["points"], [1, 2, 3], {}),
+                                        "c": Variable(["points"], [2, 3, 4], {}),
+                                    },
+                                    attrs={"coordinates": ["time"]},
+                                )
+                            },
+                            attrs={},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-attitude",
+            ),
+            pytest.param(
+                {"radiometric_data": {"calibration_factor": (-10.0, {"formula": "abc"})}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "radiometric_data": Group(
+                            path=None,
+                            url=None,
+                            data={"calibration_factor": Variable((), -10.0, {"formula": "abc"})},
+                            attrs={},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-radiometric_data",
+            ),
+            pytest.param(
+                {"data_quality_summary": {"number_of_channels": 8, "record_number": 1}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "data_quality_summary": Group(
+                            path=None, url=None, data={}, attrs={"number_of_channels": 8}
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-data_quality_summary",
+            ),
+            pytest.param(
+                {"facility_related_data_5": {"prf_switching_flag": 1}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "transformations": Group(
+                            path=None, url=None, data={}, attrs={"prf_switching": True}
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed-record5",
+            ),
+            pytest.param(
+                {
+                    "radiometric_data": {"calibration_factor": (-10.0, {"formula": "abc"})},
+                    "facility_related_data_5": {"prf_switching_flag": 1},
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "radiometric_data": Group(
+                            path=None,
+                            url=None,
+                            data={"calibration_factor": Variable((), -10.0, {"formula": "abc"})},
+                            attrs={},
+                        ),
+                        "transformations": Group(
+                            path=None, url=None, data={}, attrs={"prf_switching": True}
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="transformed-multiple",
+            ),
+            pytest.param(
+                {"facility_related_data_5": {"prf_switching_flag": 1}},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "transformations": Group(
+                            path=None, url=None, data={}, attrs={"prf_switching": True}
+                        )
+                    },
+                    attrs={},
+                ),
+                id="renamed",
+            ),
+            pytest.param(
+                {
+                    "attitude": {
+                        "data_points": [
+                            {"time": {"day_of_year": 0, "millisecond_of_day": 10}},
+                            {"time": {"day_of_year": 0, "millisecond_of_day": 11}},
+                            {"time": {"day_of_year": 0, "millisecond_of_day": 12}},
+                            {"time": {"day_of_year": 0, "millisecond_of_day": 13}},
+                        ]
+                    },
+                    "platform_position": {
+                        "datetime_of_first_point": {
+                            "date": "2011  07  16",
+                            "day_of_year": "197",
+                            "seconds_of_day": 0,
+                        }
+                    },
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "attitude": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [
+                                                    "2011-01-01T00:00:00.010",
+                                                    "2011-01-01T00:00:00.011",
+                                                    "2011-01-01T00:00:00.012",
+                                                    "2011-01-01T00:00:00.013",
+                                                ],
+                                                dtype="datetime64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={"coordinates": ["time"]},
+                                ),
+                                "rates": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [
+                                                    "2011-01-01T00:00:00.010",
+                                                    "2011-01-01T00:00:00.011",
+                                                    "2011-01-01T00:00:00.012",
+                                                    "2011-01-01T00:00:00.013",
+                                                ],
+                                                dtype="datetime64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={"coordinates": ["time"]},
+                                ),
+                            },
+                            attrs={},
+                        ),
+                        "platform_position": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"datetime_of_first_point": "2011-07-16T00:00:00"},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="postprocessed",
+            ),
+        ),
+    )
+    def test_transform_metadata(self, mapping, expected):
+        actual = metadata.transform_metadata(mapping)
+
+        assert_identical(actual, expected)
