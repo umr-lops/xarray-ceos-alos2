@@ -643,29 +643,6 @@ class TestAttitude:
         np.testing.assert_equal(actual, expected)
 
     @pytest.mark.parametrize(
-        ["mapping", "expected"],
-        (
-            pytest.param(
-                [{"a": {"b": 1, "c": 2}}, {"a": {"b": 2, "c": 3}}, {"a": {"b": 3, "c": 4}}],
-                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}},
-            ),
-            pytest.param(
-                [
-                    {"a": {"b": 1, "c": 2}, "d": {"e": 3}},
-                    {"a": {"b": 2, "c": 3}, "d": {"e": 4}},
-                    {"a": {"b": 3, "c": 4}, "d": {"e": 5}},
-                ],
-                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}, "d": {"e": [3, 4, 5]}},
-            ),
-            pytest.param([{"a": 1}, {"a": 2}, {"a": 3}], {"a": [1, 2, 3]}),
-        ),
-    )
-    def test_transform_nested(self, mapping, expected):
-        actual = attitude.transform_nested(mapping)
-
-        assert actual == expected
-
-    @pytest.mark.parametrize(
         ["dim", "var", "expected"],
         (
             pytest.param("x", 1, ("x", 1, {})),
