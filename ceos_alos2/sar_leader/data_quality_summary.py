@@ -84,7 +84,7 @@ def transform_relative(mapping, key):
 
 def transform_summary(mapping):
     ignored = ["preamble", "record_number"]
-    translations = {
+    transformers = {
         "relative_radiometric_quality": curry(
             transform_relative, key="nominal_relative_radiometric_calibration_uncertainty"
         ),
@@ -97,7 +97,7 @@ def transform_summary(mapping):
         mapping,
         curry(remove_spares),
         curry(dissoc, ignored),
-        curry(apply_to_items, translations),
+        curry(apply_to_items, transformers),
         curry(as_group),
     )
 

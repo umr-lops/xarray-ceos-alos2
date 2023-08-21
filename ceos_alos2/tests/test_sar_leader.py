@@ -941,3 +941,62 @@ class TestDataQualitySummary:
         actual = data_quality_summary.transform_relative(mapping, key)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"a": {"spare1": ""}, "blanks": ""},
+                Group(
+                    path=None,
+                    url=None,
+                    data={"a": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                id="spares",
+            ),
+            pytest.param(
+                {"preamble": {}, "record_number": 1},
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {
+                    "relative_radiometric_quality": {
+                        "nominal_relative_radiometric_calibration_uncertainty": [{"a": 1}, {"a": 2}]
+                    },
+                    "relative_geometric_quality": {
+                        "relative_misregistration_error": [
+                            {"b": (-1, {"b": 1})},
+                            {"b": (-2, {"b": 1})},
+                            {"b": (-3, {"b": 1})},
+                        ]
+                    },
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "relative_radiometric_quality": Group(
+                            path=None,
+                            url=None,
+                            data={"a": Variable("channel", [1, 2], {})},
+                            attrs={},
+                        ),
+                        "relative_geometric_quality": Group(
+                            path=None,
+                            url=None,
+                            data={"b": Variable("channel", [-1, -2, -3], {"b": 1})},
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="transformed",
+            ),
+        ),
+    )
+    def test_transform_summary(self, mapping, expected):
+        actual = data_quality_summary.transform_summary(mapping)
+
+        assert_identical(actual, expected)
