@@ -111,6 +111,27 @@ facility_related_data_5_record = Struct(
 )
 
 
+def transform_auxiliary_file(mapping):
+    ignored = ["preamble"]
+
+    data_types = {
+        1: "dummy data",
+        2: "determined ephemeris",
+        3: "time error information",
+        4: "coordinate conversion information",
+    }
+    transformers = {"record_sequence_number": data_types.get}
+    translations = {"record_sequence_number": "data_type"}
+
+    return pipe(
+        mapping,
+        curry(remove_spares),
+        curry(dissoc, ignored),
+        curry(apply_to_items, transformers),
+        curry(rename, translations=translations),
+    )
+
+
 def transform_group(mapping, dim):
     def attach_dim(value):
         if not isinstance(value, list):
