@@ -1,7 +1,12 @@
 from construct import Bytes, Struct, this
+from tlz.dicttoolz import valmap
+from tlz.functoolz import curry, pipe
 
 from ceos_alos2.common import record_preamble
 from ceos_alos2.datatypes import AsciiFloat, AsciiInteger, Metadata, PaddedString
+from ceos_alos2.dicttoolz import apply_to_items, dissoc
+from ceos_alos2.transformers import as_group, remove_spares
+from ceos_alos2.utils import rename
 
 facility_related_data_record = Struct(
     "preamble" / record_preamble,
@@ -94,3 +99,41 @@ facility_related_data_5_record = Struct(
     ),
     "blanks" / PaddedString(1896),
 )
+
+
+def transform_group(mapping, dim):
+    def attach_dim(value):
+        if not isinstance(value, list):
+            return (), value, {}
+        return dim, value, {}
+
+    mapping, attrs = mapping
+
+    return valmap(attach_dim, mapping), attrs
+
+
+def transform_record5(mapping):
+    ignored = ["preamble", "record_sequence_number", "system_reserve"]
+
+    transformers = {
+        "conversion_from_map_projection_to_pixel": curry(
+            transform_group, dim="mid_precision_coeffs"
+        ),
+        "conversion_from_pixel_to_geographic": curry(transform_group, dim="high_precision_coeffs"),
+        "conversion_from_geographic_to_pixel": curry(transform_group, dim="high_precision_coeffs"),
+    }
+
+    translations = {
+        "conversion_from_map_projection_to_pixel": "projected_to_image",
+        "conversion_from_pixel_to_geographic": "image_to_geographic",
+        "conversion_from_geographic_to_pixel": "geographic_to_image",
+    }
+
+    return pipe(
+        mapping,
+        curry(remove_spares),
+        curry(dissoc, ignored),
+        curry(apply_to_items, transformers),
+        curry(rename, translations=translations),
+        curry(as_group),
+    )
