@@ -8,6 +8,7 @@ from ceos_alos2.sar_leader import (
     dataset_summary,
     facility_related_data,
     map_projection,
+    metadata,
     platform_position,
     radiometric_data,
 )
@@ -1109,5 +1110,237 @@ class TestFacilityRelatedData:
     )
     def test_transform_record5(self, mapping, expected):
         actual = facility_related_data.transform_record5(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestMetadata:
+    @pytest.mark.parametrize(
+        ["group", "expected"],
+        (
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={"attitude": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                Group(
+                    path=None,
+                    url=None,
+                    data={"attitude": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                id="without_platform_position",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={"platform_position": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                Group(
+                    path=None,
+                    url=None,
+                    data={"platform_position": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                id="without_attitude",
+            ),
+            pytest.param(
+                Group(path=None, url=None, data={}, attrs={}),
+                Group(path=None, url=None, data={}, attrs={}),
+                id="without_either",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "platform_position": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"datetime_of_first_point": "2012-11-10T01:31:54"},
+                        ),
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "positions": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [3600000000000, 7200000000000],
+                                                dtype="timedelta64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                )
+                            },
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "platform_position": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"datetime_of_first_point": "2012-11-10T01:31:54"},
+                        ),
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "positions": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [
+                                                    "2012-01-01T01:00:00.000000000",
+                                                    "2012-01-01T02:00:00.000000000",
+                                                ],
+                                                dtype="datetime64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                )
+                            },
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="fixed1",
+            ),
+            pytest.param(
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "platform_position": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"datetime_of_first_point": "1986-05-24T16:52:01"},
+                        ),
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "positions": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [19329831000000000, 20467200000000000],
+                                                dtype="timedelta64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                ),
+                                "velocity": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [19329831000000000, 20467200000000000],
+                                                dtype="timedelta64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                ),
+                            },
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "platform_position": Group(
+                            path=None,
+                            url=None,
+                            data={},
+                            attrs={"datetime_of_first_point": "1986-05-24T16:52:01"},
+                        ),
+                        "attitude": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "positions": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [
+                                                    "1986-08-12T17:23:51.000000000",
+                                                    "1986-08-25T21:20:00.000000000",
+                                                ],
+                                                dtype="datetime64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                ),
+                                "velocity": Group(
+                                    path=None,
+                                    url=None,
+                                    data={
+                                        "time": Variable(
+                                            "points",
+                                            np.array(
+                                                [
+                                                    "1986-08-12T17:23:51.000000000",
+                                                    "1986-08-25T21:20:00.000000000",
+                                                ],
+                                                dtype="datetime64[ns]",
+                                            ),
+                                            {},
+                                        )
+                                    },
+                                    attrs={},
+                                ),
+                            },
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="fixed2",
+            ),
+        ),
+    )
+    def test_fix_attitude_time(self, group, expected):
+        actual = metadata.fix_attitude_time(group)
 
         assert_identical(actual, expected)

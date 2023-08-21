@@ -15,6 +15,9 @@ from ceos_alos2.utils import rename
 
 
 def fix_attitude_time(group):
+    if "platform_position" not in group or "attitude" not in group:
+        return group
+
     reference_year = group["platform_position"].attrs["datetime_of_first_point"][:4]
     reference_date = np.array(f"{reference_year}-01-01", dtype="datetime64[ns]")
 
