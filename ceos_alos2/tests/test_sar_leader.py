@@ -4,6 +4,7 @@ import pytest
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_leader import (
     attitude,
+    data_quality_summary,
     dataset_summary,
     map_projection,
     platform_position,
@@ -643,29 +644,6 @@ class TestAttitude:
         np.testing.assert_equal(actual, expected)
 
     @pytest.mark.parametrize(
-        ["mapping", "expected"],
-        (
-            pytest.param(
-                [{"a": {"b": 1, "c": 2}}, {"a": {"b": 2, "c": 3}}, {"a": {"b": 3, "c": 4}}],
-                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}},
-            ),
-            pytest.param(
-                [
-                    {"a": {"b": 1, "c": 2}, "d": {"e": 3}},
-                    {"a": {"b": 2, "c": 3}, "d": {"e": 4}},
-                    {"a": {"b": 3, "c": 4}, "d": {"e": 5}},
-                ],
-                {"a": {"b": [1, 2, 3], "c": [2, 3, 4]}, "d": {"e": [3, 4, 5]}},
-            ),
-            pytest.param([{"a": 1}, {"a": 2}, {"a": 3}], {"a": [1, 2, 3]}),
-        ),
-    )
-    def test_transform_nested(self, mapping, expected):
-        actual = attitude.transform_nested(mapping)
-
-        assert actual == expected
-
-    @pytest.mark.parametrize(
         ["dim", "var", "expected"],
         (
             pytest.param("x", 1, ("x", 1, {})),
@@ -934,5 +912,91 @@ class TestRadiometricData:
     )
     def test_transform_radiometric_data(self, mapping, expected):
         actual = radiometric_data.transform_radiometric_data(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestDataQualitySummary:
+    @pytest.mark.parametrize(
+        ["mapping", "key", "expected"],
+        (
+            pytest.param(
+                {
+                    "a": [
+                        {"b": (1, {"u": "v"}), "c": (-1, {"u": "v"})},
+                        {"b": (2, {"u": "v"}), "c": (-2, {"u": "v"})},
+                    ]
+                },
+                "a",
+                {"b": ("channel", [1, 2], {"u": "v"}), "c": ("channel", [-1, -2], {"u": "v"})},
+            ),
+            pytest.param(
+                {"f1": [{"r": 1, "o": (-1, {"a": "e"})}, {"r": 2, "o": (-2, {"a": "e"})}]},
+                "f1",
+                {"r": ("channel", [1, 2], {}), "o": ("channel", [-1, -2], {"a": "e"})},
+            ),
+        ),
+    )
+    def test_transform_relative(self, mapping, key, expected):
+        actual = data_quality_summary.transform_relative(mapping, key)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {"a": {"spare1": ""}, "blanks": ""},
+                Group(
+                    path=None,
+                    url=None,
+                    data={"a": Group(path=None, url=None, data={}, attrs={})},
+                    attrs={},
+                ),
+                id="spares",
+            ),
+            pytest.param(
+                {"preamble": {}, "record_number": 1},
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {
+                    "relative_radiometric_quality": {
+                        "nominal_relative_radiometric_calibration_uncertainty": [{"a": 1}, {"a": 2}]
+                    },
+                    "relative_geometric_quality": {
+                        "relative_misregistration_error": [
+                            {"b": (-1, {"b": 1})},
+                            {"b": (-2, {"b": 1})},
+                            {"b": (-3, {"b": 1})},
+                        ]
+                    },
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "relative_radiometric_quality": Group(
+                            path=None,
+                            url=None,
+                            data={"a": Variable("channel", [1, 2], {})},
+                            attrs={},
+                        ),
+                        "relative_geometric_quality": Group(
+                            path=None,
+                            url=None,
+                            data={"b": Variable("channel", [-1, -2, -3], {"b": 1})},
+                            attrs={},
+                        ),
+                    },
+                    attrs={},
+                ),
+                id="transformed",
+            ),
+        ),
+    )
+    def test_transform_summary(self, mapping, expected):
+        actual = data_quality_summary.transform_summary(mapping)
 
         assert_identical(actual, expected)
