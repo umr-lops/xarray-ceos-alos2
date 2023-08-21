@@ -89,6 +89,10 @@ def test_transform_nested(mapping, expected):
             [(6, {"cba": "fed"}), (2, {"cba": "fed"}), (3, {"cba": "fed"})],
             ([6, 2, 3], {"cba": "fed"}),
         ),
+        pytest.param(
+            [6, 2, 3],
+            ([6, 2, 3], {}),
+        ),
     ),
 )
 def test_separate_attrs(value, expected):

@@ -58,6 +58,9 @@ def transform_nested(mapping):
 
 
 def separate_attrs(data):
+    if not isinstance(data, list) or not data or not isinstance(data[0], tuple):
+        return data, {}
+
     values, metadata_ = zip(*data)
     metadata = metadata_[0]
 
