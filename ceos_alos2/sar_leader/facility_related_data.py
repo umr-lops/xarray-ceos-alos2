@@ -1,4 +1,4 @@
-from construct import Bytes, Struct, this
+from construct import Bytes, Enum, Struct, this
 from tlz.dicttoolz import valmap
 from tlz.functoolz import curry, pipe
 
@@ -28,7 +28,14 @@ facility_related_data_5_record = Struct(
             " L = b0 + b1*φ + b2*λ + b3*φ*λ + b4*φ^2 + b5*λ^2 + b6*φ^2*λ + b7*φ*λ^2 + b8*φ^3 + b9*λ^3"
         ),
     ),
-    "calibration_mode_data_location_flag" / AsciiInteger(4),
+    "calibration_mode_data_location_flag"
+    / Enum(
+        AsciiInteger(4),
+        no_calibration=0,
+        side_of_observation_start=1,
+        side_of_observation_end=2,
+        side_of_observation_start_and_end=3,
+    ),
     "calibration_at_upper_image"
     / Struct(
         "start_line_number" / AsciiInteger(8),
@@ -42,8 +49,11 @@ facility_related_data_5_record = Struct(
     "prf_switching_flag" / AsciiInteger(4),
     "start_line_number_of_prf_switching" / AsciiInteger(8),
     "blanks1" / PaddedString(8),
-    "number_of_loss_lines_l1.0" / AsciiInteger(8),
-    "number_of_loss_lines" / AsciiInteger(8),
+    "number_of_loss_lines"
+    / Struct(
+        "level1.0" / AsciiInteger(8),
+        "others" / AsciiInteger(8),
+    ),
     "blanks2" / PaddedString(312),
     "system_reserve" / PaddedString(224),
     "conversion_from_pixel_to_geographic"
@@ -116,6 +126,7 @@ def transform_record5(mapping):
     ignored = ["preamble", "record_sequence_number", "system_reserve"]
 
     transformers = {
+        "prf_switching_flag": bool,
         "conversion_from_map_projection_to_pixel": curry(
             transform_group, dim="mid_precision_coeffs"
         ),
@@ -127,6 +138,7 @@ def transform_record5(mapping):
         "conversion_from_map_projection_to_pixel": "projected_to_image",
         "conversion_from_pixel_to_geographic": "image_to_geographic",
         "conversion_from_geographic_to_pixel": "geographic_to_image",
+        "prf_switching_flag": "prf_switching",
     }
 
     return pipe(
