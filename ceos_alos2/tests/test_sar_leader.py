@@ -4,6 +4,7 @@ import pytest
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_leader import (
     attitude,
+    data_quality_summary,
     dataset_summary,
     map_projection,
     platform_position,
@@ -913,3 +914,30 @@ class TestRadiometricData:
         actual = radiometric_data.transform_radiometric_data(mapping)
 
         assert_identical(actual, expected)
+
+
+class TestDataQualitySummary:
+    @pytest.mark.parametrize(
+        ["mapping", "key", "expected"],
+        (
+            pytest.param(
+                {
+                    "a": [
+                        {"b": (1, {"u": "v"}), "c": (-1, {"u": "v"})},
+                        {"b": (2, {"u": "v"}), "c": (-2, {"u": "v"})},
+                    ]
+                },
+                "a",
+                {"b": ("channel", [1, 2], {"u": "v"}), "c": ("channel", [-1, -2], {"u": "v"})},
+            ),
+            pytest.param(
+                {"f1": [{"r": 1, "o": (-1, {"a": "e"})}, {"r": 2, "o": (-2, {"a": "e"})}]},
+                "f1",
+                {"r": ("channel", [1, 2], {}), "o": ("channel", [-1, -2], {"a": "e"})},
+            ),
+        ),
+    )
+    def test_transform_relative(self, mapping, key, expected):
+        actual = data_quality_summary.transform_relative(mapping, key)
+
+        assert actual == expected
