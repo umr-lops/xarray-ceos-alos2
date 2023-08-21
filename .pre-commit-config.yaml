@@ -11,6 +11,12 @@ repos:
       - id: check-docstring-first
       - id: check-yaml
       - id: check-toml
+  - repo: https://github.com/MarcoGorelli/absolufy-imports
+    rev: v0.3.1
+    hooks:
+      - id: absolufy-imports
+        name: absolufy-imports
+        files: ^ceos_alos2/
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
@@ -39,9 +45,3 @@ repos:
     rev: v3.0.1
     hooks:
       - id: prettier
-  - repo: https://github.com/MarcoGorelli/absolufy-imports
-    rev: v0.3.1
-    hooks:
-      - id: absolufy-imports
-        name: absolufy-imports
-        files: ^ceos_alos2/
