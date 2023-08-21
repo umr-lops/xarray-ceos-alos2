@@ -6,6 +6,7 @@ from ceos_alos2.sar_leader import (
     attitude,
     data_quality_summary,
     dataset_summary,
+    facility_related_data,
     map_projection,
     platform_position,
     radiometric_data,
@@ -998,5 +999,115 @@ class TestDataQualitySummary:
     )
     def test_transform_summary(self, mapping, expected):
         actual = data_quality_summary.transform_summary(mapping)
+
+        assert_identical(actual, expected)
+
+
+class TestFacilityRelatedData:
+    @pytest.mark.parametrize(
+        ["mapping", "dim", "expected"],
+        (
+            pytest.param(
+                ({"a": [1, 2]}, {"u": "v"}),
+                "dim",
+                ({"a": ("dim", [1, 2], {})}, {"u": "v"}),
+                id="array",
+            ),
+            pytest.param(({"b": 1.0}, {}), "dim", ({"b": ((), 1.0, {})}, {}), id="scalar"),
+        ),
+    )
+    def test_transform_group(self, mapping, dim, expected):
+        actual = facility_related_data.transform_group(mapping, dim)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                {
+                    "preamble": {},
+                    "spare11": "",
+                    "blanks4": "",
+                    "record_sequence_number": 1,
+                    "system_reserve": "",
+                },
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                {"prf_switching_flag": 0},
+                Group(path=None, url=None, data={}, attrs={"prf_switching": False}),
+                id="transformed1",
+            ),
+            pytest.param(
+                {
+                    "conversion_from_map_projection_to_pixel": (
+                        {"a": [1, 2], "b": [3, 4]},
+                        {"a": "b"},
+                    )
+                },
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "projected_to_image": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Variable("mid_precision_coeffs", [1, 2], {}),
+                                "b": Variable("mid_precision_coeffs", [3, 4], {}),
+                            },
+                            attrs={"a": "b"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed2",
+            ),
+            pytest.param(
+                {"conversion_from_pixel_to_geographic": ({"a": [1, 2], "b": 1.0}, {"d": "e"})},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "image_to_geographic": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "a": Variable("high_precision_coeffs", [1, 2], {}),
+                                "b": Variable((), 1.0, {}),
+                            },
+                            attrs={"d": "e"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed3",
+            ),
+            pytest.param(
+                {"conversion_from_geographic_to_pixel": ({"c": [1, 2], "d": 1.0}, {"f": "e"})},
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "geographic_to_image": Group(
+                            path=None,
+                            url=None,
+                            data={
+                                "c": Variable("high_precision_coeffs", [1, 2], {}),
+                                "d": Variable((), 1.0, {}),
+                            },
+                            attrs={"f": "e"},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="transformed4",
+            ),
+        ),
+    )
+    def test_transform_record5(self, mapping, expected):
+        actual = facility_related_data.transform_record5(mapping)
 
         assert_identical(actual, expected)
