@@ -7,6 +7,7 @@ from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_leader.attitude import transform_attitude
 from ceos_alos2.sar_leader.data_quality_summary import transform_data_quality_summary
 from ceos_alos2.sar_leader.dataset_summary import transform_dataset_summary
+from ceos_alos2.sar_leader.facility_related_data import transform_record5
 from ceos_alos2.sar_leader.map_projection import transform_map_projection
 from ceos_alos2.sar_leader.platform_position import transform_platform_position
 from ceos_alos2.sar_leader.radiometric_data import transform_radiometric_data
@@ -32,7 +33,6 @@ def transform_metadata(mapping):
         "facility_related_data_2",
         "facility_related_data_3",
         "facility_related_data_4",
-        "facility_related_data_5",
     ]
     transformers = {
         "dataset_summary": transform_dataset_summary,
@@ -41,8 +41,11 @@ def transform_metadata(mapping):
         "attitude": transform_attitude,
         "radiometric_data": transform_radiometric_data,
         "data_quality_summary": transform_data_quality_summary,
+        "facility_related_data_5": transform_record5,
     }
-    translations = {}
+    translations = {
+        "facility_related_data_5": "transformations",
+    }
 
     postprocessors = [fix_attitude_time]
 
