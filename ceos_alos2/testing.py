@@ -134,7 +134,7 @@ def compare_data(a, b):
     if isinstance(a, Array):
         return a == b
     else:
-        return np.all(a == b)
+        return a.shape == b.shape and np.all(a == b)
 
 
 def diff_array(a, b):
