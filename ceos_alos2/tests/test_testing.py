@@ -135,3 +135,39 @@ def test_diff_scalar(left, right, name):
     assert name.title() in actual
     assert f"L  {left}" in actual
     assert f"R  {right}" in actual
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(
+            np.array([1], dtype="int32"), create_dummy_array(), False, id="different_types"
+        ),
+        pytest.param(
+            np.array([1, 2], dtype="int64"), np.array([1, 2], dtype="int64"), True, id="numpy-equal"
+        ),
+        pytest.param(
+            np.array([1], dtype="int32"),
+            np.array([2, 2], dtype="int32"),
+            False,
+            id="numpy-different_shapes",
+        ),
+        pytest.param(
+            np.array([1], dtype="int32"),
+            np.array([2], dtype="float32"),
+            False,
+            id="numpy-different_values",
+        ),
+        pytest.param(
+            create_dummy_array(dtype="int32"),
+            create_dummy_array(dtype="float64"),
+            False,
+            id="array-different_dtypes",
+        ),
+        pytest.param(create_dummy_array(), create_dummy_array(), True, id="array-equal"),
+    ),
+)
+def test_compare_data(left, right, expected):
+    actual = testing.compare_data(left, right)
+
+    assert actual == expected
