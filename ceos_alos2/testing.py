@@ -217,7 +217,7 @@ def diff_data(a, b, name):
 
 
 def format_sizes(sizes):
-    return ", ".join(f"{k}: {s}" for k, s in sizes.items())
+    return "(" + ", ".join(f"{k}: {s}" for k, s in sizes.items()) + ")"
 
 
 def diff_variable(a, b):

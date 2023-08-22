@@ -330,8 +330,8 @@ def test_diff_data(left, right, name, expected):
 @pytest.mark.parametrize(
     ["sizes", "expected"],
     (
-        ({"a": 2, "b": 3}, "a: 2, b: 3"),
-        ({"dim0": 5, "dim1": 4, "dim2": 3}, "dim0: 5, dim1: 4, dim2: 3"),
+        ({"a": 2, "b": 3}, "(a: 2, b: 3)"),
+        ({"dim0": 5, "dim1": 4, "dim2": 3}, "(dim0: 5, dim1: 4, dim2: 3)"),
     ),
 )
 def test_format_sizes(sizes, expected):
