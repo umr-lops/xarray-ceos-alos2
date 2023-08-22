@@ -90,6 +90,7 @@ def test_diff_mapping_missing(keys, side):
         pytest.param({"a": 1, "b": 2}, {"a": 1, "b": 3}, ["b"]),
         pytest.param({"a": 2, "b": 2}, {"a": 1, "b": 3}, ["a", "b"]),
         pytest.param({"c": 1, "e": 5}, {"c": 2, "e": 2}, ["c", "e"]),
+        pytest.param({"c": Variable("x", 1, {})}, {"c": Variable("y", 1, {})}, ["c"]),
     ),
 )
 def test_diff_mapping_not_equal(left, right, unequal, name):
@@ -113,6 +114,7 @@ def test_diff_mapping_not_equal(left, right, unequal, name):
         pytest.param(
             {"a": 1, "b": 2}, {"b": 3}, False, True, True, id="unequal_common-missing_right"
         ),
+        pytest.param({"a": 1}, {"c": 3}, True, False, True, id="disjoint"),
         pytest.param({"a": 1, "b": 2}, {"b": 3, "c": 3}, True, True, True, id="all_different"),
     ),
 )
