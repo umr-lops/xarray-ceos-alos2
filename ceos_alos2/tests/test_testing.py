@@ -201,8 +201,8 @@ def test_compare_data(left, right, expected):
             id="array-fs-protocol",
         ),
         pytest.param(
-            create_dummy_array(path="/path/to1"),
-            create_dummy_array(path="/path/to2"),
+            create_dummy_array(path="path/to1"),
+            create_dummy_array(path="path/to2"),
             "\n".join(
                 [
                     "Differing filesystem:",
