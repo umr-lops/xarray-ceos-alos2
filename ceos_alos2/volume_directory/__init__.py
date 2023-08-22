@@ -1,1 +1,1 @@
-from ceos_alos2.volume_directory.structure import volume_directory_record  # noqa: F401
+from ceos_alos2.volume_directory.io import open_volume_directory  # noqa: F401
