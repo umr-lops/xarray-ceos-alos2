@@ -39,8 +39,8 @@ def test_format_item(item, expected):
 @pytest.mark.parametrize(
     ["arr", "expected"],
     (
-        (np.array([0, 1]), "0 1"),
-        (np.arange(10), "0 1 2 ... 8 9"),
+        (np.array([0, 1], dtype="int8"), "int8  0 1"),
+        (np.arange(10, dtype="int32"), "int32  0 1 2 ... 8 9"),
         (
             create_dummy_array(shape=(4, 3)),
             "\n".join(
@@ -58,13 +58,19 @@ def test_format_array(arr, expected):
 @pytest.mark.parametrize(
     ["var", "expected"],
     (
-        (Variable("x", np.array([0, 1]), {}), "(x)  0 1"),
-        (Variable(["x"], np.array([0, 1]), {}), "(x)  0 1"),
-        (Variable(["x", "y"], np.array([[0, 1], [2, 3]]), {}), "(x, y)  0 1 2 3"),
-        (Variable("x", np.array([0, 1]), {"a": 1}), "\n".join(["(x)  0 1", "    a: 1"])),
+        (Variable("x", np.array([0, 1], dtype="int8"), {}), "(x)    int8  0 1"),
+        (Variable(["x"], np.array([0, 1], dtype="int16"), {}), "(x)    int16  0 1"),
         (
-            Variable("x", np.array([0, 1]), {"a": 1, "b": "b"}),
-            "\n".join(["(x)  0 1", "    a: 1", "    b: b"]),
+            Variable(["x", "y"], np.array([[0, 1], [2, 3]], dtype="int32"), {}),
+            "(x, y)    int32  0 1 2 3",
+        ),
+        (
+            Variable("x", np.array([0, 1], dtype="int8"), {"a": 1}),
+            "\n".join(["(x)    int8  0 1", "    a: 1"]),
+        ),
+        (
+            Variable("x", np.array([0, 1], dtype="int64"), {"a": 1, "b": "b"}),
+            "\n".join(["(x)    int64  0 1", "    a: 1", "    b: b"]),
         ),
     ),
 )

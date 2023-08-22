@@ -52,20 +52,21 @@ def format_array(arr):
 
     flattened = np.reshape(arr, (-1,))
     if flattened.size < 8:
-        return " ".join(format_item(x) for x in flattened)
+        return f"{flattened.dtype}  " + " ".join(format_item(x) for x in flattened)
     else:
-        head = arr[:3]
-        tail = arr[-2:]
+        head = flattened[:3]
+        tail = flattened[-2:]
 
         return (
-            " ".join(format_item(x) for x in head)
+            f"{flattened.dtype}  "
+            + " ".join(format_item(x) for x in head)
             + " ... "
             + " ".join(format_item(x) for x in tail)
         )
 
 
 def format_variable(var):
-    base_string = f"({', '.join(var.dims)})  {format_array(var.data)}"
+    base_string = f"({', '.join(var.dims)})    {format_array(var.data)}"
     attrs = [f"    {k}: {v}" for k, v in var.attrs.items()]
     return newline.join(cons(base_string, attrs))
 
