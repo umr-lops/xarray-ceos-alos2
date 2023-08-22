@@ -52,20 +52,21 @@ def format_array(arr):
 
     flattened = np.reshape(arr, (-1,))
     if flattened.size < 8:
-        return " ".join(format_item(x) for x in flattened)
+        return f"{flattened.dtype}  " + " ".join(format_item(x) for x in flattened)
     else:
-        head = arr[:3]
-        tail = arr[-2:]
+        head = flattened[:3]
+        tail = flattened[-2:]
 
         return (
-            " ".join(format_item(x) for x in head)
+            f"{flattened.dtype}  "
+            + " ".join(format_item(x) for x in head)
             + " ... "
             + " ".join(format_item(x) for x in tail)
         )
 
 
 def format_variable(var):
-    base_string = f"({', '.join(var.dims)})  {format_array(var.data)}"
+    base_string = f"({', '.join(var.dims)})    {format_array(var.data)}"
     attrs = [f"    {k}: {v}" for k, v in var.attrs.items()]
     return newline.join(cons(base_string, attrs))
 
@@ -134,7 +135,7 @@ def compare_data(a, b):
     if isinstance(a, Array):
         return a == b
     else:
-        return np.all(a == b)
+        return a.shape == b.shape and np.all(a == b)
 
 
 def diff_array(a, b):
@@ -156,8 +157,6 @@ def diff_array(a, b):
         if a.fs.path != b.fs.path:
             lines.append(f"  L path  {a.fs.path}")
             lines.append(f"  R path  {b.fs.path}")
-        if len(lines) == 1:
-            lines.append("  (unknown differences)")
         sections.append(newline.join(lines))
     if a.url != b.url:
         lines = [
@@ -194,7 +193,11 @@ def diff_array(a, b):
         ]
         sections.append(newline.join(lines))
     if a.records_per_chunk != b.records_per_chunk:
-        lines = ["Differing chunksizes:", f"  {a.records_per_chunk} != {b.records_per_chunk}"]
+        lines = [
+            "Differing chunksizes:",
+            f"  L records_per_chunk  {a.records_per_chunk}",
+            f"  R records_per_chunk  {b.records_per_chunk}",
+        ]
         sections.append(newline.join(lines))
 
     return newline.join(sections)
@@ -208,20 +211,19 @@ def diff_data(a, b, name):
             f"  R {type(b)}",
         ]
         return newline.join(lines)
-    else:
-        diff = diff_array(a, b)
 
+    diff = diff_array(a, b)
     return newline.join([f"Differing {name.lower()}:", textwrap.indent(diff, "  ")])
 
 
 def format_sizes(sizes):
-    return ", ".join(f"{k}: {s}" for k, s in sizes.items())
+    return "(" + ", ".join(f"{k}: {s}" for k, s in sizes.items()) + ")"
 
 
 def diff_variable(a, b):
     sections = []
     if a.dims != b.dims:
-        lines = ["Differing dimensions:", f"    {format_sizes(a.sizes)} != {format_sizes(b.sizes)}"]
+        lines = ["Differing dimensions:", f"  {format_sizes(a.sizes)} != {format_sizes(b.sizes)}"]
         sections.append(newline.join(lines))
     if not compare_data(a.data, b.data):
         sections.append(diff_data(a.data, b.data, name="Data"))
@@ -232,6 +234,20 @@ def diff_variable(a, b):
     return newline.join(
         ["Left and right Variable objects are not equal", textwrap.indent(diff, "  ")]
     )
+
+
+def diff_group(a, b):
+    sections = []
+    if a.path != b.path:
+        sections.append(diff_scalar(a.path, b.path, name="Path"))
+    if a.url != b.url:
+        sections.append(diff_scalar(a.url, b.url, name="URL"))
+    if a.variables != b.variables:
+        sections.append(diff_mapping(a.variables, b.variables, name="Variables"))
+    if a.attrs != b.attrs:
+        sections.append(diff_mapping(a.attrs, b.attrs, name="Attributes"))
+
+    return newline.join(sections)
 
 
 def diff_tree(a, b):
@@ -273,22 +289,8 @@ def diff_tree(a, b):
     return newline.join(["Left and right Group objects are not equal", textwrap.indent(diff, "  ")])
 
 
-def diff_group(a, b):
-    sections = []
-    if a.path != b.path:
-        sections.append(diff_scalar(a.path, b.path, name="Path"))
-    if a.url != b.url:
-        sections.append(diff_scalar(a.url, b.url, name="URL"))
-    if a.variables != b.variables:
-        sections.append(diff_mapping(a.variables, b.variables, name="Variables"))
-    if a.attrs != b.attrs:
-        sections.append(diff_mapping(a.attrs, b.attrs, name="Attributes"))
-
-    return newline.join(sections)
-
-
 def assert_identical(a, b):
-    # __tracebackhide__ = True
+    __tracebackhide__ = True
     # compare types
     assert type(a) is type(b), f"types mismatch: {type(a)} != {type(b)}"
 
