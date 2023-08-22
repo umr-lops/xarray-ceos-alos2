@@ -157,8 +157,6 @@ def diff_array(a, b):
         if a.fs.path != b.fs.path:
             lines.append(f"  L path  {a.fs.path}")
             lines.append(f"  R path  {b.fs.path}")
-        if len(lines) == 1:
-            lines.append("  (unknown differences)")
         sections.append(newline.join(lines))
     if a.url != b.url:
         lines = [
@@ -195,7 +193,11 @@ def diff_array(a, b):
         ]
         sections.append(newline.join(lines))
     if a.records_per_chunk != b.records_per_chunk:
-        lines = ["Differing chunksizes:", f"  {a.records_per_chunk} != {b.records_per_chunk}"]
+        lines = [
+            "Differing chunksizes:",
+            f"  L records_per_chunk  {a.records_per_chunk}",
+            f"  R records_per_chunk  {b.records_per_chunk}",
+        ]
         sections.append(newline.join(lines))
 
     return newline.join(sections)

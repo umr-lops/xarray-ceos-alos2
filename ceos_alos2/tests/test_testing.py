@@ -177,3 +177,114 @@ def test_compare_data(left, right, expected):
     actual = testing.compare_data(left, right)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(
+            np.array([1], dtype="int32"),
+            np.array([2, 3], dtype="int8"),
+            "\n".join(["  L int32  1", "  R int8  2 3"]),
+            id="numpy",
+        ),
+        pytest.param(
+            create_dummy_array(protocol="memory"),
+            create_dummy_array(protocol="file"),
+            "\n".join(
+                [
+                    "Differing filesystem:",
+                    "  L protocol  memory",
+                    "  R protocol  file",
+                ]
+            ),
+            id="array-fs-protocol",
+        ),
+        pytest.param(
+            create_dummy_array(path="/path/to1"),
+            create_dummy_array(path="/path/to2"),
+            "\n".join(
+                [
+                    "Differing filesystem:",
+                    "  L path  /path/to1",
+                    "  R path  /path/to2",
+                ]
+            ),
+            id="array-fs-path",
+        ),
+        pytest.param(
+            create_dummy_array(url="file1"),
+            create_dummy_array(url="file2"),
+            "\n".join(
+                [
+                    "Differing urls:",
+                    "  L url  file1",
+                    "  R url  file2",
+                ]
+            ),
+            id="array-url",
+        ),
+        pytest.param(
+            create_dummy_array(byte_ranges=[(0, 1), (2, 3), (3, 4), (4, 5)]),
+            create_dummy_array(byte_ranges=[(0, 2), (2, 3), (3, 4), (4, 5)]),
+            "\n".join(
+                [
+                    "Differing byte ranges:",
+                    "  L line 1  (0, 1)",
+                    "  R line 1  (0, 2)",
+                ]
+            ),
+            id="array-byte_ranges",
+        ),
+        pytest.param(
+            create_dummy_array(shape=(4, 3), byte_ranges=[]),
+            create_dummy_array(shape=(6, 3), byte_ranges=[]),
+            "\n".join(
+                [
+                    "Differing shapes:",
+                    "  (4, 3) != (6, 3)",
+                ]
+            ),
+            id="array-shape",
+        ),
+        pytest.param(
+            create_dummy_array(dtype="int8"),
+            create_dummy_array(dtype="int16"),
+            "\n".join(
+                [
+                    "Differing dtypes:",
+                    "  int8 != int16",
+                ]
+            ),
+            id="array-dtype",
+        ),
+        pytest.param(
+            create_dummy_array(type_code="IU2"),
+            create_dummy_array(type_code="C*8"),
+            "\n".join(
+                [
+                    "Differing type code:",
+                    "  L type_code  IU2",
+                    "  R type_code  C*8",
+                ]
+            ),
+            id="array-type_code",
+        ),
+        pytest.param(
+            create_dummy_array(records_per_chunk=2),
+            create_dummy_array(records_per_chunk=1),
+            "\n".join(
+                [
+                    "Differing chunksizes:",
+                    "  L records_per_chunk  2",
+                    "  R records_per_chunk  1",
+                ]
+            ),
+            id="array-rpc",
+        ),
+    ),
+)
+def test_diff_array(left, right, expected):
+    actual = testing.diff_array(left, right)
+
+    assert actual == expected
