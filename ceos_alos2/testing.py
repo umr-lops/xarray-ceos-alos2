@@ -290,7 +290,7 @@ def diff_tree(a, b):
 
 
 def assert_identical(a, b):
-    # __tracebackhide__ = True
+    __tracebackhide__ = True
     # compare types
     assert type(a) is type(b), f"types mismatch: {type(a)} != {type(b)}"
 
