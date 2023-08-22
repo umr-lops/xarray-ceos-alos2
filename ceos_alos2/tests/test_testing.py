@@ -465,6 +465,21 @@ def test_diff_group(left, right, expected):
     ["left", "right", "expected"],
     (
         pytest.param(
+            Group(path="/a", url=None, data={}, attrs={}),
+            Group(path="/b", url=None, data={}, attrs={}),
+            "\n".join(
+                [
+                    "Left and right Group objects are not equal",
+                    "  Differing tree structure:",
+                    "    Missing left:",
+                    "    - /b",
+                    "    Missing right:",
+                    "    - /a",
+                ]
+            ),
+            id="zero_level-disjoint",
+        ),
+        pytest.param(
             Group(
                 path=None,
                 url=None,
@@ -499,6 +514,31 @@ def test_diff_group(left, right, expected):
                 ]
             ),
             id="one_level-missing_left",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={"a": Group(path=None, url=None, data={}, attrs={})},
+                attrs={},
+            ),
+            Group(
+                path=None,
+                url=None,
+                data={"b": Group(path=None, url=None, data={}, attrs={})},
+                attrs={},
+            ),
+            "\n".join(
+                [
+                    "Left and right Group objects are not equal",
+                    "  Differing tree structure:",
+                    "    Missing left:",
+                    "    - /b",
+                    "    Missing right:",
+                    "    - /a",
+                ]
+            ),
+            id="one_level-disjoint",
         ),
         pytest.param(
             Group(
