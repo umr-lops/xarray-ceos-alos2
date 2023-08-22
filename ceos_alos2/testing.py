@@ -236,6 +236,20 @@ def diff_variable(a, b):
     )
 
 
+def diff_group(a, b):
+    sections = []
+    if a.path != b.path:
+        sections.append(diff_scalar(a.path, b.path, name="Path"))
+    if a.url != b.url:
+        sections.append(diff_scalar(a.url, b.url, name="URL"))
+    if a.variables != b.variables:
+        sections.append(diff_mapping(a.variables, b.variables, name="Variables"))
+    if a.attrs != b.attrs:
+        sections.append(diff_mapping(a.attrs, b.attrs, name="Attributes"))
+
+    return newline.join(sections)
+
+
 def diff_tree(a, b):
     tree_a = dict(a.subtree)
     tree_b = dict(b.subtree)
@@ -273,20 +287,6 @@ def diff_tree(a, b):
 
     diff = newline.join(sections)
     return newline.join(["Left and right Group objects are not equal", textwrap.indent(diff, "  ")])
-
-
-def diff_group(a, b):
-    sections = []
-    if a.path != b.path:
-        sections.append(diff_scalar(a.path, b.path, name="Path"))
-    if a.url != b.url:
-        sections.append(diff_scalar(a.url, b.url, name="URL"))
-    if a.variables != b.variables:
-        sections.append(diff_mapping(a.variables, b.variables, name="Variables"))
-    if a.attrs != b.attrs:
-        sections.append(diff_mapping(a.attrs, b.attrs, name="Attributes"))
-
-    return newline.join(sections)
 
 
 def assert_identical(a, b):

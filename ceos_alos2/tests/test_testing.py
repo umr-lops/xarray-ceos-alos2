@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from ceos_alos2 import testing
-from ceos_alos2.hierarchy import Variable
+from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.tests.utils import create_dummy_array
 
 
@@ -386,5 +386,76 @@ def test_format_sizes(sizes, expected):
 )
 def test_diff_variable(left, right, expected):
     actual = testing.diff_variable(left, right)
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(
+            Group(path="/a", url=None, data={}, attrs={}),
+            Group(path="/b", url=None, data={}, attrs={}),
+            "\n".join(
+                [
+                    "Differing Path:",
+                    "L  /a",
+                    "R  /b",
+                ]
+            ),
+            id="path",
+        ),
+        pytest.param(
+            Group(path=None, url="memory://a", data={}, attrs={}),
+            Group(path=None, url="memory://b", data={}, attrs={}),
+            "\n".join(
+                [
+                    "Differing Url:",
+                    "L  memory://a",
+                    "R  memory://b",
+                ]
+            ),
+            id="url",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={"a": Variable("x", np.array([1], dtype="int8"), {})},
+                attrs={},
+            ),
+            Group(
+                path=None,
+                url=None,
+                data={"a": Variable("y", np.array([1], dtype="int8"), {})},
+                attrs={},
+            ),
+            "\n".join(
+                [
+                    "Variables:",
+                    "  Differing variables:",
+                    "     L a  (x)    int8  1",
+                    "     R a  (y)    int8  1",
+                ]
+            ),
+            id="variables",
+        ),
+        pytest.param(
+            Group(path=None, url=None, data={}, attrs={"a": 1}),
+            Group(path=None, url=None, data={}, attrs={"a": 2}),
+            "\n".join(
+                [
+                    "Attributes:",
+                    "  Differing attributes:",
+                    "     L a  1",
+                    "     R a  2",
+                ]
+            ),
+            id="attrs",
+        ),
+    ),
+)
+def test_diff_group(left, right, expected):
+    actual = testing.diff_group(left, right)
 
     assert actual == expected
