@@ -189,25 +189,25 @@ def test_compare_data(left, right, expected):
             id="numpy",
         ),
         pytest.param(
+            create_dummy_array(protocol="http"),
             create_dummy_array(protocol="memory"),
-            create_dummy_array(protocol="file"),
             "\n".join(
                 [
                     "Differing filesystem:",
-                    "  L protocol  memory",
-                    "  R protocol  file",
+                    "  L protocol  http",
+                    "  R protocol  memory",
                 ]
             ),
             id="array-fs-protocol",
         ),
         pytest.param(
-            create_dummy_array(path="path/to1"),
-            create_dummy_array(path="path/to2"),
+            create_dummy_array(path="/path/to1"),
+            create_dummy_array(path="/path/to2"),
             "\n".join(
                 [
                     "Differing filesystem:",
-                    "  L path  path/to1",
-                    "  R path  path/to2",
+                    "  L path  /path/to1",
+                    "  R path  /path/to2",
                 ]
             ),
             id="array-fs-path",
