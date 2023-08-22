@@ -211,9 +211,8 @@ def diff_data(a, b, name):
             f"  R {type(b)}",
         ]
         return newline.join(lines)
-    else:
-        diff = diff_array(a, b)
 
+    diff = diff_array(a, b)
     return newline.join([f"Differing {name.lower()}:", textwrap.indent(diff, "  ")])
 
 

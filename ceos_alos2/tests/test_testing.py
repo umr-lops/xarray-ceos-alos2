@@ -288,3 +288,40 @@ def test_diff_array(left, right, expected):
     actual = testing.diff_array(left, right)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "name", "expected"],
+    (
+        pytest.param(
+            np.array([1, 2], dtype="int8"),
+            create_dummy_array(),
+            "Data1",
+            "\n".join(
+                [
+                    "Differing data1 types:",
+                    "  L <class 'numpy.ndarray'>",
+                    "  R <class 'ceos_alos2.array.Array'>",
+                ]
+            ),
+            id="differing_types",
+        ),
+        pytest.param(
+            np.array([1, 2], dtype="int8"),
+            np.array([2, 3], dtype="int16"),
+            "Data2",
+            "\n".join(
+                [
+                    "Differing data2:",
+                    "    L int8  1 2",
+                    "    R int16  2 3",
+                ]
+            ),
+            id="differing_data",
+        ),
+    ),
+)
+def test_diff_data(left, right, name, expected):
+    actual = testing.diff_data(left, right, name)
+
+    assert actual == expected
