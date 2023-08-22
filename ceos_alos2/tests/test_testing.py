@@ -459,3 +459,76 @@ def test_diff_group(left, right, expected):
     actual = testing.diff_group(left, right)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={"a": Group(path=None, url=None, data={}, attrs={})},
+                attrs={},
+            ),
+            Group(path=None, url=None, data={}, attrs={}),
+            "\n".join(
+                [
+                    "Left and right Group objects are not equal",
+                    "  Differing tree structure:",
+                    "    Missing right:",
+                    "    - /a",
+                ]
+            ),
+            id="one_level-missing_right",
+        ),
+        pytest.param(
+            Group(path=None, url=None, data={}, attrs={}),
+            Group(
+                path=None,
+                url=None,
+                data={"a": Group(path=None, url=None, data={}, attrs={})},
+                attrs={},
+            ),
+            "\n".join(
+                [
+                    "Left and right Group objects are not equal",
+                    "  Differing tree structure:",
+                    "    Missing left:",
+                    "    - /a",
+                ]
+            ),
+            id="one_level-missing_left",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={"a": Group(path=None, url=None, data={}, attrs={"a": 1})},
+                attrs={},
+            ),
+            Group(
+                path=None,
+                url=None,
+                data={"a": Group(path=None, url=None, data={}, attrs={"a": 2})},
+                attrs={},
+            ),
+            "\n".join(
+                [
+                    "Left and right Group objects are not equal",
+                    "  Differing groups:",
+                    "    Group /a:",
+                    "      Attributes:",
+                    "        Differing attributes:",
+                    "           L a  1",
+                    "           R a  2",
+                ]
+            ),
+            id="one_level-common_differing",
+        ),
+    ),
+)
+def test_diff_tree(left, right, expected):
+    actual = testing.diff_tree(left, right)
+
+    assert actual == expected
