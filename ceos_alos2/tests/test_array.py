@@ -183,6 +183,36 @@ def test_read_chunk(offset, size):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    ["content", "type_code", "expected"],
+    (
+        pytest.param(b"\x00", "F*8", ValueError("unknown type code"), id="wrong_type_code"),
+        pytest.param(
+            b"\x00\x01",
+            "IU2",
+            np.array([1], dtype="int16"),
+            id="unsigned_int",
+        ),
+        pytest.param(
+            b"\x00\x00\x00\x00\x00\x00\x00\x00",
+            "C*8",
+            np.array([0 + 0j], dtype="complex64"),
+            id="complex",
+        ),
+    ),
+)
+def test_parse_data(content, type_code, expected):
+    if isinstance(expected, Exception):
+        with pytest.raises(type(expected), match=expected.args[0]):
+            array.parse_data(content, type_code)
+
+        return
+
+    actual = array.parse_data(content, type_code)
+
+    np.testing.assert_allclose(actual, expected)
+
+
 class TestArray:
     @pytest.mark.parametrize("shape", ((2, 10), (4, 10), (2, 20), (4, 20)))
     @pytest.mark.parametrize("dtype", ("uint16", "complex64"))
