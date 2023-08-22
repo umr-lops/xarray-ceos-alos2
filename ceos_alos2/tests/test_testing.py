@@ -572,3 +572,43 @@ def test_diff_tree(left, right, expected):
     actual = testing.diff_tree(left, right)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(1, 1.0, AssertionError("types mismatch"), id="mismatching_types"),
+        pytest.param(
+            1,
+            2,
+            TypeError("can only compare Group and Variable and Array objects"),
+            id="unsupported_types",
+        ),
+        pytest.param(
+            Group(path=None, url="memory://a", data={}, attrs={}),
+            Group(path=None, url="memory://b", data={}, attrs={}),
+            AssertionError("Differing Url"),
+            id="groups",
+        ),
+        pytest.param(
+            Variable("x", np.array([1], dtype="int8"), {}),
+            Variable("y", np.array([1], dtype="int8"), {}),
+            AssertionError(".+Differing dimensions"),
+            id="variables",
+        ),
+        pytest.param(
+            create_dummy_array(dtype="int8"),
+            create_dummy_array(dtype="int16"),
+            AssertionError("Differing dtypes"),
+            id="arrays",
+        ),
+    ),
+)
+def test_assert_identical(left, right, expected):
+    if expected is not None:
+        with pytest.raises(type(expected), match=expected.args[0]):
+            testing.assert_identical(left, right)
+
+        return
+
+    testing.assert_identical(left, right)
