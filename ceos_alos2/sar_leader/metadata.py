@@ -1,6 +1,7 @@
 import numpy as np
 from tlz.dicttoolz import valfilter
 from tlz.functoolz import compose_left, curry, pipe
+from tlz.itertoolz import first
 
 from ceos_alos2.dicttoolz import apply_to_items, dissoc
 from ceos_alos2.hierarchy import Group, Variable
@@ -39,7 +40,7 @@ def transform_metadata(mapping):
     ]
     transformers = {
         "dataset_summary": transform_dataset_summary,
-        "map_projection": transform_map_projection,
+        "map_projection": compose_left(first, transform_map_projection),
         "platform_position": transform_platform_position,
         "attitude": transform_attitude,
         "radiometric_data": transform_radiometric_data,

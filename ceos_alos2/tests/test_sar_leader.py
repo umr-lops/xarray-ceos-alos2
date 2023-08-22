@@ -1384,7 +1384,7 @@ class TestMetadata:
                 id="transformed-dataset_summary",
             ),
             pytest.param(
-                {"map_projection": {"map_projection_general_information": {}}},
+                {"map_projection": [{"map_projection_general_information": {}}]},
                 Group(
                     path=None,
                     url=None,
