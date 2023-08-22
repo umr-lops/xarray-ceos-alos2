@@ -223,7 +223,7 @@ def format_sizes(sizes):
 def diff_variable(a, b):
     sections = []
     if a.dims != b.dims:
-        lines = ["Differing dimensions:", f"    {format_sizes(a.sizes)} != {format_sizes(b.sizes)}"]
+        lines = ["Differing dimensions:", f"  {format_sizes(a.sizes)} != {format_sizes(b.sizes)}"]
         sections.append(newline.join(lines))
     if not compare_data(a.data, b.data):
         sections.append(diff_data(a.data, b.data, name="Data"))

@@ -338,3 +338,53 @@ def test_format_sizes(sizes, expected):
     actual = testing.format_sizes(sizes)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["left", "right", "expected"],
+    (
+        pytest.param(
+            Variable("x", np.array([1], dtype="int8"), {}),
+            Variable("y", np.array([1], dtype="int8"), {}),
+            "\n".join(
+                [
+                    "Left and right Variable objects are not equal",
+                    "  Differing dimensions:",
+                    "    (x: 1) != (y: 1)",
+                ]
+            ),
+            id="dims",
+        ),
+        pytest.param(
+            Variable("x", np.array([1, 2], dtype="int8"), {}),
+            Variable("x", np.array([2, 3], dtype="int16"), {}),
+            "\n".join(
+                [
+                    "Left and right Variable objects are not equal",
+                    "  Differing data:",
+                    "      L int8  1 2",
+                    "      R int16  2 3",
+                ]
+            ),
+            id="data",
+        ),
+        pytest.param(
+            Variable("x", np.array([1], dtype="int16"), {"a": 1}),
+            Variable("x", np.array([1], dtype="int16"), {"a": 2}),
+            "\n".join(
+                [
+                    "Left and right Variable objects are not equal",
+                    "  Attributes:",
+                    "    Differing attributes:",
+                    "       L a  1",
+                    "       R a  2",
+                ]
+            ),
+            id="attrs",
+        ),
+    ),
+)
+def test_diff_variable(left, right, expected):
+    actual = testing.diff_variable(left, right)
+
+    assert actual == expected
