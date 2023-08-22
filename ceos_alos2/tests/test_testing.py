@@ -206,8 +206,8 @@ def test_compare_data(left, right, expected):
             "\n".join(
                 [
                     "Differing filesystem:",
-                    "  L path  /path/to1",
-                    "  R path  /path/to2",
+                    "  L path  path/to1",
+                    "  R path  path/to2",
                 ]
             ),
             id="array-fs-path",
