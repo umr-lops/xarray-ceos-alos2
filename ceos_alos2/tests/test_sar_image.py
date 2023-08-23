@@ -1,6 +1,6 @@
 import pytest
 
-from ceos_alos2.sar_image import enums
+from ceos_alos2.sar_image import enums, metadata
 
 
 class TestEnums:
@@ -51,5 +51,47 @@ class TestEnums:
     def test_flag_encode(self, size, data, expected):
         flag = enums.Flag(size)
         actual = flag.build(data)
+
+        assert actual == expected
+
+
+class TestMetadata:
+    @pytest.mark.parametrize(
+        ["header", "expected"],
+        (
+            ({"prefix_suffix_data_locators": {"sar_data_format_type_code": "IU2"}}, "IU2"),
+            ({"prefix_suffix_data_locators": {"sar_data_format_type_code": "C*8"}}, "C*8"),
+        ),
+    )
+    def test_extract_format_type(self, header, expected):
+        actual = metadata.extract_format_type(header)
+
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["header", "expected"],
+        (
+            (
+                {
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 3,
+                        "number_of_data_groups_per_line": 2,
+                    }
+                },
+                (3, 2),
+            ),
+            (
+                {
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 6,
+                        "number_of_data_groups_per_line": 4,
+                    }
+                },
+                (6, 4),
+            ),
+        ),
+    )
+    def test_extract_shape(self, header, expected):
+        actual = metadata.extract_shape(header)
 
         assert actual == expected
