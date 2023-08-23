@@ -38,6 +38,9 @@ def extract_attrs(header):
     }
     transformers = {
         "maximum_data_range_of_pixel": lambda v: [0, v] if not math.isnan(v) else [],
+        "number_of_burst_data": lambda v: v if v != -1 else [],
+        "number_of_lines_per_burst": lambda v: v if v != -1 else [],
+        "number_of_overlap_lines_with_adjacent_bursts": lambda v: v if v != -1 else [],
     }
     translations = {
         "maximum_data_range_of_pixel": "valid_range",
