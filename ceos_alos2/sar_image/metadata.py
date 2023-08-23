@@ -1,13 +1,12 @@
-import datetime as dt
 import math
 
 import numpy as np
 from tlz.dicttoolz import keyfilter, merge_with, valfilter, valmap
-from tlz.functoolz import apply, compose_left, curry, juxt, pipe
-from tlz.itertoolz import cons, first, get, identity
+from tlz.functoolz import compose_left, curry, pipe
+from tlz.itertoolz import cons, first, second
 
-from ceos_alos2.dicttoolz import apply_to_items, dissoc, itemsplit, key_exists
-from ceos_alos2.hierarchy import Group, Variable
+from ceos_alos2.dicttoolz import apply_to_items, dissoc, keysplit
+from ceos_alos2.transformers import as_group, remove_spares, separate_attrs
 from ceos_alos2.utils import remove_nesting_layer, rename, starcall
 
 
@@ -57,87 +56,41 @@ def extract_attrs(header):
     )
 
 
-def to_hierarchical(mapping, dtype_overrides={}):
-    def transform_variable(data, dtype=None):
-        if isinstance(data[0], tuple):
-            values, metadata_ = zip(*data)
-            metadata = metadata_[0]
-        else:
-            values = data
-            metadata = {}
+def apply_overrides(dtype_overrides, mapping):
+    def _apply(v, dtype):
+        dims, data, attrs = v
 
-        if dtype is not None:
-            data_ = np.array(values, dtype=dtype)
-        else:
-            data_ = np.array(values)
-        return Variable(dims="rows", data=data_, attrs=metadata)
+        return dims, np.array(data, dtype=dtype), attrs
 
-    def transform_subgroup(data):
-        merged = merge_with(list, data)
-        subgroup_data = to_hierarchical(merged)
-
-        return Group(path=None, url=None, data=subgroup_data, attrs={})
-
-    def detect_type(data):
-        if not isinstance(data, list):
-            raise ValueError("not a list")
-        elif len(data) == 0:
-            raise ValueError("empty list")
-
-        elem = data[0]
-        if isinstance(elem, dict):
-            return "group"
-        elif isinstance(elem, (int, float, str, dt.datetime, tuple)):
-            return "variable"
-        else:
-            raise ValueError(f"unknown element type: {type(elem)}")
-
-    processors = {
-        "group": transform_subgroup,
-        "variable": transform_variable,
+    return {
+        k: v if k not in dtype_overrides else _apply(v, dtype_overrides[k])
+        for k, v in mapping.items()
     }
 
-    transform_entry = compose_left(
-        juxt(
-            compose_left(first, detect_type, curry(get, seq=processors, default=identity)), identity
-        ),
-        curry(starcall, cons),
-        curry(starcall, apply),
-    )
 
-    # TODO: do we need to get this to work with subgroups?
-    filtered_overrides = keyfilter(curry(key_exists, mapping=mapping), dtype_overrides)
-    with_overrides = merge_with(tuple, mapping, filtered_overrides)
+def deduplicate_attrs(known, mapping):
+    variables, attrs = keysplit(lambda k: k not in known, mapping)
 
-    return valmap(transform_entry, with_overrides)
+    return variables | valmap(compose_left(second, first), attrs)
 
 
 def metadata_to_groups(metadata):
-    # process:
-    # - drop format metadata
-    # - remove categories
-    # - merge_with list
-    # - split into variables and attributes (TODO: criteria for variable without metadata?)
-    format_metadata = {"record_start", "preamble", "data"}
-    to_rename = {"sar_image_data_line_number": "rows"}
-    ignored_fields = {
-        "_io",
+    ignored = [
+        "preamble",
+        "record_start",
         "actual_count_of_left_fill_pixels",
         "actual_count_of_right_fill_pixels",
         "actual_count_of_data_pixels",
         "palsar_auxiliary_data",
+        "data",
+    ]
+    translations = {
+        "sar_image_data_line_number": "rows",
     }
-    merge = compose_left(
-        curry(map, curry(keyfilter, lambda k: k not in format_metadata)),
-        curry(map, remove_nesting_layer),
-        curry(starcall, curry(merge_with, list)),
-        curry(keyfilter, lambda k: k not in ignored_fields and not k.startswith("blanks")),
-        curry(rename, translations=to_rename),
-    )
-    merged = merge(metadata)
-
-    # TODO split using known variable names instead?
-    # TODO: what about deduplicating known constant variables?
+    dtype_overrides = {
+        "sensor_acquisition_date": "datetime64[ns]",
+        "sensor_acquisition_date_microseconds": "datetime64[ns]",
+    }
     known_attrs = {
         "sar_image_data_record_index",
         "sensor_parameters_update_flag",
@@ -152,18 +105,18 @@ def metadata_to_groups(metadata):
         "transmitted_pulse_polarization",
         "received_pulse_polarization",
     }
-    raw_data, raw_attrs = itemsplit(lambda it: it[0] not in known_attrs, merged)
-
-    override_dtypes = {
-        "sensor_acquisition_date": "datetime64[ns]",
-        "sensor_acquisition_date_microseconds": "datetime64[ns]",
-    }
-
-    processed = to_hierarchical(raw_data, override_dtypes)
-
-    attrs = valmap(first, raw_attrs)
-
-    return Group(path="", url=None, data=processed, attrs=attrs)
+    merged = pipe(
+        metadata,
+        curry(starcall, curry(merge_with, list)),
+        curry(remove_spares),
+        curry(dissoc, ignored),
+        curry(valmap, compose_left(separate_attrs, curry(cons, "rows"), tuple)),
+        curry(deduplicate_attrs, known_attrs),
+        curry(apply_overrides, dtype_overrides),
+        curry(rename, translations=translations),
+        curry(as_group),
+    )
+    return merged
 
 
 dtypes = {
