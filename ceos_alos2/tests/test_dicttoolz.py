@@ -140,3 +140,21 @@ def test_move_items(instructions, expected):
 
     assert mapping == copied
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["key", "expected"],
+    (
+        pytest.param("a", True, id="flat-existing"),
+        pytest.param("z", False, id="flat-missing"),
+        pytest.param("b.c", True, id="nested_dot-existing"),
+        pytest.param("a.b", False, id="nested_dot-missing"),
+        pytest.param(["b", "d", "e"], True, id="nested_list-existing"),
+        pytest.param(["a", "b"], False, id="nested_list-missing"),
+    ),
+)
+def test_key_exists(key, expected):
+    mapping = {"a": 1, "b": {"c": 2, "d": {"e": 4}}}
+
+    actual = dicttoolz.key_exists(key, mapping)
+    assert actual == expected

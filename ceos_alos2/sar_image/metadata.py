@@ -2,11 +2,11 @@ import datetime as dt
 import math
 
 import numpy as np
-from tlz.dicttoolz import get_in, keyfilter, merge_with, valfilter, valmap
+from tlz.dicttoolz import keyfilter, merge_with, valfilter, valmap
 from tlz.functoolz import apply, compose_left, curry, juxt, pipe
 from tlz.itertoolz import cons, first, get, identity
 
-from ceos_alos2.dicttoolz import apply_to_items, dissoc, itemsplit
+from ceos_alos2.dicttoolz import apply_to_items, dissoc, itemsplit, key_exists
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.utils import remove_nesting_layer, rename, starcall
 
@@ -52,19 +52,6 @@ def extract_attrs(header):
         curry(rename, translations=translations),
         curry(valfilter, lambda v: not isinstance(v, list) or v),
     )
-
-
-def key_exists(mapping, key):
-    if "." in key:
-        key = key.split(".")
-    else:
-        key = [key]
-
-    sentinel = object()
-
-    value = get_in(key, mapping, default=sentinel)
-
-    return value is not sentinel
 
 
 def to_hierarchical(mapping, dtype_overrides={}):
@@ -116,7 +103,7 @@ def to_hierarchical(mapping, dtype_overrides={}):
     )
 
     # TODO: do we need to get this to work with subgroups?
-    filtered_overrides = keyfilter(curry(key_exists, mapping), dtype_overrides)
+    filtered_overrides = keyfilter(curry(key_exists, mapping=mapping), dtype_overrides)
     with_overrides = merge_with(tuple, mapping, filtered_overrides)
 
     return valmap(transform_entry, with_overrides)
