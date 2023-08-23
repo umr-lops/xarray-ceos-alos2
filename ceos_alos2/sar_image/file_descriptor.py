@@ -1,7 +1,7 @@
 from construct import Struct
 
 from ceos_alos2.common import record_preamble
-from ceos_alos2.datatypes import AsciiInteger, Metadata, PaddedString
+from ceos_alos2.datatypes import AsciiInteger, PaddedString
 
 file_descriptor_record = Struct(
     "preamble" / record_preamble,
@@ -74,13 +74,13 @@ file_descriptor_record = Struct(
         "sar_data_format_type_code" / PaddedString(4),
         "number_of_left_fill_bits_within_pixel" / AsciiInteger(4),
         "number_of_right_fill_bits_within_pixel" / AsciiInteger(4),
-        "maximum_data_range_of_pixel" / Metadata(AsciiInteger(8), start=0),
-        "number_of_burst_data" / Metadata(AsciiInteger(4), start=1),
-        "number_of_lines_per_burst" / Metadata(AsciiInteger(4), start=1),
+        "maximum_data_range_of_pixel" / AsciiInteger(8),
+        "number_of_burst_data" / AsciiInteger(4),
+        "number_of_lines_per_burst" / AsciiInteger(4),
     ),
     "scansar_burst_data_information"
     / Struct(
-        "number_of_overlap_lines_with_adjacent_bursts" / Metadata(AsciiInteger(4), start=0),
+        "number_of_overlap_lines_with_adjacent_bursts" / AsciiInteger(4),
         "blanks" / PaddedString(260),
     ),
 )

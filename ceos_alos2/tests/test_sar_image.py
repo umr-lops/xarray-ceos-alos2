@@ -95,3 +95,33 @@ class TestMetadata:
         actual = metadata.extract_shape(header)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["header", "expected"],
+        (
+            pytest.param({"preamble": {}}, {}, id="preamble"),
+            pytest.param(
+                {
+                    "interleaving_id": "BSQ",
+                    "number_of_burst_data": 5,
+                    "number_of_lines_per_burst": 1,
+                    "number_of_overlap_lines_with_adjacent_bursts": 3,
+                },
+                {
+                    "interleaving_id": "BSQ",
+                    "number_of_burst_data": 5,
+                    "number_of_lines_per_burst": 1,
+                    "number_of_overlap_lines_with_adjacent_bursts": 3,
+                },
+                id="known_attrs",
+            ),
+            pytest.param(
+                {"maximum_data_range_of_pixel": 27}, {"valid_range": [0, 27]}, id="transformed1"
+            ),
+            pytest.param({"maximum_data_range_of_pixel": float("nan")}, {}, id="transformed2"),
+        ),
+    )
+    def test_extract_attrs(self, header, expected):
+        actual = metadata.extract_attrs(header)
+
+        assert actual == expected

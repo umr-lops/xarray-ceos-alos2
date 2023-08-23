@@ -1,11 +1,12 @@
 import datetime as dt
+import math
 
 import numpy as np
-from tlz.dicttoolz import get_in, itemmap, keyfilter, merge_with, valmap
-from tlz.functoolz import apply, compose_left, curry, juxt
+from tlz.dicttoolz import get_in, keyfilter, merge_with, valfilter, valmap
+from tlz.functoolz import apply, compose_left, curry, juxt, pipe
 from tlz.itertoolz import cons, first, get, identity
 
-from ceos_alos2.dicttoolz import itemsplit
+from ceos_alos2.dicttoolz import apply_to_items, dissoc, itemsplit
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.utils import remove_nesting_layer, rename, starcall
 
@@ -27,6 +28,7 @@ def extract_attrs(header):
     # - burst data per file (level 1.1 specan)
     # - lines per burst (level 1.1 specan)
     # - overlap lines with adjacent bursts (level 1.1 specan)
+    ignored = ["preamble"]
     known_attrs = {
         "interleaving_id",
         "maximum_data_range_of_pixel",
@@ -34,16 +36,22 @@ def extract_attrs(header):
         "number_of_lines_per_burst",
         "number_of_overlap_lines_with_adjacent_bursts",
     }
-    translators = {
-        "maximum_data_range_of_pixel": lambda it: ("valid_range", [it[1][1]["start"], it[1][0]])
+    transformers = {
+        "maximum_data_range_of_pixel": lambda v: [0, v] if not math.isnan(v) else [],
     }
-    filter = compose_left(
-        curry(keyfilter, lambda k: k != "preamble"),
+    translations = {
+        "maximum_data_range_of_pixel": "valid_range",
+    }
+
+    return pipe(
+        header,
+        curry(dissoc, ignored),
         curry(remove_nesting_layer),
         curry(keyfilter, lambda k: k in known_attrs),
-        curry(itemmap, lambda it: translators.get(it[0], lambda it: it)(it)),
+        curry(apply_to_items, transformers),
+        curry(rename, translations=translations),
+        curry(valfilter, lambda v: not isinstance(v, list) or v),
     )
-    return filter(header)
 
 
 def key_exists(mapping, key):
