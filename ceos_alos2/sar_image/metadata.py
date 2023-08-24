@@ -81,6 +81,7 @@ def transform_line_metadata(metadata):
         "actual_count_of_left_fill_pixels",
         "actual_count_of_right_fill_pixels",
         "actual_count_of_data_pixels",
+        "alos2_frame_number",
         "palsar_auxiliary_data",
         "data",
     ]
