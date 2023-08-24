@@ -137,7 +137,6 @@ class TestMetadata:
         mapping = {"a": ("x", [1, 2], {}), "b": ("y", [1.0, 2.1], {})}
 
         applied = metadata.apply_overrides(overrides, mapping)
-        print(applied)
         actual = {k: v[1].dtype for k, v in applied.items() if hasattr(v[1], "dtype")}
 
         assert actual == overrides
