@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from construct import Int8ub, Int16ub, Seek, Struct, Tell, this
 
+from ceos_alos2 import sar_image
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import enums, io, metadata
 from ceos_alos2.testing import assert_identical
@@ -546,3 +547,17 @@ class TestIO:
 
         assert header == dummy_header
         assert metadata_ == expected
+
+
+class TestInit:
+    @pytest.mark.parametrize(
+        ["path", "expected"],
+        (
+            ("IMG-HH-ALOS2225333100-180726-WWDR1.1__D-B3", "HH_scan3"),
+            ("IMG-HV-ALOS2290760600-191011-WWDR1.5RUA", "HV"),
+        ),
+    )
+    def test_filename_to_groupname(self, path, expected):
+        actual = sar_image.filename_to_groupname(path)
+
+        assert actual == expected
