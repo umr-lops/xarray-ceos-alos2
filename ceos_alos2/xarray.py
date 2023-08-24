@@ -47,8 +47,8 @@ def extract_encoding(var):
 def to_variable(var):
     # only need a read lock, we don't support writing
     # TODO: do we even need the lock?
-    lock = SerializableLock()
     if isinstance(var.data, Array):
+        lock = SerializableLock()
         data = indexing.LazilyIndexedArray(LazilyIndexedWrapper(var.data, lock))
     else:
         data = var.data
