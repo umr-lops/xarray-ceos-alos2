@@ -15,5 +15,7 @@ dependencies:
   - fsspec
   - xarray
   - xarray-datatree
+  - dask
+  - distributed
   - aiohttp
   - requests
