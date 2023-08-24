@@ -84,3 +84,18 @@ def test_decode_coords(ds, expected):
     actual = xarray.decode_coords(ds)
 
     xr.testing.assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ["var", "expected"],
+    (
+        pytest.param(Variable("x", np.array([1, 2], dtype="int8"), {"a": 1}), True, id="in_memory"),
+        pytest.param(Variable(["x", "y"], create_dummy_array(), {"b": 3}), False, id="lazy"),
+    ),
+)
+def test_to_variable(var, expected):
+    actual = xarray.to_variable(var)
+
+    assert actual._in_memory == expected
+    assert tuple(var.dims) == actual.dims
+    assert var.attrs == actual.attrs
