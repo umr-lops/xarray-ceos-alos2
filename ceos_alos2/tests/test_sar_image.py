@@ -1,4 +1,5 @@
 import datetime as dt
+from dataclasses import dataclass
 
 import numpy as np
 import pytest
@@ -6,6 +7,18 @@ import pytest
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import enums, io, metadata
 from ceos_alos2.testing import assert_identical
+
+
+@dataclass
+class Data:
+    start: int
+    stop: int
+
+
+@dataclass
+class Record:
+    record_start: int
+    data: Data
 
 
 class TestEnums:
@@ -432,4 +445,24 @@ class TestIO:
             return
 
         actual = to_dict(io.parse_chunk(content, element_size))
+        assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["records", "offset", "expected"],
+        (
+            pytest.param(
+                [Record(1, Data(4, 6)), Record(6, Data(9, 11))],
+                12,
+                [Record(13, Data(16, 18)), Record(18, Data(21, 23))],
+            ),
+            pytest.param(
+                [Record(3, Data(5, 9)), Record(9, Data(11, 15)), Record(15, Data(17, 21))],
+                3,
+                [Record(6, Data(8, 12)), Record(12, Data(14, 18)), Record(18, Data(20, 24))],
+            ),
+        ),
+    )
+    def test_adjust_offsets(self, records, offset, expected):
+        actual = io.adjust_offsets(records, offset)
+
         assert actual == expected
