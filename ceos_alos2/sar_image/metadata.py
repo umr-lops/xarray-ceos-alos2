@@ -74,7 +74,7 @@ def deduplicate_attrs(known, mapping):
     return variables | valmap(compose_left(second, first), attrs)
 
 
-def metadata_to_groups(metadata):
+def transform_line_metadata(metadata):
     ignored = [
         "preamble",
         "record_start",
@@ -135,7 +135,7 @@ def transform_metadata(header, metadata):
         raise ValueError(f"unknown type code: {type_code}")
 
     header_attrs = extract_attrs(header)
-    group = metadata_to_groups(metadata)
+    group = transform_line_metadata(metadata)
     group.attrs |= header_attrs | {"coordinates": list(group.variables)}
 
     array_metadata = {
