@@ -1,6 +1,11 @@
+import datetime as dt
+
+import numpy as np
 import pytest
 
+from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import enums, metadata
+from ceos_alos2.testing import assert_identical
 
 
 class TestEnums:
@@ -155,3 +160,71 @@ class TestMetadata:
         actual = metadata.deduplicate_attrs(known, mapping)
 
         assert actual == expected
+
+    @pytest.mark.parametrize(
+        ["mapping", "expected"],
+        (
+            pytest.param(
+                [
+                    {
+                        "preamble": {},
+                        "record_start": 1,
+                        "actual_count_of_left_fill_pixels": 0,
+                        "actual_count_of_right_fill_pixels": 0,
+                        "actual_count_of_data_pixels": 0,
+                        "palsar_auxiliary_data": b"",
+                        "blanks2": "",
+                        "data": {},
+                    }
+                ],
+                Group(path=None, url=None, data={}, attrs={}),
+                id="ignored",
+            ),
+            pytest.param(
+                [{"a": (1, {"units": "m"})}, {"a": (2, {"units": "m"})}],
+                Group(
+                    path=None,
+                    url=None,
+                    data={"a": Variable("rows", [1, 2], {"units": "m"})},
+                    attrs={},
+                ),
+                id="variables_transformed",
+            ),
+            pytest.param(
+                [{"scan_id": 1}, {"scan_id": 1}],
+                Group(path=None, url=None, data={}, attrs={"scan_id": 1}),
+                id="deduplicated_attrs",
+            ),
+            pytest.param(
+                [
+                    {"sensor_acquisition_date": dt.datetime(2020, 10, 1, 12, 37, 42, 451000)},
+                    {"sensor_acquisition_date": dt.datetime(2020, 10, 2, 12, 37, 42, 451000)},
+                ],
+                Group(
+                    path=None,
+                    url=None,
+                    data={
+                        "sensor_acquisition_date": Variable(
+                            "rows",
+                            np.array(
+                                ["2020-10-01 12:37:42.451", "2020-10-02 12:37:42.451"],
+                                dtype="datetime64[ns]",
+                            ),
+                            {},
+                        )
+                    },
+                    attrs={},
+                ),
+                id="dtype_overrides",
+            ),
+            pytest.param(
+                [{"sar_image_data_line_number": 1}, {"sar_image_data_line_number": 2}],
+                Group(path=None, url=None, data={"rows": Variable("rows", [1, 2], {})}, attrs={}),
+                id="renamed",
+            ),
+        ),
+    )
+    def test_transform_line_metadata(self, mapping, expected):
+        actual = metadata.transform_line_metadata(mapping)
+
+        assert_identical(actual, expected)
