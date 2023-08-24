@@ -228,3 +228,104 @@ class TestMetadata:
         actual = metadata.transform_line_metadata(mapping)
 
         assert_identical(actual, expected)
+
+    @pytest.mark.parametrize(
+        ["header", "mapping", "expected_group", "expected_attrs"],
+        (
+            pytest.param(
+                {
+                    "prefix_suffix_data_locators": {"sar_data_format_type_code": "IU2"},
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 2,
+                        "number_of_data_groups_per_line": 4,
+                    },
+                },
+                [{"data": {"start": 1, "stop": 5}}, {"data": {"start": 6, "stop": 10}}],
+                Group(path=None, url=None, data={}, attrs={"coordinates": []}),
+                {
+                    "byte_ranges": [(1, 5), (6, 10)],
+                    "type_code": "IU2",
+                    "shape": (2, 4),
+                    "dtype": "uint16",
+                },
+                id="array_metadata1",
+            ),
+            pytest.param(
+                {
+                    "prefix_suffix_data_locators": {"sar_data_format_type_code": "C*8"},
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 6,
+                        "number_of_data_groups_per_line": 3,
+                    },
+                },
+                [{"data": {"start": 5, "stop": 21}}, {"data": {"start": 25, "stop": 41}}],
+                Group(path=None, url=None, data={}, attrs={"coordinates": []}),
+                {
+                    "byte_ranges": [(5, 21), (25, 41)],
+                    "type_code": "C*8",
+                    "shape": (6, 3),
+                    "dtype": "complex64",
+                },
+                id="array_metadata2",
+            ),
+            pytest.param(
+                {
+                    "prefix_suffix_data_locators": {"sar_data_format_type_code": "F*4"},
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 6,
+                        "number_of_data_groups_per_line": 3,
+                    },
+                },
+                [],
+                ValueError("unknown type code"),
+                {},
+                id="array_metadata3",
+            ),
+            pytest.param(
+                {
+                    "prefix_suffix_data_locators": {"sar_data_format_type_code": "C*8"},
+                    "sar_related_data_in_the_record": {
+                        "number_of_lines_per_dataset": 6,
+                        "number_of_data_groups_per_line": 3,
+                    },
+                },
+                [
+                    {
+                        "scan_id": 1,
+                        "sar_image_data_line_number": 1,
+                        "data": {"start": 5, "stop": 21},
+                    },
+                    {
+                        "scan_id": 1,
+                        "sar_image_data_line_number": 2,
+                        "data": {"start": 25, "stop": 41},
+                    },
+                ],
+                Group(
+                    path=None,
+                    url=None,
+                    data={"rows": Variable("rows", [1, 2], {})},
+                    attrs={"coordinates": ["rows"], "scan_id": 1},
+                ),
+                {
+                    "byte_ranges": [(5, 21), (25, 41)],
+                    "type_code": "C*8",
+                    "shape": (6, 3),
+                    "dtype": "complex64",
+                },
+                id="line_metadata",
+            ),
+        ),
+    )
+    def test_transform_metadata(self, header, mapping, expected_group, expected_attrs):
+        if isinstance(expected_group, Exception):
+            exc = expected_group
+            with pytest.raises(type(exc), match=exc.args[0]):
+                metadata.transform_metadata(header, mapping)
+
+            return
+
+        actual_group, actual_attrs = metadata.transform_metadata(header, mapping)
+
+        assert actual_attrs == expected_attrs
+        assert_identical(actual_group, expected_group)
