@@ -138,7 +138,7 @@ def decode_scan_info(scan_info):
 
 def decode_filename(fname):
     match = fname_re.fullmatch(fname)
-    if fname is None:
+    if match is None:
         raise ValueError(f"invalid file name: {fname}")
 
     parts = match.groupdict()
