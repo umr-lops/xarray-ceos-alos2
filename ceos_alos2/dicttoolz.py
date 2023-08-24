@@ -67,3 +67,13 @@ def move_items(instructions, mapping):
         subset.pop(tail, None)
 
     return copied
+
+
+def key_exists(key, mapping):
+    if "." in key:
+        key = key.split(".")
+    elif not isinstance(key, list):
+        key = [key]
+
+    value = get_in(key, mapping, default=sentinel)
+    return value is not sentinel
