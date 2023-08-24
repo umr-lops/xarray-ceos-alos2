@@ -141,3 +141,18 @@ class TestMetadata:
         actual = {k: v[1].dtype for k, v in applied.items() if hasattr(v[1], "dtype")}
 
         assert actual == overrides
+
+    @pytest.mark.parametrize(
+        ["known", "expected"],
+        (
+            (["b"], {"a": 1, "c": ("y", [2, 2], {}), "b": 1}),
+            (["c"], {"a": 1, "b": ("x", [1, 1], {}), "c": 2}),
+            (["b", "c"], {"a": 1, "b": 1, "c": 2}),
+        ),
+    )
+    def test_deduplicate_attrs(self, known, expected):
+        mapping = {"a": 1, "b": ("x", [1, 1], {}), "c": ("y", [2, 2], {})}
+
+        actual = metadata.deduplicate_attrs(known, mapping)
+
+        assert actual == expected
