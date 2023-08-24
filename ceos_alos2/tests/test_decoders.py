@@ -36,7 +36,7 @@ from ceos_alos2 import decoders
     ),
 )
 def test_decode_scene_id(scene_id, expected):
-    if issubclass(type(expected), Exception):
+    if isinstance(expected, Exception):
         with pytest.raises(type(expected), match=expected.args[0]):
             decoders.decode_scene_id(scene_id)
 
@@ -99,7 +99,7 @@ def test_decode_scene_id(scene_id, expected):
     ),
 )
 def test_decode_product_id(product_id, expected):
-    if issubclass(type(expected), Exception):
+    if isinstance(expected, Exception):
         with pytest.raises(type(expected), match=expected.args[0]):
             decoders.decode_product_id(product_id)
 
@@ -123,7 +123,7 @@ def test_decode_product_id(product_id, expected):
     ),
 )
 def test_decode_scan_info(scan_info, expected):
-    if issubclass(type(expected), Exception):
+    if isinstance(expected, Exception):
         with pytest.raises(type(expected), match=expected.args[0]):
             decoders.decode_scan_info(scan_info)
 
