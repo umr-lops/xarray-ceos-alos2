@@ -44,11 +44,15 @@ def adjust_offsets(records, offset):
     return [_adjust_offset(record, offset) for record in records]
 
 
-def read_metadata(f, records_per_chunk=1024):
-    header = file_descriptor_record.parse(f.read(720))
+def read_file_descriptor(f):
+    return file_descriptor_record.parse(f.read(720))
 
-    n_records = header.number_of_sar_data_records
-    record_size = header.sar_data_record_length
+
+def read_metadata(f, records_per_chunk=1024):
+    header = read_file_descriptor(f)
+
+    n_records = header["number_of_sar_data_records"]
+    record_size = header["sar_data_record_length"]
 
     n_chunks = math.ceil(n_records / records_per_chunk)
     chunksizes = [

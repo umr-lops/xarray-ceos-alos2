@@ -1,8 +1,10 @@
 import datetime as dt
 from dataclasses import dataclass
 
+import fsspec
 import numpy as np
 import pytest
+from construct import Int8ub, Int16ub, Seek, Struct, Tell, this
 
 from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.sar_image import enums, io, metadata
@@ -19,6 +21,12 @@ class Data:
 class Record:
     record_start: int
     data: Data
+
+
+dummy_record_types = {
+    10: Struct("preamble" / io.record_preamble, "a" / Int8ub, "b" / Int8ub, "c" / Int16ub),
+    11: Struct("preamble" / io.record_preamble, "x" / Int8ub, "y" / Int8ub),
+}
 
 
 class TestEnums:
@@ -428,14 +436,8 @@ class TestIO:
         ),
     )
     def test_parse_chunk(self, monkeypatch, content, element_size, expected):
-        from construct import Int8ub, Int16ub, Struct
-
         from ceos_alos2.utils import to_dict
 
-        dummy_record_types = {
-            10: Struct("preamble" / io.record_preamble, "a" / Int8ub, "b" / Int8ub, "c" / Int16ub),
-            11: Struct("preamble" / io.record_preamble, "x" / Int8ub, "y" / Int8ub),
-        }
         monkeypatch.setattr(io, "record_types", dummy_record_types)
 
         if isinstance(expected, Exception):
@@ -466,3 +468,81 @@ class TestIO:
         actual = io.adjust_offsets(records, offset)
 
         assert actual == expected
+
+    @pytest.mark.parametrize("rpc", [1, 2])
+    def test_read_metadata(self, monkeypatch, rpc):
+        dummy_header = {"number_of_sar_data_records": 3, "sar_data_record_length": 17}
+        content = (
+            b"\x03\x0E"
+            + b"\x00\x00\x00\x01\x00\x0B\x00\x00\x00\x00\x00\x11\x03\x00\x00\x00\x00"
+            + b"\x00\x00\x00\x02\x00\x0B\x00\x00\x00\x00\x00\x11\x04\x00\x00\x00\x00"
+            + b"\x00\x00\x00\x03\x00\x0B\x00\x00\x00\x00\x00\x11\x05\x00\x00\x00\x00"
+        )
+        print(len(content))
+        dummy_record_types = {
+            11: Struct(
+                "preamble" / io.record_preamble,
+                "record_start" / Tell,
+                "a" / Int8ub,
+                "data" / Struct("start" / Tell, "stop" / Seek(this.start + 4)),
+            ),
+        }
+
+        expected = [
+            {
+                "preamble": {
+                    "record_sequence_number": 1,
+                    "first_record_subtype": 0,
+                    "record_type": 11,
+                    "second_record_subtype": 0,
+                    "third_record_subtype": 0,
+                    "record_length": 17,
+                },
+                "record_start": 732,
+                "a": 3,
+                "data": {"start": 733, "stop": 737},
+            },
+            {
+                "preamble": {
+                    "record_sequence_number": 2,
+                    "first_record_subtype": 0,
+                    "record_type": 11,
+                    "second_record_subtype": 0,
+                    "third_record_subtype": 0,
+                    "record_length": 17,
+                },
+                "record_start": 749,
+                "a": 4,
+                "data": {"start": 750, "stop": 754},
+            },
+            {
+                "preamble": {
+                    "record_sequence_number": 3,
+                    "first_record_subtype": 0,
+                    "record_type": 11,
+                    "second_record_subtype": 0,
+                    "third_record_subtype": 0,
+                    "record_length": 17,
+                },
+                "record_start": 766,
+                "a": 5,
+                "data": {"start": 767, "stop": 771},
+            },
+        ]
+
+        mapper = fsspec.get_mapper("memory://")
+        mapper["path"] = content
+
+        def dummy_read_file_descriptor(f):
+            f.read(2)
+
+            return dummy_header
+
+        monkeypatch.setattr(io, "read_file_descriptor", dummy_read_file_descriptor)
+        monkeypatch.setattr(io, "record_types", dummy_record_types)
+
+        with mapper.fs.open("path", mode="rb") as f:
+            header, metadata_ = io.read_metadata(f, records_per_chunk=rpc)
+
+        assert header == dummy_header
+        assert metadata_ == expected
