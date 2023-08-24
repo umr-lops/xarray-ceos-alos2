@@ -4,7 +4,7 @@ import xarray as xr
 from xarray.core.indexing import BasicIndexer, VectorizedIndexer
 
 from ceos_alos2 import xarray
-from ceos_alos2.hierarchy import Variable
+from ceos_alos2.hierarchy import Group, Variable
 from ceos_alos2.tests.utils import create_dummy_array
 
 
@@ -99,3 +99,54 @@ def test_to_variable(var, expected):
     assert actual._in_memory == expected
     assert tuple(var.dims) == actual.dims
     assert var.attrs == actual.attrs
+
+
+@pytest.mark.parametrize("chunks", [None, {}, {"x": 1, "y": 2}])
+@pytest.mark.parametrize(
+    ["group", "expected"],
+    (
+        pytest.param(
+            Group(path=None, url=None, data={}, attrs={"a": 1, "b": 2, "c": 3}),
+            xr.Dataset(attrs={"a": 1, "b": 2, "c": 3}),
+            id="attrs",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={
+                    "a": Variable("x", np.array([1, 2, 3], dtype="int8"), {"a": 1}),
+                    "b": Variable(["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"}),
+                },
+                attrs={},
+            ),
+            xr.Dataset(
+                {
+                    "a": ("x", np.array([1, 2, 3], dtype="int8"), {"a": 1}),
+                    "b": (["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"}),
+                }
+            ),
+            id="variables",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={
+                    "c": Variable("x", np.array([1, 2, 3], dtype="int8"), {"a": 1}),
+                    "d": Variable(["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"}),
+                },
+                attrs={"coordinates": ["d"]},
+            ),
+            xr.Dataset(
+                {"c": ("x", np.array([1, 2, 3], dtype="int8"), {"a": 1})},
+                coords={"d": (["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"})},
+            ),
+            id="coords",
+        ),
+    ),
+)
+def test_to_dataset(group, chunks, expected):
+    actual = xarray.to_dataset(group, chunks=chunks)
+
+    xr.testing.assert_identical(actual, expected)
