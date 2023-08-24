@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from ceos_alos2.hierarchy import Group, Variable
-from ceos_alos2.sar_image import enums, metadata
+from ceos_alos2.sar_image import enums, io, metadata
 from ceos_alos2.testing import assert_identical
 
 
@@ -329,3 +329,107 @@ class TestMetadata:
 
         assert actual_attrs == expected_attrs
         assert_identical(actual_group, expected_group)
+
+
+class TestIO:
+    @pytest.mark.parametrize(
+        ["content", "element_size", "expected"],
+        (
+            pytest.param(b"\x00\x00\x00", 2, ValueError("sizes mismatch"), id="wrong_element_size"),
+            pytest.param(
+                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+                2,
+                ValueError("unknown record type code"),
+                id="unkown_record_type",
+            ),
+            pytest.param(
+                (
+                    b"\x00\x00\x00\x01\x00\x0A\x00\x00\x00\x00\x00\x10\x02\x03\x00\x1F"
+                    + b"\x00\x00\x00\x02\x00\x0A\x00\x00\x00\x00\x00\x10\x04\x05\x00\x2F"
+                ),
+                16,
+                [
+                    {
+                        "preamble": {
+                            "record_sequence_number": 1,
+                            "first_record_subtype": 0,
+                            "record_type": 10,
+                            "second_record_subtype": 0,
+                            "third_record_subtype": 0,
+                            "record_length": 16,
+                        },
+                        "a": 2,
+                        "b": 3,
+                        "c": 31,
+                    },
+                    {
+                        "preamble": {
+                            "record_sequence_number": 2,
+                            "first_record_subtype": 0,
+                            "record_type": 10,
+                            "second_record_subtype": 0,
+                            "third_record_subtype": 0,
+                            "record_length": 16,
+                        },
+                        "a": 4,
+                        "b": 5,
+                        "c": 47,
+                    },
+                ],
+                id="signal-2elem",
+            ),
+            pytest.param(
+                (
+                    b"\x00\x00\x00\x01\x00\x0B\x00\x00\x00\x00\x00\x0E\x03\x04"
+                    + b"\x00\x00\x00\x02\x00\x0B\x00\x00\x00\x00\x00\x0E\x04\x05"
+                ),
+                14,
+                [
+                    {
+                        "preamble": {
+                            "record_sequence_number": 1,
+                            "first_record_subtype": 0,
+                            "record_type": 11,
+                            "second_record_subtype": 0,
+                            "third_record_subtype": 0,
+                            "record_length": 14,
+                        },
+                        "x": 3,
+                        "y": 4,
+                    },
+                    {
+                        "preamble": {
+                            "record_sequence_number": 2,
+                            "first_record_subtype": 0,
+                            "record_type": 11,
+                            "second_record_subtype": 0,
+                            "third_record_subtype": 0,
+                            "record_length": 14,
+                        },
+                        "x": 4,
+                        "y": 5,
+                    },
+                ],
+                id="processed-2elem",
+            ),
+        ),
+    )
+    def test_parse_chunk(self, monkeypatch, content, element_size, expected):
+        from construct import Int8ub, Int16ub, Struct
+
+        from ceos_alos2.utils import to_dict
+
+        dummy_record_types = {
+            10: Struct("preamble" / io.record_preamble, "a" / Int8ub, "b" / Int8ub, "c" / Int16ub),
+            11: Struct("preamble" / io.record_preamble, "x" / Int8ub, "y" / Int8ub),
+        }
+        monkeypatch.setattr(io, "record_types", dummy_record_types)
+
+        if isinstance(expected, Exception):
+            with pytest.raises(type(expected), match=expected.args[0]):
+                io.parse_chunk(content, element_size)
+
+            return
+
+        actual = to_dict(io.parse_chunk(content, element_size))
+        assert actual == expected
