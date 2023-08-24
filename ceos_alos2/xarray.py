@@ -81,10 +81,10 @@ def to_dataset(group, chunks=None):
 
 
 def to_datatree(group, chunks=None):
-    root = datatree.DataTree(data=to_dataset(group, chunks=chunks))
-    for name, subgroup in group.groups.items():
-        root[name] = to_datatree(subgroup, chunks=chunks)
-    return root
+    mapping = {"/": to_dataset(group, chunks=chunks)} | {
+        path: to_dataset(subgroup, chunks=chunks) for path, subgroup in group.subtree
+    }
+    return datatree.DataTree.from_dict(mapping)
 
 
 def open_alos2(path, chunks=None, storage_options={}, backend_options={}):
