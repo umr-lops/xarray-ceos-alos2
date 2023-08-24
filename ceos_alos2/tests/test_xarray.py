@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import xarray as xr
 
 from ceos_alos2 import xarray
 from ceos_alos2.hierarchy import Variable
@@ -26,3 +27,27 @@ def test_extract_encoding(var, expected):
     actual = xarray.extract_encoding(var)
 
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ["ds", "expected"],
+    (
+        (xr.Dataset({"a": 1, "b": 2}, attrs={}), xr.Dataset({"a": 1, "b": 2}, attrs={})),
+        (
+            xr.Dataset({"a": 1, "b": 2}, attrs={"coordinates": ["a"]}),
+            xr.Dataset({"b": 2}, coords={"a": 1}, attrs={}),
+        ),
+        (
+            xr.Dataset({"a": 1, "b": 2}, attrs={"coordinates": ["b"]}),
+            xr.Dataset({"a": 1}, coords={"b": 2}, attrs={}),
+        ),
+        (
+            xr.Dataset({"a": 1, "b": 2}, attrs={"coordinates": ["a", "b"]}),
+            xr.Dataset({}, coords={"a": 1, "b": 2}, attrs={}),
+        ),
+    ),
+)
+def test_decode_coords(ds, expected):
+    actual = xarray.decode_coords(ds)
+
+    xr.testing.assert_identical(actual, expected)
