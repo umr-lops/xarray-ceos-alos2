@@ -3,7 +3,6 @@ import math
 
 from tlz.itertoolz import concat
 
-from ceos_alos2.array import Array
 from ceos_alos2.common import record_preamble
 from ceos_alos2.sar_image.file_descriptor import file_descriptor_record
 from ceos_alos2.sar_image.processed_data import processed_data_record
@@ -14,18 +13,6 @@ record_types = {
     10: signal_data_record,
     11: processed_data_record,
 }
-
-
-def create_array(fs, path, byte_ranges, shape, dtype, type_code, records_per_chunk):
-    return Array(
-        fs=fs,
-        url=path,
-        byte_ranges=byte_ranges,
-        shape=shape,
-        dtype=dtype,
-        type_code=type_code,
-        records_per_chunk=records_per_chunk,
-    )
 
 
 def parse_chunk(content, element_size):

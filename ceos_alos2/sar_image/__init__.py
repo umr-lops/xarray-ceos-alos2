@@ -1,8 +1,9 @@
+from ceos_alos2.array import Array
 from ceos_alos2.decoders import decode_filename
 from ceos_alos2.hierarchy import Variable
 from ceos_alos2.sar_image import caching
 from ceos_alos2.sar_image.caching import CachingError
-from ceos_alos2.sar_image.io import create_array, read_metadata
+from ceos_alos2.sar_image.io import read_metadata
 from ceos_alos2.sar_image.metadata import transform_metadata
 
 
@@ -35,7 +36,7 @@ def open_image(mapper, path, *, use_cache=True, create_cache=False, records_per_
 
     group["data"] = Variable(
         dims=["rows", "columns"],
-        data=create_array(fs=fs, path=path, records_per_chunk=records_per_chunk, **array_metadata),
+        data=Array(fs=fs, path=path, records_per_chunk=records_per_chunk, **array_metadata),
         attrs={},
     )
     group.path = filename_to_groupname(path)
