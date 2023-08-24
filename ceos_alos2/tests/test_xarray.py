@@ -1,3 +1,5 @@
+import datatree
+import datatree.testing
 import numpy as np
 import pytest
 import xarray as xr
@@ -150,3 +152,58 @@ def test_to_dataset(group, chunks, expected):
     actual = xarray.to_dataset(group, chunks=chunks)
 
     xr.testing.assert_identical(actual, expected)
+
+
+@pytest.mark.parametrize("chunks", [None, {}, {"x": 1, "y": 2}])
+@pytest.mark.parametrize(
+    ["group", "expected"],
+    (
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={
+                    "c": Variable("x", np.array([1, 2, 3], dtype="int8"), {"a": 1}),
+                    "d": Variable(["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"}),
+                },
+                attrs={"coordinates": ["d"]},
+            ),
+            datatree.DataTree.from_dict(
+                {
+                    "/": xr.Dataset(
+                        {"c": ("x", [1, 2, 3], {"a": 1})},
+                        coords={"d": (["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"})},
+                    )
+                }
+            ),
+            id="flat",
+        ),
+        pytest.param(
+            Group(
+                path=None,
+                url=None,
+                data={
+                    "c": Variable("x", np.array([1, 2, 3], dtype="int8"), {"a": 1}),
+                    "d": Group(
+                        path=None,
+                        url=None,
+                        data={"e": Variable(["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"})},
+                        attrs={},
+                    ),
+                },
+                attrs={},
+            ),
+            datatree.DataTree.from_dict(
+                {
+                    "/": xr.Dataset({"c": ("x", [1, 2, 3], {"a": 1})}),
+                    "d": xr.Dataset({"e": (["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"})}),
+                }
+            ),
+            id="nested",
+        ),
+    ),
+)
+def test_to_datatree(group, chunks, expected):
+    actual = xarray.to_datatree(group, chunks=chunks)
+
+    datatree.testing.assert_identical(actual, expected)
