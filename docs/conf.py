@@ -1,7 +1,7 @@
 # -- Project information -----------------------------------------------------
 import datetime as dt
 
-project = "xarray-alos2"
+project = "xarray-ceos-alos2"
 author = f"{project} developers"
 initial_year = "2023"
 year = dt.datetime.now().year
