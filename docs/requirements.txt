@@ -10,3 +10,4 @@ construct
 fsspec
 xarray
 xarray-datatree
+platformdirs
