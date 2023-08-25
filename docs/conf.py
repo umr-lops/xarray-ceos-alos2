@@ -1,7 +1,7 @@
 # -- Project information -----------------------------------------------------
 import datetime as dt
 
-project = "xarray-alos2"
+project = "xarray-ceos-alos2"
 author = f"{project} developers"
 initial_year = "2023"
 year = dt.datetime.now().year
@@ -16,8 +16,12 @@ root_doc = "index"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "myst_parser",
     "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
     "IPython.sphinxext.ipython_directive",
     "IPython.sphinxext.ipython_console_highlighting",
 ]
@@ -53,4 +57,22 @@ html_theme = "sphinx_book_theme"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/stable/", None),
+    "xarray": ("https://docs.xarray.dev/en/latest/", None),
+    "datatree": ("https://xarray-datatree.readthedocs.io/en/latest/", None),
 }
+
+
+# -- Options for the autosummary extension -----------------------------------
+
+autosummary_generate = True
+autodoc_typehints = "none"
+napoleon_use_param = False
+napoleon_use_rtype = True
+
+napoleon_preprocess_types = True
+napoleon_type_aliases = {}
+
+
+# -- Options for the myst-parser extension -----------------------------------
+
+myst_enable_extensions = ["colon_fence"]

@@ -87,7 +87,37 @@ def to_datatree(group, chunks=None):
     return datatree.DataTree.from_dict(mapping)
 
 
-def open_alos2(path, chunks=None, storage_options={}, backend_options={}):
-    root = io.open(path, storage_options=storage_options, **backend_options)
+def open_alos2(path, chunks=None, backend_options={}):
+    """Open CEOS ALOS2 datasets
+
+    Parameters
+    ----------
+    path : str
+        Path or URL to the dataset.
+    chunks : int, dict, "auto" or None, optional
+        If chunks is provided, it is used to load the new dataset into dask
+        arrays. ``chunks=-1`` loads the dataset with dask using a single chunk
+        for all arrays. ``chunks={}`` loads the dataset with dask using engine
+        preferred chunks if exposed by the backend, otherwise with a single
+        chunk for all arrays. ``chunks='auto'`` will use dask ``auto`` chunking
+        taking into account the engine preferred chunks. See dask chunking for
+        more details.
+    backend_options : dict, optional
+        Additional keyword arguments passed on to the low-level open function:
+
+        - 'storage_options': Additional arguments for `fsspec.get_mapper`
+        - 'use_cache': Make use of image cache files, if they exist. Default: True
+        - 'create_cache': Create a local cache file after reading the image
+          metadata. Default: False
+        - 'records_per_chunk': The image metadata is stored line by line. In order to
+          avoid sending potentially thousands of requests, read this many lines
+          at once. Default: 1024
+
+    Returns
+    -------
+    tree : datatree.DataTree
+        The newly created datatree.
+    """
+    root = io.open(path, **backend_options)
 
     return to_datatree(root, chunks=chunks)

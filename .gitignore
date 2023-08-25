@@ -19,3 +19,5 @@ __pycache__/
 .coverage.*
 .cache
 /docs/_build/
+/docs/generated/
+/docs/warnings.log
