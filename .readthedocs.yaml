@@ -11,7 +11,7 @@ build:
     pre_install:
       - git update-index --assume-unchanged docs/conf.py
     pre_build:
-      - python -c 'import ceos_alos2'
+      - python -c "import ceos_alos2"
 
 python:
   install:
