@@ -4,6 +4,14 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.10"
+  jobs:
+    post_checkout:
+      - (git --no-pager log --pretty="tformat:%s" -1 | grep -vqF "[skip-rtd]") || exit 183
+      - git fetch --unshallow || true
+    pre_install:
+      - git update-index --assume-unchanged docs/conf.py
+    pre_build:
+      - python -c 'import ceos_alos2'
 
 python:
   install:
