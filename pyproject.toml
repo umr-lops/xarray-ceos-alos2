@@ -18,6 +18,9 @@ dynamic = ["version"]
 [project.urls]
 repository = "https://github.com/umr-lops/xarray-ceos-alos2"
 
+[project.scripts]
+ceos-alos2-create-cache = "ceos_alos2.sar_image.cli:main"
+
 [build-system]
 requires = ["setuptools>=64.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
