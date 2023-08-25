@@ -1,5 +1,12 @@
-# -- Project information -----------------------------------------------------
 import datetime as dt
+import subprocess
+
+# -- System information ------------------------------------------------------
+
+subprocess.run(["pip", "list"])
+
+
+# -- Project information -----------------------------------------------------
 
 project = "xarray-ceos-alos2"
 author = f"{project} developers"
