@@ -1,3 +1,12 @@
-sphinx>=4
-sphinx_book_theme
+sphinx>=6
+sphinx_book_theme>=0.3
+myst-parser
 ipython
+numpy
+toolz
+cytoolz
+python-dateutil
+construct
+fsspec
+xarray
+xarray-datatree
