@@ -9,6 +9,7 @@ dependencies = [
   "python-dateutil",
   "xarray",
   "xarray-datatree",
+  "numpy",
   "construct>=2.10",
   "fsspec",
   "exceptiongroup; python_version < '3.11'",
