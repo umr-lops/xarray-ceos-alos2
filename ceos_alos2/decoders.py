@@ -3,7 +3,7 @@ import re
 import dateutil.parser
 from tlz.dicttoolz import merge
 from tlz.functoolz import curry
-from tlz.itertoolz import identity as passthrough
+from tlz.functoolz import identity as passthrough
 
 from ceos_alos2.dicttoolz import valsplit
 

@@ -1,7 +1,7 @@
 import copy
 
 import pytest
-from tlz.itertoolz import identity
+from tlz.functoolz import identity
 
 from ceos_alos2 import dicttoolz
 

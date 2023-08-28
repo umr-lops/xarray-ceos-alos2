@@ -2,8 +2,8 @@ import copy
 
 from tlz.dicttoolz import assoc as assoc_
 from tlz.dicttoolz import assoc_in, get_in, keyfilter
+from tlz.functoolz import identity as passthrough
 from tlz.itertoolz import concat, groupby
-from tlz.itertoolz import identity as passthrough
 
 from ceos_alos2.utils import unique
 
