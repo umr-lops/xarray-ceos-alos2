@@ -25,7 +25,6 @@ repos:
     rev: 23.7.0
     hooks:
       - id: black
-      - id: black-jupyter
   - repo: https://github.com/keewis/blackdoc
     rev: v0.3.8
     hooks:
