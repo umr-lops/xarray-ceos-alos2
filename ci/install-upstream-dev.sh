@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-conda remove -y --force cytoolz numpy xarray construct toolz xarray-datatree fsspec python-dateutil
+conda remove -y --force cytoolz numpy xarray construct toolz xarray-datatree fsspec python-dateutil pandas
 python -m pip install \
-  -i https://pypi.anaconda.org/scientific-python-nightly-wheels \
+  -i https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
   --no-deps \
   --pre \
   --upgrade \
   numpy \
+  pandas \
   xarray
 python -m pip install --upgrade \
   git+https://github.com/construct/construct \
