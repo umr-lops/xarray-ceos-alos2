@@ -14,6 +14,16 @@ dependencies = [
   "fsspec",
   "exceptiongroup; python_version < '3.11'",
 ]
+keywords = [
+  "xarray",
+  "earth-observation",
+  "remote-sensing",
+  "satellite-imagery",
+  "ceos",
+  "alos2",
+  "sar",
+  "synthetic-aperture-radar",
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "License :: OSI Approved :: MIT License",
