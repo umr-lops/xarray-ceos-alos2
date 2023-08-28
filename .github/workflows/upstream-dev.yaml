@@ -1,4 +1,4 @@
-name: Nightly CI
+name: upstream-dev CI
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 0 * * *" # Daily "At 00:00" UTC
+    - cron: "0 18 * * sun" # Daily "At 00:00" UTC
   workflow_dispatch:
 
 concurrency:
