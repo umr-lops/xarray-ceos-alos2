@@ -9,14 +9,39 @@ dependencies = [
   "python-dateutil",
   "xarray",
   "xarray-datatree",
+  "numpy",
   "construct>=2.10",
   "fsspec",
   "exceptiongroup; python_version < '3.11'",
 ]
+keywords = [
+  "xarray",
+  "earth-observation",
+  "remote-sensing",
+  "satellite-imagery",
+  "ceos",
+  "alos2",
+  "sar",
+  "synthetic-aperture-radar",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+]
 dynamic = ["version"]
 
 [project.urls]
+homepage = "https://xarray-ceos-alos2.readthedocs.io"
+documentation = "https://xarray-ceos-alos2.readthedocs.io"
 repository = "https://github.com/umr-lops/xarray-ceos-alos2"
+changelog = "https://xarray-ceos-alos2.readthedocs.io/en/latest/changelog.html"
 
 [project.scripts]
 ceos-alos2-create-cache = "ceos_alos2.sar_image.cli:main"
@@ -42,9 +67,6 @@ known_first_party = "ceos_alos2"
 line-length = 100
 
 [tool.coverage.run]
-omit = [
-  "*/ceos_alos2/tests/*",
-]
 source = ["ceos_alos2"]
 branch = true
 
