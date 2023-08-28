@@ -12,6 +12,7 @@ dependencies = [
   "numpy",
   "construct>=2.10",
   "fsspec",
+  "platformdirs",
   "exceptiongroup; python_version < '3.11'",
 ]
 keywords = [
