@@ -1,6 +1,10 @@
 # Changelog
 
-## 2023.08.1 (_unreleased_)
+## 2023.08.2 (_unreleased_)
+
+- explicitly add `platformdirs` to the dependencies (:pull:`57`)
+
+## 2023.08.1 (28 Aug 2023)
 
 - add documentation (:pull:`51`)
 - expose the script (:pull:`53`)
