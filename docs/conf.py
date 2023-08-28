@@ -34,8 +34,8 @@ extensions = [
 ]
 
 extlinks = {
-    "issue": ("https://github.com/umr-lops/xarray-alos2/issues/%s", "GH%s"),
-    "pull": ("https://github.com/umr-lops/xarray-alos2/pull/%s", "PR%s"),
+    "issue": ("https://github.com/umr-lops/xarray-ceos-alos2/issues/%s", "GH%s"),
+    "pull": ("https://github.com/umr-lops/xarray-ceos-alos2/pull/%s", "PR%s"),
 }
 
 # Add any paths that contain templates here, relative to this directory.
