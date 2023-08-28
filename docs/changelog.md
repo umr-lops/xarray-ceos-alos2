@@ -1,6 +1,6 @@
 # Changelog
 
-## 2023.08.2 (_unreleased_)
+## 2023.08.2 (28 Aug 2023)
 
 - explicitly add `platformdirs` to the dependencies ({pull}`57`)
 
