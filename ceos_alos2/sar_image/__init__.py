@@ -36,7 +36,7 @@ def open_image(mapper, path, *, use_cache=True, create_cache=False, records_per_
 
     group["data"] = Variable(
         dims=["rows", "columns"],
-        data=Array(fs=fs, path=path, records_per_chunk=records_per_chunk, **array_metadata),
+        data=Array(fs=fs, url=path, records_per_chunk=records_per_chunk, **array_metadata),
         attrs={},
     )
     group.path = filename_to_groupname(path)

@@ -64,20 +64,12 @@ def decode_coords(ds):
 
 def to_dataset(group, chunks=None):
     variables = {name: to_variable(var) for name, var in group.variables.items()}
-    backend_ds = xr.Dataset(variables, attrs=group.attrs).pipe(decode_coords)
+    ds = xr.Dataset(variables, attrs=group.attrs).pipe(decode_coords)
+    if chunks is None:
+        return ds
 
-    return xr.backends.api._dataset_from_backend_dataset(
-        backend_ds,
-        group.url,
-        engine="ceos-alos2",
-        chunks=chunks,
-        overwrite_encoded_chunks=None,
-        inline_array=True,
-        chunked_array_type="dask",
-        from_array_kwargs={},
-        drop_variables=None,
-        cache=chunks is None,
-    )
+    filtered_chunks = {dim: size for dim, size in chunks.items() if dim in ds.dims}
+    return ds.chunk(filtered_chunks)
 
 
 def to_datatree(group, chunks=None):
