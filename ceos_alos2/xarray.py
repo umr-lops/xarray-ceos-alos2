@@ -68,7 +68,8 @@ def to_dataset(group, chunks=None):
     if chunks is None:
         return ds
 
-    return ds
+    filtered_chunks = {dim: size for dim, size in chunks.items() if dim in ds.dims}
+    return ds.chunk(filtered_chunks)
 
 
 def to_datatree(group, chunks=None):
