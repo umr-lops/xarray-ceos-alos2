@@ -39,4 +39,10 @@ def open(path, *, storage_options={}, create_cache=False, use_cache=True, record
     # read sar trailer
     subgroups = {"summary": summary, "metadata": sar_leader, "imagery": imagery}
 
-    return Group(path="/", data=subgroups, url=mapper.root, attrs=volume_directory.attrs)
+    attrs = {
+        "reference_document": (
+            "https://www.eorc.jaxa.jp/ALOS-2/en/doc/fdata/PALSAR-2_xx_Format_CEOS_E_f.pdf"
+        )
+    }
+
+    return Group(path="/", data=subgroups, url=mapper.root, attrs=volume_directory.attrs | attrs)
