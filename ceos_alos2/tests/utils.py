@@ -18,7 +18,7 @@ def create_dummy_array(
         byte_ranges = [(x * 10 + 5, (x + 1) * 10) for x in range(shape[0])]
 
     fs = fsspec.filesystem(protocol)
-    dirfs = fsspec.filesystem("dir", fs=fs, path=path)
+    dirfs = fsspec.filesystem("dir", path=path, fs=fs)
 
     return Array(
         fs=dirfs,
