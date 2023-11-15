@@ -22,12 +22,9 @@ def open_image(mapper, path, *, use_cache=True, create_cache=False, records_per_
         except CachingError:
             pass
 
-    try:
-        fs = mapper.dirfs
-    except AttributeError:
-        from fsspec.implementations.dirfs import DirFileSystem
+    from fsspec.implementations.dirfs import DirFileSystem
 
-        fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
+    fs = DirFileSystem(path=mapper.root, fs=mapper.fs)
 
     with fs.open(path, mode="rb") as f:
         header, metadata = read_metadata(f, records_per_chunk)

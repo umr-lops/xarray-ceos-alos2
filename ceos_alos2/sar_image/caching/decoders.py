@@ -34,12 +34,9 @@ def decode_array(encoded, records_per_chunk):
         return decoder(encoded)
 
     mapper = fsspec.get_mapper(encoded["root"])
-    try:
-        fs = mapper.dirfs
-    except AttributeError:
-        from fsspec.implementations.dirfs import DirFileSystem
+    from fsspec.implementations.dirfs import DirFileSystem
 
-        fs = DirFileSystem(fs=mapper.fs, path=mapper.root)
+    fs = DirFileSystem(path=mapper.root, fs=mapper.fs)
 
     type_code = encoded["type_code"]
     url = encoded["url"]
