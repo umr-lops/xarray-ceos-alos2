@@ -56,9 +56,11 @@ def read_metadata(f, records_per_chunk=1024):
 
     n_chunks = math.ceil(n_records / records_per_chunk)
     chunksizes = [
-        records_per_chunk
-        if records_per_chunk * (index + 1) <= n_records
-        else n_records - records_per_chunk * index
+        (
+            records_per_chunk
+            if records_per_chunk * (index + 1) <= n_records
+            else n_records - records_per_chunk * index
+        )
         for index in range(n_chunks)
     ]
     chunk_offsets = [
