@@ -1,6 +1,6 @@
 # xarray-ceos-alos2
 
-`xarray-ceos-alos2` allows reading CEOS ALOS2 datasets (for now, level 1.1, 1.5, and 3.1 only) into [datatree](https://github.com/xarray-contrib/datatree) objects.
+`xarray-ceos-alos2` allows reading CEOS ALOS2 datasets (for now, level 1.1, 1.5, and 3.1 only) into {py:class}`xarray.DataTree` objects.
 
 **Contents**:
 

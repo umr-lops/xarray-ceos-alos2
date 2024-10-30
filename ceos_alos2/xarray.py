@@ -1,4 +1,3 @@
-import datatree
 import numpy as np
 import numpy.typing
 import xarray as xr
@@ -76,7 +75,7 @@ def to_datatree(group, chunks=None):
     mapping = {"/": to_dataset(group, chunks=chunks)} | {
         path: to_dataset(subgroup, chunks=chunks) for path, subgroup in group.subtree
     }
-    return datatree.DataTree.from_dict(mapping)
+    return xr.DataTree.from_dict(mapping)
 
 
 def open_alos2(path, chunks=None, backend_options={}):
@@ -107,7 +106,7 @@ def open_alos2(path, chunks=None, backend_options={}):
 
     Returns
     -------
-    tree : datatree.DataTree
+    tree : xarray.DataTree
         The newly created datatree.
     """
     root = io.open(path, **backend_options)
