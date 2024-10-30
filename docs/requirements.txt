@@ -8,6 +8,5 @@ cytoolz
 python-dateutil
 construct
 fsspec
-xarray
-xarray-datatree
+xarray>=2024.10.0
 platformdirs
