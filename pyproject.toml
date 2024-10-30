@@ -1,7 +1,7 @@
 [project]
 name = "xarray-ceos-alos2"
 requires-python = ">= 3.10"
-license = {text = "MIT"}
+license = { text = "MIT" }
 description = "xarray reader for advanced land observing satellite 2 (ALOS2) CEOS files"
 readme = "README.md"
 dependencies = [
@@ -64,44 +64,31 @@ line-length = 100
 [tool.ruff]
 target-version = "py310"
 builtins = ["ellipsis"]
-exclude = [
-    ".git",
-    ".eggs",
-    "build",
-    "dist",
-    "__pycache__",
-]
+exclude = [".git", ".eggs", "build", "dist", "__pycache__"]
 line-length = 100
 
 [tool.ruff.lint]
-# E402: module level import not at top of file
-# E501: line too long - let black worry about that
-# E731: do not assign a lambda expression, use a def
 ignore = [
-    "E402",
-    "E501",
-    "E731",
+  "E402", # module level import not at top of file
+  "E501", # line too long - let black worry about that
+  "E731", # do not assign a lambda expression, use a def
 ]
 select = [
-    "F",  # Pyflakes
-    "E",  # Pycodestyle
-    "I",  # isort
-    "UP", # Pyupgrade
-    "TID", # flake8-tidy-imports
-    "W",
+  "F",   # Pyflakes
+  "E",   # Pycodestyle
+  "I",   # isort
+  "UP",  # Pyupgrade
+  "TID", # flake8-tidy-imports
+  "W",
 ]
 extend-safe-fixes = [
-    "TID252", # absolute imports
+  "TID252", # absolute imports
 ]
 fixable = ["I", "TID252"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["ceos_alos2"]
-known-third-party=[
-    "xarray",
-    "toolz",
-    "construct",
-]
+known-third-party = ["xarray", "toolz", "construct"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 # Disallow all relative imports.
