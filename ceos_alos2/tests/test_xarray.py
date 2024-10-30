@@ -1,5 +1,3 @@
-import datatree
-import datatree.testing
 import numpy as np
 import pytest
 import xarray as xr
@@ -168,7 +166,7 @@ def test_to_dataset(group, chunks, expected):
                 },
                 attrs={"coordinates": ["d"]},
             ),
-            datatree.DataTree.from_dict(
+            xr.DataTree.from_dict(
                 {
                     "/": xr.Dataset(
                         {"c": ("x", [1, 2, 3], {"a": 1})},
@@ -193,7 +191,7 @@ def test_to_dataset(group, chunks, expected):
                 },
                 attrs={},
             ),
-            datatree.DataTree.from_dict(
+            xr.DataTree.from_dict(
                 {
                     "/": xr.Dataset({"c": ("x", [1, 2, 3], {"a": 1})}),
                     "d": xr.Dataset({"e": (["x", "y"], np.arange(12).reshape(3, 4), {"b": "abc"})}),
@@ -206,4 +204,4 @@ def test_to_dataset(group, chunks, expected):
 def test_to_datatree(group, chunks, expected):
     actual = xarray.to_datatree(group, chunks=chunks)
 
-    datatree.testing.assert_identical(actual, expected)
+    xr.testing.assert_identical(actual, expected)
