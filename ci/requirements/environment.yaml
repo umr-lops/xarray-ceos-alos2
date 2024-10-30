@@ -13,7 +13,7 @@ dependencies:
   - python-dateutil
   - construct
   - fsspec
-  - xarray
+  - xarray>=2024.10.0
   - dask
   - distributed
   - aiohttp
