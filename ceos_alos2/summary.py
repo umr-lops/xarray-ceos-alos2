@@ -1,9 +1,8 @@
 import re
 
 from tlz.dicttoolz import dissoc, keyfilter, keymap, merge, valmap
-from tlz.functoolz import compose_left, curry
+from tlz.functoolz import compose_left, curry, pipe
 from tlz.functoolz import identity as passthrough
-from tlz.functoolz import pipe
 from tlz.itertoolz import first, get, groupby, second
 
 from ceos_alos2 import decoders

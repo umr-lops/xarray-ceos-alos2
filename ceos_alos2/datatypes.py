@@ -1,8 +1,7 @@
 import datetime
 
-from construct import Adapter
+from construct import Adapter, Struct
 from construct import PaddedString as PaddedString_
-from construct import Struct
 
 
 class AsciiInteger(Adapter):
