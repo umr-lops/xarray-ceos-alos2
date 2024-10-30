@@ -22,7 +22,7 @@ repos:
         additional_dependencies: ["black==24.10.0"]
       - id: blackdoc-autoupdate-black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 0.0.0
+    rev: v0.7.1
     hooks:
       - id: ruff
         args: [--fix]
@@ -32,6 +32,6 @@ repos:
       - id: nbstripout
         args: [--extra-keys=metadata.kernelspec metadata.language_info.version]
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.0.0
+    rev: v3.3.3
     hooks:
       - id: prettier
