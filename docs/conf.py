@@ -65,7 +65,6 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/stable/", None),
     "xarray": ("https://docs.xarray.dev/en/latest/", None),
-    "datatree": ("https://xarray-datatree.readthedocs.io/en/latest/", None),
 }
 
 

@@ -1,6 +1,6 @@
 # xarray-ceos-alos2
 
-Read ALOS2 CEOS files into `datatree` objects.
+Read ALOS2 CEOS files into `xarray.DataTree` objects.
 
 ## Installation
 
