@@ -910,7 +910,7 @@ class TestHighLevel:
             if self.name == "image2.index":
                 return data
             else:
-                raise IOError
+                raise OSError
 
         monkeypatch.setattr(Path, "is_file", fake_is_file)
         monkeypatch.setattr(Path, "read_text", fake_read_text)

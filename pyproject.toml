@@ -69,9 +69,10 @@ line-length = 100
 
 [tool.ruff.lint]
 ignore = [
-  "E402", # module level import not at top of file
-  "E501", # line too long - let black worry about that
-  "E731", # do not assign a lambda expression, use a def
+  "E402",  # module level import not at top of file
+  "E501",  # line too long - let black worry about that
+  "E731",  # do not assign a lambda expression, use a def
+  "UP038", # type union instead of tuple for isinstance etc
 ]
 select = [
   "F",   # Pyflakes
@@ -83,6 +84,7 @@ select = [
 ]
 extend-safe-fixes = [
   "TID252", # absolute imports
+  "UP031",  # percent string interpolation
 ]
 fixable = ["I", "TID252", "UP"]
 
