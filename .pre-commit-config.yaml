@@ -11,16 +11,6 @@ repos:
       - id: check-docstring-first
       - id: check-yaml
       - id: check-toml
-  - repo: https://github.com/MarcoGorelli/absolufy-imports
-    rev: v0.3.1
-    hooks:
-      - id: absolufy-imports
-        name: absolufy-imports
-        files: ^ceos_alos2/
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
   - repo: https://github.com/psf/black
     rev: 24.10.0
     hooks:
@@ -31,10 +21,11 @@ repos:
       - id: blackdoc
         additional_dependencies: ["black==24.10.0"]
       - id: blackdoc-autoupdate-black
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 0.0.0
     hooks:
-      - id: flake8
+      - id: ruff
+        args: [--fix]
   - repo: https://github.com/kynan/nbstripout
     rev: 0.7.1
     hooks:
