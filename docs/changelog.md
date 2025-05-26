@@ -1,6 +1,6 @@
 # Changelog
 
-## 2025.05.0 (_unreleased_)
+## 2025.05.0 (26 May 2025)
 
 - support `python=3.13` ({pull}`99`)
 - don't decode facility-related data records 1-4 ({pull}`98`)
