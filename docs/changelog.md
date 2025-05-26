@@ -1,5 +1,9 @@
 # Changelog
 
+## 2025.05.0 (_unreleased_)
+
+- support `python=3.13` ({pull}`99`)
+
 ## 2024.10.0 (30 Oct 2024)
 
 - migrate to {py:class}`xarray.DataTree` ({pull}`81`)
