@@ -53,7 +53,15 @@ requires = ["setuptools>=64.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["ceos_alos2"]
+packages = [
+  "ceos_alos2",
+  "ceos_alos2.sar_image",
+  "ceos_alos2.sar_image.caching",
+  "ceos_alos2.sar_leader",
+  "ceos_alos2.sar_trailer",
+  "ceos_alos2.tests",
+  "ceos_alos2.volume_directory",
+]
 
 [tool.setuptools_scm]
 fallback_version = "999"
