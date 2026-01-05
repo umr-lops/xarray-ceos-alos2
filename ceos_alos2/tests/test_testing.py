@@ -286,7 +286,6 @@ def test_compare_data(left, right, expected):
 )
 def test_diff_array(left, right, expected):
     actual = testing.diff_array(left, right)
-
     assert actual == expected
 
 
