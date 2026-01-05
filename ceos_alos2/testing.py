@@ -137,11 +137,13 @@ def compare_data(a, b):
     else:
         return a.shape == b.shape and np.all(a == b)
 
+
 def extract_fs_protocol(fs):
     protocol = fs.protocol
     if isinstance(protocol, tuple):
         protocol, *_ = protocol
     return protocol
+
 
 def diff_array(a, b):
     if not isinstance(a, Array):
