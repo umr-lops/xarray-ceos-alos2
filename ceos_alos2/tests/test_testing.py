@@ -194,7 +194,7 @@ def test_compare_data(left, right, expected):
             "\n".join(
                 [
                     "Differing filesystem:",
-                    "  L protocol  ('http', 'https')",
+                    "  L protocol  http",
                     "  R protocol  memory",
                 ]
             ),

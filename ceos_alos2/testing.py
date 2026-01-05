@@ -137,6 +137,11 @@ def compare_data(a, b):
     else:
         return a.shape == b.shape and np.all(a == b)
 
+def extract_fs_protocol(fs):
+    protocol = fs.protocol
+    if isinstance(protocol, tuple):
+        protocol, *_ = protocol
+    return protocol
 
 def diff_array(a, b):
     if not isinstance(a, Array):
@@ -151,9 +156,11 @@ def diff_array(a, b):
     if a.fs != b.fs:
         lines = ["Differing filesystem:"]
         # fs.protocol is always `dir`, so we have to check the wrapped fs
-        if a.fs.fs.protocol != b.fs.fs.protocol:
-            lines.append(f"  L protocol  {a.fs.fs.protocol}")
-            lines.append(f"  R protocol  {b.fs.fs.protocol}")
+        protocol_a = extract_fs_protocol(a.fs.fs)
+        protocol_b = extract_fs_protocol(b.fs.fs)
+        if protocol_a != protocol_b:
+            lines.append(f"  L protocol  {protocol_a}")
+            lines.append(f"  R protocol  {protocol_b}")
         if a.fs.path != b.fs.path:
             lines.append(f"  L path  {a.fs.path}")
             lines.append(f"  R path  {b.fs.path}")
