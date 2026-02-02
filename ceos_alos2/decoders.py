@@ -7,39 +7,31 @@ from tlz.functoolz import identity as passthrough
 
 from ceos_alos2.dicttoolz import valsplit
 
-scene_id_re = re.compile(
-    r"""(?x)
+scene_id_re = re.compile(r"""(?x)
     (?P<mission_name>[A-Z0-9]{5})
     (?P<orbit_accumulation>[0-9]{5})
     (?P<scene_frame>[0-9]{4})
     -(?P<date>[0-9]{6})
-    """
-)
-product_id_re = re.compile(
-    r"""(?x)
+    """)
+product_id_re = re.compile(r"""(?x)
     (?P<observation_mode>[A-Z]{3})
     (?P<observation_direction>[LR])
     (?P<processing_level>1\.0|1\.1|1\.5|3\.1)
     (?P<processing_option>[GR_])
     (?P<map_projection>[UL_])
     (?P<orbit_direction>[AD])
-    """
-)
-scan_info_re = re.compile(
-    r"""(?x)
+    """)
+scan_info_re = re.compile(r"""(?x)
     (?P<processing_method>[BF])
     (?P<scan_number>[0-9])
-    """
-)
-fname_re = re.compile(
-    r"""(?x)
+    """)
+fname_re = re.compile(r"""(?x)
     (?P<filetype>[A-Z]{3})
     (-(?P<polarization>[HV]{2}))?
     -(?P<scene_id>[A-Z0-9]{14}-[0-9]{6})
     -(?P<product_id>[A-Z0-9._]{10})
     (-(?P<scan_info>[BF][0-9]))?
-    """
-)
+    """)
 
 observation_modes = {
     "SBS": "spotlight mode",

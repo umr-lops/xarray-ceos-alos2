@@ -119,13 +119,11 @@ def diff_mapping(a, b, name):
 
 
 def diff_scalar(a, b, name):
-    return textwrap.dedent(
-        f"""\
+    return textwrap.dedent(f"""\
         Differing {name.title()}:
         L  {a}
         R  {b}
-        """.rstrip()
-    )
+        """.rstrip())
 
 
 def compare_data(a, b):
