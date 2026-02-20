@@ -1,3 +1,4 @@
+import fsspec
 import numpy as np
 import pytest
 
@@ -191,12 +192,22 @@ def test_compare_data(left, right, expected):
         pytest.param(
             create_dummy_array(protocol="http"),
             create_dummy_array(protocol="memory"),
-            "\n".join(
-                [
-                    "Differing filesystem:",
-                    "  L protocol  http",
-                    "  R protocol  memory",
-                ]
+            (
+                "\n".join(
+                    [
+                        "Differing filesystem:",
+                        "  L protocol  'http'",
+                        "  R protocol  memory",
+                    ]
+                )
+                if fsspec.__version__ < "2025.10.0"
+                else "\n".join(
+                    [
+                        "Differing filesystem:",
+                        "  L protocol  ('http', 'https')",
+                        "  R protocol  memory",
+                    ]
+                )
             ),
             id="array-fs-protocol",
         ),
