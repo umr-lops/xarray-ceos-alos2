@@ -13,8 +13,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  write: issue
+permissions: {}
 
 jobs:
   detect-test-upstream-trigger:
