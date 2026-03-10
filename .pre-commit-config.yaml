@@ -23,12 +23,13 @@ repos:
     rev: v0.15.4
     hooks:
       - id: ruff
-        args: [--fix]
+        args: ["--fix"]
   - repo: https://github.com/kynan/nbstripout
     rev: 0.9.1
     hooks:
       - id: nbstripout
-        args: [--extra-keys=metadata.kernelspec metadata.language_info.version]
+        args:
+          - "--extra-keys=metadata.kernelspec metadata.language_info.version"
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: v3.8.1
     hooks:
@@ -38,4 +39,4 @@ repos:
     hooks:
       - id: taplo-format
       - id: taplo-lint
-        args: [--no-schema]
+        args: ["--no-schema"]
