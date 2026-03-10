@@ -40,3 +40,7 @@ repos:
       - id: taplo-format
       - id: taplo-lint
         args: ["--no-schema"]
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.23.1
+    hooks:
+      - id: zizmor
