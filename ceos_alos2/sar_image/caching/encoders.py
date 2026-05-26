@@ -25,7 +25,7 @@ def encode_array(obj):
     # If obj is a list or lacks a dtype, convert to numpy array
     if isinstance(obj, list):
         obj = np.array(obj)
-    elif not hasattr(obj, 'dtype'):
+    elif not hasattr(obj, "dtype"):
         # Attempt conversion for other types (e.g., tuple, scalar)
         try:
             obj = np.array(obj)
