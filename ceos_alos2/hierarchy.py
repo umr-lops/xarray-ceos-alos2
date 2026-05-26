@@ -11,9 +11,6 @@ from tlz.dicttoolz import valfilter
 from ceos_alos2.array import Array
 
 
-
-
-
 @dataclass(frozen=True)
 class Variable:
     dims: str | list[str]
@@ -43,7 +40,7 @@ class Variable:
             return self.data == other.data
         else:
             return np.all(self.data == other.data)
-        
+
     @staticmethod
     def _infer_dtype(data):
         if not data:
