@@ -53,8 +53,7 @@ class Variable:
         elif isinstance(first, str):
             # Use fixed-length string to avoid object dtype
             # CEOS strings are usually ASCII, e.g., 'ALOS-2''
-            max_len = max(len(str(x)) for x in data)
-            return f"S{max_len}"  # or 'U' for unicode
+            return np.dtypes.StrDType
         else:
             return None  # let numpy infer
 
