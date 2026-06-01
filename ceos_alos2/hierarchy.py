@@ -11,6 +11,23 @@ from tlz.dicttoolz import valfilter
 from ceos_alos2.array import Array
 
 
+def _infer_dtype(data):
+    # If obj is a list or lacks a dtype, convert to numpy array
+    if not data:
+        return None
+    first = data[0]
+    if isinstance(first, int):
+        return np.int64  # consistent across platforms
+    elif isinstance(first, float):
+        return np.float64
+    elif isinstance(first, str):
+        # Use fixed-length string to avoid object dtype
+        # CEOS strings are usually ASCII, e.g., 'ALOS-2''
+        return np.dtypes.StrDType
+    else:
+        return None  # let numpy infer
+
+
 @dataclass(frozen=True)
 class Variable:
     dims: str | list[str]
@@ -23,7 +40,7 @@ class Variable:
             super().__setattr__("dims", [self.dims])
         if isinstance(self.data, list):
             # Infer dtype more carefully, or force appropriate dtype
-            super().__setattr__("data", np.array(self.data, dtype=self._infer_dtype(self.data)))
+            super().__setattr__("data", np.array(self.data, dtype=_infer_dtype(self.data)))
 
     def __eq__(self, other):
         if not isinstance(other, Variable):
@@ -40,22 +57,6 @@ class Variable:
             return self.data == other.data
         else:
             return np.all(self.data == other.data)
-
-    @staticmethod
-    def _infer_dtype(data):
-        if not data:
-            return None
-        first = data[0]
-        if isinstance(first, int):
-            return np.int64  # consistent across platforms
-        elif isinstance(first, float):
-            return np.float64
-        elif isinstance(first, str):
-            # Use fixed-length string to avoid object dtype
-            # CEOS strings are usually ASCII, e.g., 'ALOS-2''
-            return np.dtypes.StrDType
-        else:
-            return None  # let numpy infer
 
     @property
     def ndim(self):
