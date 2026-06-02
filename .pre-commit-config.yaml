@@ -10,17 +10,17 @@ repos:
       - id: end-of-file-fixer
       - id: check-docstring-first
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
+    rev: 26.5.1
     hooks:
       - id: black
   - repo: https://github.com/keewis/blackdoc
     rev: v0.4.6
     hooks:
       - id: blackdoc
-        additional_dependencies: ["black==26.3.1"]
+        additional_dependencies: ["black==26.5.1"]
       - id: blackdoc-autoupdate-black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.15
     hooks:
       - id: ruff-check
         args: ["--fix"]
@@ -41,6 +41,6 @@ repos:
       - id: taplo-lint
         args: ["--no-schema"]
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.24.1
+    rev: v1.25.2
     hooks:
       - id: zizmor
