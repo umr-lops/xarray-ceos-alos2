@@ -47,7 +47,7 @@ changelog = "https://xarray-ceos-alos2.readthedocs.io/en/latest/changelog.html"
 ceos-alos2-create-cache = "ceos_alos2.sar_image.cli:main"
 
 [build-system]
-requires = ["setuptools>=64.0", "setuptools-scm"]
+requires = ["setuptools>=80.0", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
