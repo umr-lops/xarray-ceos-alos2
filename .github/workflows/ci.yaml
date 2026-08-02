@@ -35,7 +35,7 @@ jobs:
           keyword: "[skip-ci]"
 
   ci:
-    name: ${{ matrix.os }} py${{ matrix.python-version }}
+    name: ${{ matrix.os }} ${{ matrix.env }}
     runs-on: ${{ matrix.os }}
     needs: detect-skip-ci-trigger
 
