@@ -21,3 +21,4 @@ __pycache__/
 /docs/_build/
 /docs/generated/
 /docs/warnings.log
+__marimo__/
