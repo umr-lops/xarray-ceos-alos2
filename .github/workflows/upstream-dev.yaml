@@ -70,7 +70,7 @@ jobs:
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
-          cache: true
+          cache: false
           environments: ${{ matrix.env }}
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
