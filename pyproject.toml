@@ -1,6 +1,6 @@
 [project]
 name = "xarray-ceos-alos2"
-requires-python = ">= 3.10"
+requires-python = ">= 3.11"
 license = "MIT"
 description = "xarray reader for advanced land observing satellite 2 (ALOS2) CEOS files"
 readme = "README.md"
@@ -29,7 +29,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -61,7 +60,7 @@ fallback_version = "999"
 line-length = 100
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 builtins = ["ellipsis"]
 exclude = [".git", ".eggs", "build", "dist", "__pycache__"]
 line-length = 100
