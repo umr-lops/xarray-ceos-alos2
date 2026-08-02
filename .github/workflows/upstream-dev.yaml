@@ -73,6 +73,7 @@ jobs:
           cache: false
           environments: ${{ matrix.env }}
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+          manifest-path: ci/nightly
 
       - name: Run tests
         run: |
