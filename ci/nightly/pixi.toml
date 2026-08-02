@@ -42,4 +42,4 @@ tests = { cmd = "pytest --cov=ceos_alos2", cwd = "../.." }
 python = "3.14.*"
 
 [environments]
-test-py314 = { features = ["tests", "py314"] }
+test-nightly = { features = ["tests", "py314"] }
