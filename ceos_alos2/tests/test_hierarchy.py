@@ -12,8 +12,9 @@ class TestVariable:
         ["dims", "data"],
         (
             pytest.param("x", np.arange(5), id="str-1d"),
-            pytest.param(["x"], np.arange(5), id="list-1d"),
-            pytest.param(["x", "y"], np.arange(6).reshape(3, 2), id="list-2d"),
+            pytest.param("x", [1, 2, 3, 4, 5], id="list-1d"),
+            pytest.param(["x"], np.arange(5), id="array-1d"),
+            pytest.param(["x", "y"], np.arange(6).reshape(3, 2), id="array-2d"),
         ),
     )
     @pytest.mark.parametrize(
@@ -30,7 +31,7 @@ class TestVariable:
             dims = [dims]
 
         assert var.dims == dims
-        assert type(var.data) is type(data) and np.all(var.data == data)
+        assert type(var.data) is np.ndarray and np.all(var.data == data)
         assert var.attrs == attrs
 
     @pytest.mark.parametrize(
