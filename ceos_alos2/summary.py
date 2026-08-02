@@ -74,7 +74,13 @@ def parse_summary(content):
 
 def categorize_filenames(mapping):
     filenames = list(mapping.values())
-    volume_directory, leader, *imagery, trailer = filenames
+    try:
+        volume_directory, leader, *imagery, trailer = filenames
+    except ValueError as e:
+        raise ValueError(
+            f"invalid number of filenames: expected at least 3, got {len(filenames)}"
+        ) from e
+
     return {
         "volume_directory": volume_directory,
         "sar_leader": leader,

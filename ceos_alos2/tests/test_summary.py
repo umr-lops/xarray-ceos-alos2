@@ -105,7 +105,11 @@ def test_parse_summary(content, expected):
             },
             id="long",
         ),
-        pytest.param({"1": "vd", "2": "l"}, ValueError(""), id="short"),
+        pytest.param(
+            {"1": "vd", "2": "l"},
+            ValueError("invalid number of filenames: expected at least 3, got 2"),
+            id="short",
+        ),
     ),
 )
 def test_categorize_filenames(mapping, expected):
