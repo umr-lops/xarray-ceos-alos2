@@ -30,7 +30,7 @@ class TestVariable:
             dims = [dims]
 
         assert var.dims == dims
-        assert type(var.data) is type(data) and np.all(var.data == data)
+        assert type(var.data) is np.ndarray and np.all(var.data == data)
         assert var.attrs == attrs
 
     @pytest.mark.parametrize(
