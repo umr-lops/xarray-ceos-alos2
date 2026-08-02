@@ -1,0 +1,60 @@
+[workspace]
+channels = ["conda-forge"]
+name = "xarray-ceos-alos2"
+platforms = ["linux-64", "osx-arm64", "win-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[package]
+name = "xarray-ceos-alos2"
+version = "9999.0.0"
+
+[package.build]
+backend = { name = "pixi-build-python", version = ">=0.4.4" }
+
+[package.host-dependencies]
+setuptools = ">=80"
+setuptools-scm = ">=8"
+
+[package.run-dependencies]
+python = ">=3.11"
+toolz = "*"
+python-dateutil = "*"
+xarray = "*"
+numpy = "*"
+construct = ">=2.10"
+fsspec = "*"
+platformdirs = "*"
+
+[tasks]
+
+[dependencies]
+xarray-ceos-alos2 = { path = "." }
+cytoolz = "*"
+requests = ">=2.34.2,<3"
+aiohttp = ">=3.14.3,<4"
+
+[pypi-dependencies]
+dask-array = "*"
+
+[feature.tests.dependencies]
+pytest = "*"
+pytest-cov = "*"
+
+[feature.tests.tasks]
+tests = "pytest --cov=ceos_alos2"
+
+[feature.py314.dependencies]
+python = "3.14.*"
+
+[feature.py311.dependencies]
+python = "3.11.*"
+
+[feature.dev.dependencies]
+marimo = "*"
+wigglystuff = "*"
+
+[environments]
+test-py314 = ["tests", "py314"]
+test-py311 = ["tests", "py311"]
+default = ["tests", "dev", "py314"]

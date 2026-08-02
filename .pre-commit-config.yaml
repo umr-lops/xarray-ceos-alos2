@@ -34,6 +34,7 @@ repos:
     rev: v3.9.4
     hooks:
       - id: prettier
+        exclude: "pixi.lock"
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
     hooks:
