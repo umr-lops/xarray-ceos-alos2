@@ -66,8 +66,6 @@ jobs:
         run: |
           echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-          echo "CONDA_ENV_FILE=ci/requirements/environment.yaml" >> $GITHUB_ENV
-
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
