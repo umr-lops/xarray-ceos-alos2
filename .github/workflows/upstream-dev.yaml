@@ -54,10 +54,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13"]
+        env: ["test-nightly"]
 
-    permissions:
-      issues: write
+    env:
+      PIXI_ENV: ${{ matrix.env }}
 
     steps:
       - name: checkout the repository
@@ -67,40 +67,46 @@ jobs:
           fetch-depth: 0 # fetch all branches and tags
           persist-credentials: false
 
-      - name: set up conda environment
-        uses: mamba-org/setup-micromamba@ce51e99f4bb8a82ab7158c4dc59ef4634c59c4f9 # v3.1.0
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
-          environment-file: ci/requirements/environment.yaml
-          environment-name: tests
-          create-args: >-
-            python=${{ matrix.python-version }}
-            pytest-reportlog
-            conda
+          cache: true
+          environments: ${{ matrix.env }}
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
 
-      - name: install upstream-dev dependencies
-        run: bash ci/install-upstream-dev.sh
-
-      - name: install the package
-        run: python -m pip install --no-deps -e .
-
-      - name: show versions
-        run: python -m pip list
-
-      - name: import
+      - name: Run tests
         run: |
-          python -c 'import ceos_alos2'
+          pixi run \
+            --manifest-path ci/nightly \
+            -e "$PIXI_ENV" \
+            --frozen \
+            -- \
+            python -m pytest --cov=ceos_alos2 -rf --report-log=pytest-log.jsonl
 
-      - name: run tests
-        if: success()
-        id: status
-        run: |
-          python -m pytest -rf --report-log=pytest-log.jsonl
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: log file
+          path: pytest-log.jsonl
+
+  create-issue:
+    name: report failing upstream-dev runs
+    needs: upstream-dev
+    runs-on: ubuntu-latest
+    if: |
+      always()
+      && needs.upstream-dev.result == 'failure'
+      && github.event_name == 'schedule'
+
+    permissions:
+      issues: write # open or edit an issue for failed CI runs
+
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: log file
 
       - name: report failures
-        if: |
-          failure()
-          && steps.status.outcome == 'failure'
-          && github.event_name == 'schedule'
         uses: scientific-python/issue-from-pytest-log-action@054799b34bd75a5fd6c86277a4a8a575224e60c6 # v1.6.1
         with:
           log-path: pytest-log.jsonl

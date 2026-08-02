@@ -1,0 +1,45 @@
+[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+
+[dependencies]
+python = "*"
+platformdirs = "*"
+
+[pypi-options.dependency-overrides]
+numpy = { version = "*", index = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" }
+pandas = { version = "*", index = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" }
+xarray = { version = "*", index = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" }
+
+construct = { git = "https://github.com/construct/construct" }
+toolz = { git = "https://github.com/pytoolz/toolz" }
+fsspec = { git = "https://github.com/fsspec/filesystem_spec" }
+python-dateutil = { git = "https://github.com/dateutil/dateutil" }
+
+[pypi-dependencies]
+numpy = "*"
+pandas = "*"
+xarray = "*"
+construct = "*"
+toolz = "*"
+fsspec = "*"
+python-dateutil = "*"
+dask = "*"
+aiohttp = "*"
+requests = "*"
+
+[feature.tests.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pytest-reportlog = "*"
+
+[feature.tests.tasks]
+tests = { cmd = "pytest --cov=ceos_alos2", cwd = "../.." }
+
+[feature.py314.dependencies]
+python = "3.14.*"
+
+[environments]
+test-py314 = { features = ["tests", "py314"] }
