@@ -20,7 +20,7 @@ repos:
         additional_dependencies: ["black==26.5.1"]
       - id: blackdoc-autoupdate-black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.15.20
     hooks:
       - id: ruff-check
         args: ["--fix"]
@@ -31,7 +31,7 @@ repos:
         args:
           - "--extra-keys=metadata.kernelspec metadata.language_info.version"
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.8.3
+    rev: v3.9.4
     hooks:
       - id: prettier
   - repo: https://github.com/ComPWA/taplo-pre-commit
@@ -41,6 +41,6 @@ repos:
       - id: taplo-lint
         args: ["--no-schema"]
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.25.2
+    rev: v1.26.1
     hooks:
       - id: zizmor
